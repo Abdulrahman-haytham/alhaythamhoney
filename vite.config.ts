@@ -6,7 +6,7 @@ export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, '.', '');
     return {
       // تم إضافة اسم المستودع هنا ليعمل الموقع بشكل صحيح على GitHub Pages
-      base: "/alhaythamhoney/", 
+      base: "/", 
       
       server: {
         port: 3000,

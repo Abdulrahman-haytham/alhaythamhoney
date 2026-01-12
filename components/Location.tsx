@@ -66,7 +66,7 @@ export const Location: React.FC = () => {
           >
             <div className="absolute inset-0 bg-amber-500/5 group-hover:bg-transparent transition-colors pointer-events-none z-10"></div>
             <iframe 
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d13028.123456789!2d36.72!3d35.21!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMzXCsDEyJzM2LjAiTiAzNsKwNDMnMTIuMCJF!5e0!3m2!1sar!2s!4v1700000000000!5m2!1sar!2s&q=حماة+قمحانة+مسجد+بلال+الحبشي" 
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d13027.9!2d36.7169!3d35.2091!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x1523ff0a5f4b2bdf%3A0x1b6f3c9e4e5b7a21!2z2KfZhNmF2YTZhNin2YUg2YTYqtis2YjYp9mF2Kkg2YjZhdmI2YbZitip!5e0!3m2!1sar!2s!4v1736763600000"
               width="100%" 
               height="100%" 
               style={{ border: 0, filter: 'grayscale(1) invert(0.92) contrast(0.8)' }} 

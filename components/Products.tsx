@@ -39,7 +39,7 @@ const groups: ProductGroup[] = [
         name: "عسل الدردار",
         benefit: "طاقة وتنفس",
         desc: "طعم الطبيعة السورية الأصيل، رحيق نادر يجسد عراقة الأرض.",
-        image: "https://images.unsplash.com/photo-1555035336-54a2c0022394?auto=format&fit=crop&q=80&w=800"
+        image: "https://res.cloudinary.com/dkbvnupge/image/upload/v1768245563/my-app-uploads/bdtoimsuk9sjkirvpvbw.jpg"
       },
       {
         name: "عسل الجيجان",
@@ -60,20 +60,20 @@ const groups: ProductGroup[] = [
         name: "العكبر (Propolis)",
         benefit: "مضاد حيوي طبيعي",
         desc: "درع حماية فائق لمناعتك من قلب الخلية.",
-        image: "https://images.unsplash.com/photo-1510627489930-0c1b0ba996e9?auto=format&fit=crop&q=80&w=800"
+        image: "https://res.cloudinary.com/dkbvnupge/image/upload/v1768245473/my-app-uploads/ynkkzbdxrtsfvptrclle.jpg"
       },
       {
         name: "غذاء ملكات النحل",
         benefit: "إصدار فاخر",
         desc: "منبع الحيوية والنشاط الدائم، مركز طاقة نقي.",
-        image: "https://images.unsplash.com/photo-1621236378699-8597fac6bb4d?auto=format&fit=crop&q=80&w=800",
+        image: "https://res.cloudinary.com/dkbvnupge/image/upload/v1768244891/my-app-uploads/hydwzteebguygp6fg3ak.jpg",
         badge: "ملك الخلية"
       },
       {
         name: "غبار الطلع",
         benefit: "فيتامينات خام",
         desc: "مكمل غذائي متكامل لزيادة التركيز والطاقة.",
-        image: "https://images.unsplash.com/photo-1471943311424-646960669fba?auto=format&fit=crop&q=80&w=800"
+        image: "https://res.cloudinary.com/dkbvnupge/image/upload/v1768231434/my-app-uploads/yj1bi1wvcpcqlbcqodnv.jpg"
       }
     ]
   }

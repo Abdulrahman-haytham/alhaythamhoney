@@ -17,7 +17,7 @@ export const Story: React.FC = () => {
         >
           <div className="relative z-10 rounded-[3rem] overflow-hidden luxury-shadow border border-amber-500/10 aspect-square">
             <img 
-              src="https://images.unsplash.com/photo-1473973266408-ed4e27abdd47?auto=format&fit=crop&q=80&w=1200" 
+              src="https://res.cloudinary.com/dkbvnupge/image/upload/v1768231269/my-app-uploads/jo3ljfxuqemiwep7wjkc.jpg" 
               alt="The Legacy" 
               className="w-full h-full object-cover grayscale-[30%] hover:grayscale-0 transition-all duration-700"
             />
