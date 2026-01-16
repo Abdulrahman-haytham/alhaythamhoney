@@ -23,7 +23,7 @@ export const Quality: React.FC = () => {
   ];
 
   return (
-    <section id="quality" className="py-32 px-6 bg-zinc-900/20 relative overflow-hidden">
+    <section id="quality" className="py-16 sm:py-24 md:py-32 px-4 sm:px-6 bg-zinc-900/20 relative overflow-hidden">
       <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-amber-900/30 to-transparent"></div>
       
       <div className="container mx-auto">
@@ -31,15 +31,15 @@ export const Quality: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center mb-24"
+          className="text-center mb-12 sm:mb-16 md:mb-24"
         >
-          <span className="text-amber-500 font-bold mb-4 block tracking-[0.4em] uppercase text-xs italic">Quality Standards</span>
-          <h2 className="text-4xl md:text-5xl font-amiri font-bold mb-6">لماذا يثق بنا من جرّبنا؟</h2>
-          <p className="text-zinc-500 text-xl font-light">معايير لا نساوم عليها لأن صحتك هي أمانتنا</p>
-          <div className="w-24 h-1 bg-amber-500 mx-auto mt-8 rounded-full"></div>
+          <span className="text-amber-500 font-bold mb-3 md:mb-4 block tracking-[0.3em] sm:tracking-[0.4em] uppercase text-[10px] sm:text-xs italic">Quality Standards</span>
+          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-amiri font-bold mb-4 md:mb-6 px-2">معايير الجودة في الهيثم لنحل وعسل</h2>
+          <p className="text-zinc-500 text-base sm:text-lg md:text-xl font-light px-4">معايير لا نساوم عليها لأن صحتك هي أمانتنا</p>
+          <div className="w-20 sm:w-24 h-1 bg-amber-500 mx-auto mt-6 md:mt-8 rounded-full"></div>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-16">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 sm:gap-12 md:gap-16">
           {factors.map((f, idx) => (
             <motion.div 
               key={idx}
@@ -49,11 +49,11 @@ export const Quality: React.FC = () => {
               transition={{ delay: idx * 0.2 }}
               className="flex flex-col items-center text-center group"
             >
-              <div className="w-24 h-24 bg-zinc-950 rounded-[2.5rem] flex items-center justify-center mb-10 border border-amber-900/20 group-hover:border-amber-500/50 group-hover:-translate-y-2 transition-all duration-500 luxury-shadow">
-                {f.icon}
+              <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 bg-zinc-950 rounded-2xl sm:rounded-[2rem] md:rounded-[2.5rem] flex items-center justify-center mb-6 sm:mb-8 md:mb-10 border border-amber-900/20 group-hover:border-amber-500/50 group-hover:-translate-y-2 transition-all duration-500 luxury-shadow">
+                <div className="scale-75 sm:scale-90 md:scale-100">{f.icon}</div>
               </div>
-              <h3 className="text-2xl font-bold mb-6 group-hover:text-amber-500 transition-colors">{f.title}</h3>
-              <p className="text-zinc-400 leading-relaxed font-light text-lg">{f.desc}</p>
+              <h3 className="text-lg sm:text-xl md:text-2xl font-bold mb-4 sm:mb-5 md:mb-6 group-hover:text-amber-500 transition-colors">{f.title}</h3>
+              <p className="text-zinc-400 leading-relaxed font-light text-sm sm:text-base md:text-lg px-2">{f.desc}</p>
             </motion.div>
           ))}
         </div>

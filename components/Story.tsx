@@ -4,10 +4,10 @@ import { motion } from 'framer-motion';
 
 export const Story: React.FC = () => {
   return (
-    <section id="story" className="py-32 px-6 bg-zinc-950 relative overflow-hidden">
+    <section id="story" className="py-16 sm:py-24 md:py-32 px-4 sm:px-6 bg-zinc-950 relative overflow-hidden">
       <div className="absolute -right-40 top-40 w-[500px] h-[500px] bg-amber-600/5 blur-[120px] rounded-full"></div>
       
-      <div className="container mx-auto grid grid-cols-1 lg:grid-cols-2 gap-24 items-center">
+      <div className="container mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 sm:gap-16 md:gap-20 lg:gap-24 items-center">
         <motion.div 
           initial={{ opacity: 0, x: -50 }}
           whileInView={{ opacity: 1, x: 0 }}
@@ -15,10 +15,11 @@ export const Story: React.FC = () => {
           transition={{ duration: 1 }}
           className="relative"
         >
-          <div className="relative z-10 rounded-[3rem] overflow-hidden luxury-shadow border border-amber-500/10 aspect-square">
+          <div className="relative z-10 rounded-2xl sm:rounded-[2.5rem] md:rounded-[3rem] overflow-hidden luxury-shadow border border-amber-500/10 aspect-square">
             <img 
               src="https://res.cloudinary.com/dkbvnupge/image/upload/v1768231269/my-app-uploads/jo3ljfxuqemiwep7wjkc.jpg" 
-              alt="The Legacy" 
+              alt="الهيثم لنحل وعسل - إرث عائلي منذ 1997 في سوريا"
+              loading="lazy"
               className="w-full h-full object-cover grayscale-[30%] hover:grayscale-0 transition-all duration-700"
             />
           </div>
@@ -33,11 +34,11 @@ export const Story: React.FC = () => {
           className="space-y-10"
         >
           <div>
-            <span className="text-amber-500 font-bold mb-4 block tracking-[0.3em] uppercase text-xs">حكاية الهيثم… حين يكون العسل مسؤولية</span>
-            <h2 className="text-5xl md:text-6xl font-amiri font-bold mb-8 leading-tight">إرث يمتد عبر الأجيال</h2>
+            <span className="text-amber-500 font-bold mb-3 md:mb-4 block tracking-[0.2em] sm:tracking-[0.3em] uppercase text-[10px] sm:text-xs">حكاية الهيثم… حين يكون العسل مسؤولية</span>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-amiri font-bold mb-6 md:mb-8 leading-tight">حكاية الهيثم - إرث يمتد عبر الأجيال</h2>
           </div>
           
-          <div className="space-y-6 text-zinc-300 text-xl leading-relaxed font-light">
+          <div className="space-y-4 sm:space-y-6 text-zinc-300 text-base sm:text-lg md:text-xl leading-relaxed font-light">
             <p>
               بدأت رحلتنا عام 1997 بشغف الوالد المؤسس، وباحترام عميق لعالم خلية النحل.
             </p>
@@ -48,22 +49,22 @@ export const Story: React.FC = () => {
 
           <motion.div 
             whileInView={{ scale: [1, 1.02, 1] }}
-            className="bg-zinc-900/50 p-8 border-r-4 border-amber-500 rounded-l-3xl backdrop-blur-sm"
+            className="bg-zinc-900/50 p-4 sm:p-6 md:p-8 border-r-4 border-amber-500 rounded-l-2xl sm:rounded-l-3xl backdrop-blur-sm"
           >
-            <span className="italic block text-amber-500 font-amiri text-4xl mb-2">“</span>
-            <span className="block text-white font-amiri text-3xl mb-2">
+            <span className="italic block text-amber-500 font-amiri text-2xl sm:text-3xl md:text-4xl mb-1 sm:mb-2">"</span>
+            <span className="block text-white font-amiri text-xl sm:text-2xl md:text-3xl mb-1 sm:mb-2">
               النظافة وعد، والجودة عهد
             </span>
           </motion.div>
           
-          <div className="flex items-center gap-6 pt-4">
-            <div className="flex -space-x-4">
-              <div className="w-14 h-14 rounded-full border-4 border-zinc-950 bg-zinc-800 flex items-center justify-center text-[10px] font-bold text-zinc-400">عبد الرحمن</div>
-              <div className="w-14 h-14 rounded-full border-4 border-zinc-950 bg-zinc-800 flex items-center justify-center text-[10px] font-bold text-zinc-400">تركي</div>
+          <div className="flex items-center gap-3 sm:gap-6 pt-4">
+            <div className="flex -space-x-3 sm:-space-x-4">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-full border-2 sm:border-4 border-zinc-950 bg-zinc-800 flex items-center justify-center text-[8px] sm:text-[9px] md:text-[10px] font-bold text-zinc-400">عبد الرحمن</div>
+              <div className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-full border-2 sm:border-4 border-zinc-950 bg-zinc-800 flex items-center justify-center text-[8px] sm:text-[9px] md:text-[10px] font-bold text-zinc-400">تركي</div>
             </div>
             <div>
-              <p className="text-white font-bold">بإدارة أبناء الوالد المؤسس</p>
-              <p className="text-zinc-500 text-xs italic">نضع اسمنا ضماناً لكل قطرة عسل</p>
+              <p className="text-white font-bold text-sm sm:text-base">بإدارة أبناء الوالد المؤسس</p>
+              <p className="text-zinc-500 text-[10px] sm:text-xs italic">نضع اسمنا ضماناً لكل قطرة عسل</p>
             </div>
           </div>
         </motion.div>

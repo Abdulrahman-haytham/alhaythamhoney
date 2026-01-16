@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { motion, useScroll, useSpring } from 'framer-motion';
 import { Header } from './components/Header';
 import { Hero } from './components/Hero';
@@ -7,10 +8,18 @@ import { Story } from './components/Story';
 import { Stats } from './components/Stats';
 import { Products } from './components/Products';
 import { Quality } from './components/Quality';
+import { CustomerReviews } from './components/CustomerReviews';
+import { Certificates } from './components/Certificates';
+import { WhyChooseUs } from './components/WhyChooseUs';
+import { SpecialOffers } from './components/SpecialOffers';
 import { Location } from './components/Location';
 import { Footer } from './components/Footer';
+import { Store } from './pages/Store';
+import { ProductPage } from './pages/ProductPage';
+import { ArticlesPage } from './pages/ArticlesPage';
+import { ArticleDetailPage } from './pages/ArticleDetailPage';
 
-const App: React.FC = () => {
+const HomePage: React.FC = () => {
   const { scrollYProgress } = useScroll();
   const scaleX = useSpring(scrollYProgress, {
     stiffness: 100,
@@ -38,8 +47,20 @@ const App: React.FC = () => {
         {/* 4 + 5 + 6. المنتجات والمكملات والمختبر الملكي */}
         <Products />
         
+        {/* 4.5. عروض خاصة */}
+        <SpecialOffers />
+        
         {/* 7. لماذا يثق بنا من جرّبنا؟ - معايير الجودة */}
         <Quality />
+
+        {/* 8. آراء العملاء */}
+        <CustomerReviews />
+
+        {/* 9. شهادات الجودة */}
+        <Certificates />
+
+        {/* 10. لماذا نحن */}
+        <WhyChooseUs />
 
         {/* قسم الموقع الجغرافي */}
         <Location />
@@ -48,6 +69,40 @@ const App: React.FC = () => {
       {/* 8 + 9. الخاتمة والفوتر */}
       <Footer />
     </div>
+  );
+};
+
+const App: React.FC = () => {
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/store" element={
+          <div className="min-h-screen selection:bg-amber-500/30 overflow-x-hidden bg-zinc-950 text-zinc-100">
+            <Header />
+            <Store />
+            <Footer />
+          </div>
+        } />
+        <Route path="/product/:productId" element={
+          <div className="min-h-screen selection:bg-amber-500/30 overflow-x-hidden bg-zinc-950 text-zinc-100">
+            <ProductPage />
+          </div>
+        } />
+        <Route path="/articles" element={
+          <div className="min-h-screen selection:bg-amber-500/30 overflow-x-hidden bg-zinc-950 text-zinc-100">
+            <Header />
+            <ArticlesPage />
+            <Footer />
+          </div>
+        } />
+        <Route path="/articles/:articleId" element={
+          <div className="min-h-screen selection:bg-amber-500/30 overflow-x-hidden bg-zinc-950 text-zinc-100">
+            <ArticleDetailPage />
+          </div>
+        } />
+      </Routes>
+    </Router>
   );
 };
 
