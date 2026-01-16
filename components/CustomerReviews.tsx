@@ -15,54 +15,54 @@ interface Review {
 const reviews: Review[] = [
   {
     id: 1,
-    name: "أحمد محمد",
-    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
-    imageLink: "https://www.facebook.com", // يمكن تغيير الرابط
+    name: "أحمد الخبي ",
+    image: "https://res.cloudinary.com/dkbvnupge/image/upload/v1768652005/my-app-uploads/qxcxatbnzr37uiroaft2.jpg",
+    imageLink: "https://www.facebook.com/share/p/1Bdab9zbW3/", // يمكن تغيير الرابط
     rating: 5,
     comment: "عسل ممتاز جداً! جودة عالية وطعم رائع. أنصح الجميع بتجربته.",
-    location: "دمشق"
+    location: "القنيطرة"
   },
   {
     id: 2,
-    name: "فاطمة علي",
-    image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop&crop=face",
-    imageLink: "https://www.instagram.com",
+    name: "Lamis ",
+    image: "https://res.cloudinary.com/dkbvnupge/image/upload/v1768652175/my-app-uploads/peqwajlwn5gqbfpq6wpu.jpg",
+    imageLink: "https://www.facebook.com/share/p/1Bdab9zbW3/",
     rating: 5,
     comment: "استخدمت عسل حبة البركة لمدة شهر وشعرت بتحسن كبير في مناعتي. شكراً لكم!",
     location: "حلب"
   },
   {
     id: 3,
-    name: "خالد حسن",
-    image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face",
-    imageLink: "https://www.facebook.com",
+    name:" أنس مقداد",
+    image: "https://res.cloudinary.com/dkbvnupge/image/upload/v1768652005/my-app-uploads/qxcxatbnzr37uiroaft2.jpg",
+    imageLink: "https://www.facebook.com/share/p/1Bdab9zbW3/",
     rating: 5,
     comment: "منتج طبيعي 100% كما وعدتم. التوصيل سريع والتغليف احترافي.",
-    location: "اللاذقية"
+    location: "درعا "
   },
   {
     id: 4,
-    name: "سارة محمود",
-    image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face",
-    imageLink: "https://www.instagram.com",
+    name: "Ruba Hamzee",
+    image: "https://res.cloudinary.com/dkbvnupge/image/upload/v1768652175/my-app-uploads/peqwajlwn5gqbfpq6wpu.jpg",
+    imageLink: "https://www.facebook.com/share/p/1Bdab9zbW3/",
     rating: 5,
-    comment: "غذاء ملكات النحل ساعدني كثيراً في زيادة طاقتي اليومية. منتج ممتاز!",
+    comment: "بعتمد على العسل تبعكم كـ 'صيدلية طبيعية' بالبيت، خاصة ايام الشتوية ",
     location: "طرطوس"
   },
   {
     id: 5,
-    name: "محمد يوسف",
-    image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
-    imageLink: "https://www.facebook.com",
+    name: "جابر طماس ",
+    image: "https://res.cloudinary.com/dkbvnupge/image/upload/v1768652005/my-app-uploads/qxcxatbnzr37uiroaft2.jpg",
+    imageLink: "https://www.facebook.com/share/p/1Bdab9zbW3/",
     rating: 5,
-    comment: "عسل الدردار رائع للسعال والبرد. استخدمته لأطفالي وكان فعالاً جداً.",
-    location: "حمص"
+    comment: "عسل الدردار خيار ممتاز لدعم النشاط والحيوية، ويساعد بشكل ملحوظ في تهدئة السعال وتعزيز المناعة، خاصة في أيام البرد.",
+    location: "حماة"
   },
   {
     id: 6,
     name: "ليلى أحمد",
-    image: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop&crop=face",
-    imageLink: "https://www.instagram.com",
+    image: "https://res.cloudinary.com/dkbvnupge/image/upload/v1768652175/my-app-uploads/peqwajlwn5gqbfpq6wpu.jpg",
+    imageLink: "https://www.facebook.com/share/p/1Bdab9zbW3/",
     rating: 5,
     comment: "خدمة عملاء ممتازة ومنتجات أصلية. أنصح بشراء العكبر للوقاية من الأمراض.",
     location: "حماة"
