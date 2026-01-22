@@ -134,6 +134,18 @@
   <script type="module" crossorigin src="/assets/index-CdXmrErU.js"></script>
 </head>
 <body class="bg-zinc-950 text-zinc-100 overflow-x-hidden">
-  <div id="root"></div>
+  <div id="root"></div>
+<script>
+  (function() {
+    try {
+      var params = new URLSearchParams(window.location.search);
+      var p = params.get('p');
+      if (p) {
+        var newUrl = p.startsWith('/') ? p : '/' + p;
+        history.replaceState(null, '', newUrl + window.location.hash);
+      }
+    } catch (e) { /* noop */ }
+  })();
+</script>
 </body>
 </html>
