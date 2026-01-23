@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="utf-8">
+  <title>إعادة توجيه...</title>
+  <meta name="robots" content="noindex">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: 'Cairo', sans-serif; background:#09090b; color:#ffffff; text-align:center; padding-top:3rem; }
+    .hint { color:#fbbf24; }
+  </style>
+</head>
+<body>
+  <p class="hint">يتم إعادة توجيهك إلى الصفحة المطلوبة...</p>
+  <script>
+    (function() {
+      var l = window.location;
+      var path = l.pathname || "/";
+      var search = l.search || "";
+      var hash = l.hash || "";
+      var target = "/?p=" + encodeURIComponent(path + search) + hash;
+      l.replace(target);
+    })();
+  </script>
+</body>
+</html>
