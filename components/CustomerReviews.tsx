@@ -280,7 +280,7 @@ export const CustomerReviews: React.FC = () => {
             شاركنا تجربتك مع منتجاتنا
           </p>
           <a
-            href="https://wa.me/963930112994?text=أريد مشاركة تجربتي مع منتجاتكم"
+            href="https://wa.me/963947931959?text=أريد مشاركة تجربتي مع منتجاتكم"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-6 py-3 bg-amber-500 text-zinc-950 rounded-full font-bold hover:bg-amber-400 transition-all duration-300 hover:scale-105 text-sm"

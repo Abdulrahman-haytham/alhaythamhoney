@@ -165,7 +165,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                   {/* CTA Button */}
                   <div className="pt-4 sm:pt-5 md:pt-6">
                     <a
-                      href={`https://wa.me/${phoneNumber}?text=أريد طلب ${product.name}`}
+                      href={`https://wa.me/${phoneNumber.replace(/\D/g, '')}?text=أريد طلب ${product.name}`}
                       className="w-full py-3 sm:py-3.5 md:py-4 bg-amber-500 text-zinc-950 rounded-xl sm:rounded-2xl flex items-center justify-center gap-2 sm:gap-3 hover:bg-amber-400 transition-all duration-300 font-bold text-sm sm:text-base md:text-lg"
                     >
                       <ShoppingCart className="w-5 h-5 sm:w-5.5 sm:h-5.5 md:w-6 md:h-6" />

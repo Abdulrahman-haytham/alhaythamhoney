@@ -7,7 +7,7 @@ import { Header } from '../components/Header';
 import { Footer } from '../components/Footer';
 
 export const ArticlesPage: React.FC = () => {
-  const phoneNumber = "963930112994";
+  const phoneNumber = "+963947931959";
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100">
@@ -82,7 +82,7 @@ export const ArticlesPage: React.FC = () => {
               اطلب الآن واحصل على عسل طبيعي 100% مفحوص مخبرياً
             </p>
             <a
-              href={`https://wa.me/${phoneNumber}?text=أريد طلب عسل طبيعي`}
+              href={`https://wa.me/${phoneNumber.replace(/\D/g, '')}?text=أريد طلب عسل طبيعي`}
               className="inline-flex items-center gap-3 px-10 py-5 bg-amber-500 text-zinc-950 rounded-full font-black hover:bg-amber-400 transition-all duration-300 hover:scale-105 text-xl"
             >
               🍯 اطلب الآن عبر واتساب

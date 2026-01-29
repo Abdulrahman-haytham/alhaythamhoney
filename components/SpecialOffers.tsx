@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Sparkles, Gift, ShoppingCart, Clock } from 'lucide-react';
 
 export const SpecialOffers: React.FC = () => {
-  const phoneNumber = "963930112994";
+  const phoneNumber = "+963947931959";
   
   const offers = [
     {
@@ -101,7 +101,7 @@ export const SpecialOffers: React.FC = () => {
 
                 {/* CTA */}
                 <a
-                  href={`https://wa.me/${phoneNumber}?text=أريد ${offer.title}`}
+                  href={`https://wa.me/${phoneNumber.replace(/\D/g, '')}?text=أريد ${offer.title}`}
                   className="block w-full py-4 bg-gradient-to-r from-amber-500 to-amber-600 text-zinc-950 rounded-xl font-black text-center hover:from-amber-400 hover:to-amber-500 transition-all duration-300 hover:scale-105 shadow-lg shadow-amber-500/20"
                 >
                   <ShoppingCart className="w-5 h-5 inline-block ml-2" />

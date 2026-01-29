@@ -7,6 +7,7 @@ import { Hero } from './components/Hero';
 import { Story } from './components/Story';
 import { Stats } from './components/Stats';
 import { Products } from './components/Products';
+import { CustomMixtures } from './components/CustomMixtures';
 import { Quality } from './components/Quality';
 import { CustomerReviews } from './components/CustomerReviews';
 import { Certificates } from './components/Certificates';
@@ -18,6 +19,8 @@ import { Store } from './pages/Store';
 import { ProductPage } from './pages/ProductPage';
 import { ArticlesPage } from './pages/ArticlesPage';
 import { ArticleDetailPage } from './pages/ArticleDetailPage';
+import { ReturnPolicyPage } from './pages/ReturnPolicyPage';
+import { ScrollToTop } from './components/ScrollToTop';
 
 const HomePage: React.FC = () => {
   const { scrollYProgress } = useScroll();
@@ -47,6 +50,9 @@ const HomePage: React.FC = () => {
         {/* 4 + 5 + 6. المنتجات والمكملات والمختبر الملكي */}
         <Products />
         
+        {/* قسم الخلطات الخاصة */}
+        <CustomMixtures />
+
         {/* 4.5. عروض خاصة */}
         <SpecialOffers />
         
@@ -75,6 +81,7 @@ const HomePage: React.FC = () => {
 const App: React.FC = () => {
   return (
     <Router>
+      <ScrollToTop />
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/store" element={
@@ -99,6 +106,13 @@ const App: React.FC = () => {
         <Route path="/articles/:articleId" element={
           <div className="min-h-screen selection:bg-amber-500/30 overflow-x-hidden bg-zinc-950 text-zinc-100">
             <ArticleDetailPage />
+          </div>
+        } />
+        <Route path="/return-policy" element={
+          <div className="min-h-screen selection:bg-amber-500/30 overflow-x-hidden bg-zinc-950 text-zinc-100">
+            <Header />
+            <ReturnPolicyPage />
+            <Footer />
           </div>
         } />
       </Routes>

@@ -1,9 +1,10 @@
 
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { MessageCircle, Instagram, Facebook, Phone, Heart } from 'lucide-react';
 
 export const Footer: React.FC = () => {
-  const phoneNumber = "963930112994";
+  const phoneNumber = "+963947931959";
   const facebookLink = "https://www.facebook.com/profile.php?id=100064934053886";
 
   return (
@@ -26,7 +27,7 @@ export const Footer: React.FC = () => {
             
             <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
               <a 
-                href={`https://wa.me/${phoneNumber}`} 
+                href={`https://wa.me/${phoneNumber.replace(/\D/g, '')}`} 
                 className="flex items-center justify-center gap-2 sm:gap-4 bg-amber-500 text-zinc-950 px-6 sm:px-8 md:px-12 py-3 sm:py-4 md:py-5 rounded-full font-black text-sm sm:text-base md:text-xl luxury-shadow hover:scale-105 transition-all"
               >
                 🍯 اطلب الآن عبر واتساب
@@ -34,7 +35,7 @@ export const Footer: React.FC = () => {
               <div className="flex items-center justify-center gap-4 sm:gap-6 px-6 sm:px-8 py-4 sm:py-5 bg-zinc-900/50 rounded-full border border-white/5">
                 <a href="#" className="text-zinc-400 hover:text-amber-500 transition-colors"><Instagram className="w-5 h-5 sm:w-6 sm:h-6" /></a>
                 <a href={facebookLink} target="_blank" rel="noopener noreferrer" className="text-zinc-400 hover:text-amber-500 transition-colors"><Facebook className="w-5 h-5 sm:w-6 sm:h-6" /></a>
-                <a href={`tel:+${phoneNumber}`} className="text-zinc-400 hover:text-amber-500 transition-colors"><Phone className="w-5 h-5 sm:w-6 sm:h-6" /></a>
+                <a href={`tel:${phoneNumber}`} className="text-zinc-400 hover:text-amber-500 transition-colors"><Phone className="w-5 h-5 sm:w-6 sm:h-6" /></a>
               </div>
             </div>
           </div>
@@ -76,7 +77,15 @@ export const Footer: React.FC = () => {
           <div>
             <h4 className="text-white font-bold mb-4 sm:mb-6 text-sm sm:text-base">خدمة العملاء</h4>
             <ul className="space-y-2 sm:space-y-3 md:space-y-4 text-xs sm:text-sm">
-              <li>واتساب: +963 930 112 994</li>
+              <li><Link to="/return-policy" className="hover:text-amber-500 transition-colors">سياسة الاسترجاع وضمان الجودة</Link></li>
+              <li className="flex items-center gap-2">
+                <span>تركي:</span>
+                <a href="https://wa.me/963947931959" target="_blank" rel="noopener noreferrer" className="hover:text-amber-500 transition-colors" dir="ltr">+963 947 931 959</a>
+              </li>
+              <li className="flex items-center gap-2">
+                <span>عبدالرحمن:</span>
+                <a href="https://wa.me/963930112994" target="_blank" rel="noopener noreferrer" className="hover:text-amber-500 transition-colors" dir="ltr">+963 930 112 994</a>
+              </li>
               <li>الموقع: سوريا - كافة المحافظات</li>
               <li>دعم فني واستشارات صحية</li>
             </ul>
@@ -86,7 +95,7 @@ export const Footer: React.FC = () => {
         <div className="mt-12 sm:mt-16 md:mt-20 pt-8 sm:pt-10 md:pt-12 border-t border-zinc-900 flex flex-col md:flex-row justify-between items-center gap-4 sm:gap-6 text-zinc-600 text-[9px] sm:text-[10px] uppercase tracking-wider sm:tracking-widest font-bold">
           <p>© 2026 الهيثم لنحل وعسل. جميع الحقوق محفوظة.</p>
           <p className="flex items-center gap-2">
-            صُنع بكل حب في <span className="text-zinc-400">سوريا 🇸🇾</span>
+            صُنع بكل حب في <span className="text-zinc-400">سوريا</span>
             <Heart className="w-3 h-3 text-red-900 fill-red-900" />
           </p>
         </div>

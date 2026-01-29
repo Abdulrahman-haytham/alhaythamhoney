@@ -55,10 +55,10 @@ export const Location: React.FC = () => {
               <h4 className="text-amber-500 font-bold mb-2 text-sm sm:text-base">أوقات الاستقبال</h4>
               <p className="text-zinc-400 text-xs sm:text-sm md:text-base mb-4">يومياً من الساعة 9:00 صباحاً حتى 9:00 مساءً</p>
               <a 
-                href="tel:+963930112994"
+                href="tel:+963947931959"
                 className="text-amber-500 hover:text-amber-400 font-bold text-lg transition-colors"
               >
-                📞 +963 930 112 994
+                📞 <span dir="ltr">+963947931959</span>
               </a>
             </div>
           </motion.div>

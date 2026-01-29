@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, memo } from 'react';
 import { motion } from 'framer-motion';
 import { ShoppingCart, Sparkles, Droplets, Eye, ArrowRight } from 'lucide-react';
 import { ProductDetailModal } from '../components/ProductDetailModal';
@@ -57,7 +57,7 @@ const groups: ProductGroup[] = [
           ],
           properties: [
             "100% عسل صافي طبيعي",
-            "مستخلص من حبة البركة الأصيلة",
+            " من  زهرة حبة البركة الأصيلة",
             "خالي من المواد الحافظة",
             "مختبر ومُختبر جودة"
           ],
@@ -84,7 +84,7 @@ const groups: ProductGroup[] = [
             "تناول يومي للصحة العامة"
           ],
           properties: [
-            "عسل نادر من أشجار الدردار",
+            "عسل نادر من ازهار  الدردار",
             "نكهة مميزة وعميقة",
             "مستخرج من مراعي سورية",
             "طبيعي 100%"
@@ -122,111 +122,205 @@ const groups: ProductGroup[] = [
       }
     ]
   },
-  {
-    id: "supplements",
-    title: "المكملات الحيوية – رفع القيمة",
-    subtitle: "منتجات طبيعية تُستخدم منذ قرون لدعم الجسد بذكاء",
-    icon: <Sparkles className="w-6 h-6 text-amber-500" />,
-    layout: 'grid',
-    items: [
-      {
-        name: "العكبر (Propolis)",
-        benefit: "مضاد حيوي طبيعي",
-        desc: "درع حماية فائق لمناعتك من قلب الخلية.",
-        image: "https://res.cloudinary.com/dkbvnupge/image/upload/v1768245473/my-app-uploads/ynkkzbdxrtsfvptrclle.jpg",
-        detailedInfo: {
-          benefits: [
-            "مضاد حيوي طبيعي قوي",
-            "تقوية الجهاز المناعي",
-            "مقاومة الالتهابات والفيروسات",
-            "شفاء الجروح والحروق",
-            "دعم صحة الفم والأسنان"
-          ],
-          uses: [
-            "مضغ قطعة صغيرة يومياً",
-            "استخدامه كغرغرة للفم",
-            "تطبيقه موضعياً على الجروح",
-            "مكمل غذائي للوقاية"
-          ],
-          properties: [
-            "مستخرج من خلايا النحل",
-            "غني بالفلافونويدات",
-            "مضاد أكسدة قوي",
-            "طبيعي 100%"
-          ],
-          howToUse: "يمكن مضغ قطعة صغيرة (حجم حبة البازلاء) يومياً، أو استخدامه كغرغرة بعد إذابته في الماء. للاستخدام الموضعي، يُطبق مباشرة على المنطقة المصابة."
-        }
-      },
-      {
-        name: "غذاء ملكات النحل",
-        benefit: "إصدار فاخر",
-        desc: "منبع الحيوية والنشاط الدائم، مركز طاقة نقي.",
-        image: "https://res.cloudinary.com/dkbvnupge/image/upload/v1768244891/my-app-uploads/hydwzteebguygp6fg3ak.jpg",
-        badge: "ملك الخلية",
-        detailedInfo: {
-          benefits: [
-            "تعزيز الطاقة والحيوية",
-            "تحسين الذاكرة والتركيز",
-            "دعم صحة الجلد والشعر",
-            "تقوية المناعة",
-            "مضاد للشيخوخة"
-          ],
-          uses: [
-            "تناول يومي للطاقة",
-            "دعم الأداء الرياضي",
-            "تحسين المزاج والحيوية",
-            "دعم صحة المرأة"
-          ],
-          properties: [
-            "غذاء الملكات النقي",
-            "غني بالبروتينات والفيتامينات",
-            "مستخرج طازج من الخلية",
-            "منتج فاخر عالي الجودة"
-          ],
-          howToUse: "تناول 1-2 جرام يومياً على الريق (حوالي نصف ملعقة صغيرة). يُنصح بوضعه تحت اللسان لمدة دقيقة قبل البلع لامتصاص أفضل. يُحفظ في الثلاجة."
-        }
-      },
-      {
-        name: "غبار الطلع",
-        benefit: "فيتامينات خام",
-        desc: "مكمل غذائي متكامل لزيادة التركيز والطاقة.",
-        image: "https://res.cloudinary.com/dkbvnupge/image/upload/v1768231434/my-app-uploads/yj1bi1wvcpcqlbcqodnv.jpg",
-        detailedInfo: {
-          benefits: [
-            "مكمل غذائي متكامل",
-            "زيادة الطاقة والتحمل",
-            "تحسين التركيز والذاكرة",
-            "دعم صحة الجهاز الهضمي",
-            "تقوية المناعة"
-          ],
-          uses: [
-            "مكمل غذائي يومي",
-            "للرياضيين والأداء العالي",
-            "دعم الطلاب والتركيز",
-            "تحسين الصحة العامة"
-          ],
-          properties: [
-            "غبار طلع نقي",
-            "غني بالفيتامينات والمعادن",
-            "مصدر بروتين طبيعي",
-            "مستخرج من الزهور البرية"
-          ],
-          howToUse: "تناول ملعقة صغيرة إلى ملعقة كبيرة يومياً. يمكن تناوله مباشرة أو مزجه مع العسل أو العصير. يُنصح بالبدء بكمية صغيرة وزيادتها تدريجياً."
-        }
+ {
+  id: "supplements",
+  title: "المكملات الحيوية – رفع القيمة",
+  subtitle: "خلاصات طبيعية ذكية تدعم الجسد منذ قرون",
+  icon: <Sparkles className="w-6 h-6 text-amber-500" />,
+  layout: 'grid',
+  items: [
+    {
+      name: "العكبر (Propolis)",
+      benefit: "مضاد حيوي طبيعي",
+      desc: "درع مناعي ذكي من قلب الخلية – دع مناعتك تعمل بذكاء.",
+      image: "https://res.cloudinary.com/dkbvnupge/image/upload/v1768245473/my-app-uploads/ynkkzbdxrtsfvptrclle.jpg",
+      detailedInfo: {
+        benefits: [
+          "مضاد حيوي طبيعي بفعالية مثبتة",
+          "يعزز آليات الدفاع المناعي ذاتياً",
+          "يكافح الفيروسات والبكتيريا بشكل وقائي",
+          "يسرّع شفاء الجروح والحروق",
+          "يحمي صحة الفم والأسنان بشكل يومي"
+        ],
+        uses: [
+          "مضغ قطعة صغيرة صباحاً لتعزيز المناعة",
+          "تطبيق موضعي على الجروح للحماية والتعقيم",
+          "وقاية يومية مستمرة كمكمل غذائي",
+          "يمكن خلطه مع العسل لتسهيل تناوله"
+        ],
+        properties: [
+          "يُستخرج بدقة من خلايا النحل",
+          "غني بالفلافونويدات المضادة للأكسدة",
+          "تركيبة طبيعية فعّالة 100%",
+          "لا يسبب مقاومة كالمضادات الاصطناعية"
+        ],
+        howToUse: "يُستخدم يومياً بمضغ قطعة صغيرة (بحجم حبة البازلاء)، أو يمكن خلطها مع ملعقة صغيرة من العسل لتسهيل الاستعمال. للاستخدام الموضعي يُطبّق مباشرة على الجلد النظيف."
       }
-    ]
-  }
+    },
+    {
+      name: "غذاء ملكات النحل",
+      benefit: "التركيبة الملكية للطاقة والتجدد",
+      desc: "جوهر النقاء الحيوي – طاقة مركزة تجددك من الداخل.",
+      image: "https://res.cloudinary.com/dkbvnupge/image/upload/v1768244891/my-app-uploads/hydwzteebguygp6fg3ak.jpg",
+      badge: "ملك الخلية",
+      detailedInfo: {
+        benefits: [
+          "يعزز الطاقة والقدرة على التركيز بفعالية عالية",
+          "يساهم في تحسين المزاج والتوازن العصبي",
+          "يغذي خلايا الجلد ويمنح الشعر إشراقة صحية",
+          "يدعم الجهاز المناعي في فترات الضغط",
+          "مركب طبيعي مضاد لعلامات التقدم في السن"
+        ],
+        uses: [
+          "يُستخدم صباحاً لتعزيز الطاقة والنشاط العقلي",
+          "مثالي للرياضيين ومحبي الأداء العالي",
+          "يدعم الصحة الهرمونية والمزاج خاصة للنساء",
+          "يساهم في دعم الخصوبة وتنظيم الهرمونات الأنثوية",
+          "يساعد في تحسين نوعية السائل المنوي للرجال",
+          "تحسين الأداء العام للدماغ والجهاز العصبي"
+        ],
+        properties: [
+          "غذاء ملكات نقي ومركز وطازج",
+          "مصدر طبيعي للأحماض الدهنية المحفزة للهرمونات (مثل 10-HDA)",
+          "يدعم الخصوبة من خلال تنظيم الهرمونات الأنثوية",
+          "يساهم في تحسين نوعية الحيوانات المنوية لدى الرجال",
+          "غني بالفيتامينات B، خاصة B5 وB6 الضرورية للتوازن الهرموني",
+          "منتج فاخر يستخلص من الخلايا الملكية",
+          "يُحفظ مبرداً للحفاظ على الفعالية الحيوية"
+        ],
+        howToUse: "تناول 1–2 جرام يومياً على الريق (حوالي نصف ملعقة صغيرة). يُفضل وضعه تحت اللسان لمدة دقيقة قبل بلعه لامتصاص مثالي. يُحفظ دائماً في الثلاجة."
+      }
+    },
+    {
+      name: "غبار الطلع (Bee Pollen)",
+      benefit: "تركيبة الفيتامينات الخام الطبيعية",
+      desc: "قوة التركيز والتحمل في ملعقة – تركيبة طبيعية شاملة.",
+      image: "https://res.cloudinary.com/dkbvnupge/image/upload/v1768231434/my-app-uploads/yj1bi1wvcpcqlbcqodnv.jpg",
+      detailedInfo: {
+        benefits: [
+          "مكمل غذائي متكامل من الطبيعة",
+          "يعزز التركيز الذهني والطاقة الجسدية",
+          "يدعم عملية الهضم والتمثيل الغذائي",
+          "يعزز مناعة الجسم خاصة في التغيرات الموسمية",
+          "يساهم في التوازن الغذائي للرياضيين والطلاب"
+        ],
+        uses: [
+          "يُستخدم صباحاً لتحفيز النشاط والتركيز",
+          "دعم الأداء البدني والعقلي للرياضيين",
+          "تحسين الحالة الذهنية أثناء فترات الضغط أو الدراسة",
+          "تعزيز المناعة العامة والوظائف الحيوية"
+        ],
+        properties: [
+          "غبار طلع خام نقي 100%",
+          "غني بالفيتامينات (خصوصاً B) والمعادن",
+          "مصدر بروتين نباتي طبيعي",
+          "مستخرج من زهور بريّة مختارة بعناية"
+        ],
+        howToUse: "ابدأ بربع ملعقة صغيرة يومياً، وزد تدريجياً حتى ملعقة كبيرة. يمكن تناوله مباشرة، أو خلطه مع العسل أو العصير أو الزبادي. يُنصح بمضغه جيداً لزيادة الامتصاص الحيوي، ويفضّل تناوله صباحاً."
+      }
+    }
+  ]
+}
+
 ];
 
+const StoreProductGroupSection = memo(({ group, onProductClick, phoneNumber }: { group: ProductGroup; onProductClick: (item: ProductItem) => void; phoneNumber: string }) => (
+  <div className="mb-32">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      className="mb-16"
+    >
+      <div className="flex items-center gap-4 mb-4">
+        <div className="p-3 bg-amber-500/10 rounded-xl border border-amber-500/20">
+          {group.icon}
+        </div>
+        <h3 className="text-3xl md:text-4xl font-amiri font-bold text-white">
+          {group.title}
+        </h3>
+      </div>
+      <p className="text-zinc-500 max-w-2xl border-r-2 border-amber-500/20 pr-4">
+        {group.subtitle}
+      </p>
+    </motion.div>
+
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+      {group.items.map((item, idx) => (
+        <motion.div
+          key={idx}
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ delay: idx * 0.1 }}
+          className="group relative bg-zinc-900/40 rounded-[2.5rem] overflow-hidden border border-white/5 hover:border-amber-500/20 transition-all duration-500 cursor-pointer"
+          onClick={() => onProductClick(item)}
+        >
+          <div className="relative h-72 overflow-hidden">
+            <img
+              src={item.image}
+              alt={item.name}
+              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/40 to-transparent"></div>
+            {item.badge && (
+              <div className="absolute top-6 right-6 bg-amber-500 text-zinc-950 text-[10px] font-black px-4 py-1 rounded-full uppercase z-10">
+                {item.badge}
+              </div>
+            )}
+            <div className="absolute top-6 left-6 bg-black/50 backdrop-blur-sm rounded-full p-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+              <Eye className="w-5 h-5 text-white" />
+            </div>
+          </div>
+
+          <div className="p-8">
+            <div className="flex justify-between items-start mb-4">
+              <h4 className="text-2xl font-amiri font-bold text-white group-hover:text-amber-400 transition-colors">
+                {item.name}
+              </h4>
+              <span className="text-[10px] bg-amber-500/10 text-amber-500 px-2 py-1 rounded-md font-bold uppercase tracking-wider">
+                {item.benefit}
+              </span>
+            </div>
+            <p className="text-zinc-400 text-sm mb-6 leading-relaxed line-clamp-2">
+              {item.desc}
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onProductClick(item);
+                }}
+                className="flex-1 py-3 bg-zinc-800 border border-amber-500/30 rounded-xl flex items-center justify-center gap-2 hover:bg-amber-500/10 transition-all duration-300 font-bold text-sm"
+              >
+                <Eye className="w-4 h-4" />
+                التفاصيل
+              </button>
+              <a
+                href={`https://wa.me/${phoneNumber.replace(/\D/g, '')}?text=أريد طلب ${item.name}`}
+                onClick={(e) => e.stopPropagation()}
+                className="flex-1 py-3 bg-amber-500 text-zinc-950 rounded-xl flex items-center justify-center gap-2 hover:bg-amber-400 transition-all duration-300 font-bold text-sm"
+              >
+                <ShoppingCart className="w-4 h-4" />
+                اطلب الآن
+              </a>
+            </div>
+          </div>
+        </motion.div>
+      ))}
+    </div>
+  </div>
+));
+
 export const Store: React.FC = () => {
-  const phoneNumber = "963930112994";
+  const phoneNumber = "+963947931959";
   const [selectedProduct, setSelectedProduct] = useState<ProductItem | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const handleProductClick = (product: ProductItem) => {
+  const handleProductClick = useCallback((product: ProductItem) => {
     setSelectedProduct(product);
     setIsModalOpen(true);
-  };
+  }, []);
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
@@ -261,91 +355,12 @@ export const Store: React.FC = () => {
 
         {/* Products Grid */}
         {groups.map((group) => (
-          <div key={group.id} className="mb-32">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="mb-16"
-            >
-              <div className="flex items-center gap-4 mb-4">
-                <div className="p-3 bg-amber-500/10 rounded-xl border border-amber-500/20">
-                  {group.icon}
-                </div>
-                <h3 className="text-3xl md:text-4xl font-amiri font-bold text-white">
-                  {group.title}
-                </h3>
-              </div>
-              <p className="text-zinc-500 max-w-2xl border-r-2 border-amber-500/20 pr-4">
-                {group.subtitle}
-              </p>
-            </motion.div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-              {group.items.map((item, idx) => (
-                <motion.div
-                  key={idx}
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: idx * 0.1 }}
-                  className="group relative bg-zinc-900/40 rounded-[2.5rem] overflow-hidden border border-white/5 hover:border-amber-500/20 transition-all duration-500 cursor-pointer"
-                  onClick={() => handleProductClick(item)}
-                >
-                  <div className="relative h-72 overflow-hidden">
-                    <img
-                      src={item.image}
-                      alt={item.name}
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/40 to-transparent"></div>
-                    {item.badge && (
-                      <div className="absolute top-6 right-6 bg-amber-500 text-zinc-950 text-[10px] font-black px-4 py-1 rounded-full uppercase z-10">
-                        {item.badge}
-                      </div>
-                    )}
-                    <div className="absolute top-6 left-6 bg-black/50 backdrop-blur-sm rounded-full p-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                      <Eye className="w-5 h-5 text-white" />
-                    </div>
-                  </div>
-
-                  <div className="p-8">
-                    <div className="flex justify-between items-start mb-4">
-                      <h4 className="text-2xl font-amiri font-bold text-white group-hover:text-amber-400 transition-colors">
-                        {item.name}
-                      </h4>
-                      <span className="text-[10px] bg-amber-500/10 text-amber-500 px-2 py-1 rounded-md font-bold uppercase tracking-wider">
-                        {item.benefit}
-                      </span>
-                    </div>
-                    <p className="text-zinc-400 text-sm mb-6 leading-relaxed line-clamp-2">
-                      {item.desc}
-                    </p>
-                    <div className="flex gap-3">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleProductClick(item);
-                        }}
-                        className="flex-1 py-3 bg-zinc-800 border border-amber-500/30 rounded-xl flex items-center justify-center gap-2 hover:bg-amber-500/10 transition-all duration-300 font-bold text-sm"
-                      >
-                        <Eye className="w-4 h-4" />
-                        التفاصيل
-                      </button>
-                      <a
-                        href={`https://wa.me/${phoneNumber}?text=أريد طلب ${item.name}`}
-                        onClick={(e) => e.stopPropagation()}
-                        className="flex-1 py-3 bg-amber-500 text-zinc-950 rounded-xl flex items-center justify-center gap-2 hover:bg-amber-400 transition-all duration-300 font-bold text-sm"
-                      >
-                        <ShoppingCart className="w-4 h-4" />
-                        اطلب الآن
-                      </a>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </div>
+          <StoreProductGroupSection 
+            key={group.id} 
+            group={group} 
+            onProductClick={handleProductClick} 
+            phoneNumber={phoneNumber}
+          />
         ))}
       </div>
 

@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { ShieldCheck, Microscope, Award, Truck } from 'lucide-react';
 
 export const Hero: React.FC = () => {
-  const phoneNumber = "963930112994";
+  const phoneNumber = "+963947931959";
   const trustIcons = [
     { icon: <ShieldCheck className="w-5 h-5" />, text: "طبيعي 100%" },
     { icon: <Microscope className="w-5 h-5" />, text: "مفحوص مخبرياً" },
@@ -85,7 +85,7 @@ export const Hero: React.FC = () => {
           className="flex justify-center"
         >
           <a 
-            href={`https://wa.me/${phoneNumber}`} 
+            href={`https://wa.me/${phoneNumber.replace(/\D/g, '')}`} 
             className="group relative px-6 sm:px-8 md:px-12 py-3 sm:py-4 md:py-5 gold-gradient rounded-full text-zinc-950 font-black text-sm sm:text-base md:text-xl luxury-shadow transition-all hover:scale-105 active:scale-95"
           >
             🍯 اطلب عبر واتساب
