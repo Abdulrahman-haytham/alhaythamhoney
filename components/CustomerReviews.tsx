@@ -16,7 +16,7 @@ const reviews: Review[] = [
   {
     id: 1,
     name: "أحمد الخبي ",
-    image: "https://res.cloudinary.com/dkbvnupge/image/upload/v1768652005/my-app-uploads/qxcxatbnzr37uiroaft2.jpg",
+    image: "https://res.cloudinary.com/dkbvnupge/image/upload/f_auto,q_auto/v1768652005/my-app-uploads/qxcxatbnzr37uiroaft2.jpg",
     imageLink: "https://www.facebook.com/share/p/1Bdab9zbW3/", // يمكن تغيير الرابط
     rating: 5,
     comment: "عسل ممتاز جداً! جودة عالية وطعم رائع. أنصح الجميع بتجربته.",
@@ -25,7 +25,7 @@ const reviews: Review[] = [
   {
     id: 2,
     name: "Lamis ",
-    image: "https://res.cloudinary.com/dkbvnupge/image/upload/v1768652175/my-app-uploads/peqwajlwn5gqbfpq6wpu.jpg",
+    image: "https://res.cloudinary.com/dkbvnupge/image/upload/f_auto,q_auto/v1768652175/my-app-uploads/peqwajlwn5gqbfpq6wpu.jpg",
     imageLink: "https://www.facebook.com/share/p/1Bdab9zbW3/",
     rating: 5,
     comment: "استخدمت عسل حبة البركة لمدة شهر وشعرت بتحسن كبير في مناعتي. شكراً لكم!",
@@ -34,7 +34,7 @@ const reviews: Review[] = [
   {
     id: 3,
     name:" أنس مقداد",
-    image: "https://res.cloudinary.com/dkbvnupge/image/upload/v1768652005/my-app-uploads/qxcxatbnzr37uiroaft2.jpg",
+    image: "https://res.cloudinary.com/dkbvnupge/image/upload/f_auto,q_auto/v1768652005/my-app-uploads/qxcxatbnzr37uiroaft2.jpg",
     imageLink: "https://www.facebook.com/share/p/1Bdab9zbW3/",
     rating: 5,
     comment: "منتج طبيعي 100% كما وعدتم. التوصيل سريع والتغليف احترافي.",
@@ -43,7 +43,7 @@ const reviews: Review[] = [
   {
     id: 4,
     name: "Ruba Hamzee",
-    image: "https://res.cloudinary.com/dkbvnupge/image/upload/v1768652175/my-app-uploads/peqwajlwn5gqbfpq6wpu.jpg",
+    image: "https://res.cloudinary.com/dkbvnupge/image/upload/f_auto,q_auto/v1768652175/my-app-uploads/peqwajlwn5gqbfpq6wpu.jpg",
     imageLink: "https://www.facebook.com/share/p/1Bdab9zbW3/",
     rating: 5,
     comment: "بعتمد على العسل تبعكم كـ 'صيدلية طبيعية' بالبيت، خاصة ايام الشتوية ",
@@ -52,7 +52,7 @@ const reviews: Review[] = [
   {
     id: 5,
     name: "جابر طماس ",
-    image: "https://res.cloudinary.com/dkbvnupge/image/upload/v1768652005/my-app-uploads/qxcxatbnzr37uiroaft2.jpg",
+    image: "https://res.cloudinary.com/dkbvnupge/image/upload/f_auto,q_auto/v1768652005/my-app-uploads/qxcxatbnzr37uiroaft2.jpg",
     imageLink: "https://www.facebook.com/share/p/1Bdab9zbW3/",
     rating: 5,
     comment: "عسل الدردار خيار ممتاز لدعم النشاط والحيوية، ويساعد بشكل ملحوظ في تهدئة السعال وتعزيز المناعة، خاصة في أيام البرد.",
@@ -61,7 +61,7 @@ const reviews: Review[] = [
   {
     id: 6,
     name: "ليلى أحمد",
-    image: "https://res.cloudinary.com/dkbvnupge/image/upload/v1768652175/my-app-uploads/peqwajlwn5gqbfpq6wpu.jpg",
+    image: "https://res.cloudinary.com/dkbvnupge/image/upload/f_auto,q_auto/v1768652175/my-app-uploads/peqwajlwn5gqbfpq6wpu.jpg",
     imageLink: "https://www.facebook.com/share/p/1Bdab9zbW3/",
     rating: 5,
     comment: "خدمة عملاء ممتازة ومنتجات أصلية. أنصح بشراء العكبر للوقاية من الأمراض.",
@@ -238,6 +238,7 @@ export const CustomerReviews: React.FC = () => {
                       <img
                         src={review.image}
                         alt={review.name}
+                        loading="lazy"
                         className="w-12 h-12 rounded-full object-cover border-2 border-amber-500/20 group-hover/image:border-amber-500 transition-all duration-300"
                       />
                       {review.imageLink && (

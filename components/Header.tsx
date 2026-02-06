@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ShieldCheck, Award, Truck, Store, Menu, X } from 'lucide-react';
 
@@ -8,6 +8,18 @@ export const Header: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+
+  // Prevent scrolling when mobile menu is open
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [mobileMenuOpen]);
 
   const handleLogoClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -46,20 +58,20 @@ export const Header: React.FC = () => {
   return (
     <header className="fixed top-0 left-0 w-full z-50">
       {/* Top Excellence Bar */}
-      <div className="bg-black border-b border-amber-900/30 py-1.5 sm:py-2 px-3 sm:px-4 text-[9px] sm:text-[10px] md:text-sm font-light tracking-wide">
+      <div className="bg-black border-b border-amber-900/30 py-1.5 sm:py-2 px-3 sm:px-4 text-[10px] sm:text-xs md:text-sm font-light tracking-wide">
         <div className="container mx-auto flex flex-col md:flex-row justify-center items-center gap-1.5 sm:gap-2 md:gap-8 text-amber-200/80">
           <div className="flex items-center gap-1.5 sm:gap-2">
-            <ShieldCheck className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 text-amber-500" />
+            <ShieldCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-500" />
             <span>طبيعي 100% ومفحوص مخبرياً</span>
           </div>
           <div className="hidden md:block w-px h-4 bg-amber-900/50"></div>
           <div className="flex items-center gap-1.5 sm:gap-2">
-            <Award className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 text-amber-500" />
+            <Award className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-500" />
             <span>خبرة عائلية +25 عاماً</span>
           </div>
           <div className="hidden md:block w-px h-4 bg-amber-900/50"></div>
           <div className="flex items-center gap-1.5 sm:gap-2">
-            <Truck className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 text-amber-500" />
+            <Truck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-500" />
             <span className="hidden sm:inline">شحن آمن لكافة المحافظات السورية</span>
             <span className="sm:hidden">شحن آمن</span>
           </div>
@@ -75,8 +87,10 @@ export const Header: React.FC = () => {
             className="flex items-center gap-2 sm:gap-3 md:gap-4 hover:opacity-80 transition-opacity cursor-pointer"
           >
             <img 
-              src="https://res.cloudinary.com/dkbvnupge/image/upload/v1767958674/my-app-uploads/kromozksoa3vpcwrnvtw.jpg" 
+              src="https://res.cloudinary.com/dkbvnupge/image/upload/f_auto,q_auto/v1767958674/my-app-uploads/kromozksoa3vpcwrnvtw.jpg" 
               alt="لوغو الهيثم" 
+              width="64"
+              height="64"
               className="h-10 sm:h-12 md:h-16 w-auto object-contain brightness-110 drop-shadow-[0_0_8px_rgba(212,175,55,0.3)]"
             />
             <div className="flex flex-col border-r border-zinc-800 pr-2 sm:pr-3 md:pr-4 mr-1 sm:mr-2">
@@ -86,32 +100,15 @@ export const Header: React.FC = () => {
           </a>
           
           <div className="hidden md:flex gap-6 lg:gap-8 text-sm font-medium text-zinc-400">
-            <Link to="/store" className="flex items-center gap-2 hover:text-amber-500 transition-colors">
+            <Link to="/shop" className="flex items-center gap-2 hover:text-amber-500 transition-colors">
               <Store className="w-4 h-4" />
               المتجر
             </Link>
-            <Link to="/articles" className="hover:text-amber-500 transition-colors">المقالات</Link>
-            <a 
-              href="#products" 
-              onClick={(e) => handleAnchorClick(e, '#products')}
-              className="hover:text-amber-500 transition-colors"
-            >
-              المحاصيل
-            </a>
-            <a 
-              href="#story" 
-              onClick={(e) => handleAnchorClick(e, '#story')}
-              className="hover:text-amber-500 transition-colors"
-            >
-              حكايتنا
-            </a>
-            <a 
-              href="#quality" 
-              onClick={(e) => handleAnchorClick(e, '#quality')}
-              className="hover:text-amber-500 transition-colors"
-            >
-              الجودة
-            </a>
+            <Link to="/articles" className="hover:text-amber-500 transition-colors">المدونة</Link>
+            <Link to="/custom-mixtures" className="hover:text-amber-500 transition-colors">الخلطات الخاصة</Link>
+            <Link to="/about-us" className="hover:text-amber-500 transition-colors">قصتنا</Link>
+            <Link to="/quality-standards" className="hover:text-amber-500 transition-colors">الجودة</Link>
+            <Link to="/faq" className="hover:text-amber-500 transition-colors">الأسئلة الشائعة</Link>
           </div>
 
           <div className="flex items-center gap-4">
@@ -127,67 +124,66 @@ export const Header: React.FC = () => {
             {/* Mobile Menu Button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 text-zinc-400 hover:text-amber-500 transition-colors"
+              className="md:hidden p-3 text-zinc-400 hover:text-amber-500 transition-colors"
+              aria-label="Toggle menu"
             >
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              {mobileMenuOpen ? <X className="w-7 h-7" /> : <Menu className="w-7 h-7" />}
             </button>
           </div>
           
           {/* Mobile Menu */}
           {mobileMenuOpen && (
-            <div className="md:hidden absolute top-full left-0 right-0 bg-zinc-950/95 backdrop-blur-md border-b border-amber-900/20">
-              <div className="flex flex-col py-4 px-6 gap-4">
+            <div className="md:hidden absolute top-full left-0 right-0 bg-zinc-950/95 backdrop-blur-md border-b border-amber-900/20 h-screen overflow-y-auto pb-20">
+              <div className="flex flex-col py-6 px-6 gap-6">
                 <Link
-                  to="/store"
+                  to="/shop"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center gap-3 text-zinc-400 hover:text-amber-500 transition-colors py-2"
+                  className="flex items-center gap-4 text-zinc-300 hover:text-amber-500 transition-colors py-3 text-lg border-b border-zinc-800/50"
                 >
-                  <Store className="w-5 h-5" />
+                  <Store className="w-6 h-6 text-amber-500" />
                   <span className="font-medium">المتجر</span>
                 </Link>
                 <Link
                   to="/articles"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="text-zinc-400 hover:text-amber-500 transition-colors py-2"
+                  className="text-zinc-300 hover:text-amber-500 transition-colors py-3 text-lg border-b border-zinc-800/50"
                 >
-                  المقالات
+                  المدونة
                 </Link>
-                <a
-                  href="#products"
-                  onClick={(e) => {
-                    handleAnchorClick(e, '#products');
-                    setMobileMenuOpen(false);
-                  }}
-                  className="text-zinc-400 hover:text-amber-500 transition-colors py-2"
+                <Link
+                  to="/custom-mixtures"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="text-zinc-300 hover:text-amber-500 transition-colors py-3 text-lg border-b border-zinc-800/50"
                 >
-                  المحاصيل
-                </a>
-                <a
-                  href="#story"
-                  onClick={(e) => {
-                    handleAnchorClick(e, '#story');
-                    setMobileMenuOpen(false);
-                  }}
-                  className="text-zinc-400 hover:text-amber-500 transition-colors py-2"
+                  الخلطات الخاصة
+                </Link>
+                <Link
+                  to="/about-us"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="text-zinc-300 hover:text-amber-500 transition-colors py-3 text-lg border-b border-zinc-800/50"
                 >
                   حكايتنا
-                </a>
-                <a
-                  href="#quality"
-                  onClick={(e) => {
-                    handleAnchorClick(e, '#quality');
-                    setMobileMenuOpen(false);
-                  }}
-                  className="text-zinc-400 hover:text-amber-500 transition-colors py-2"
+                </Link>
+                <Link
+                  to="/quality-standards"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="text-zinc-300 hover:text-amber-500 transition-colors py-3 text-lg border-b border-zinc-800/50"
                 >
                   الجودة
-                </a>
+                </Link>
+                <Link
+                  to="/faq"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="text-zinc-300 hover:text-amber-500 transition-colors py-3 text-lg border-b border-zinc-800/50"
+                >
+                  الأسئلة الشائعة
+                </Link>
                 <a
                   href={`https://wa.me/${phoneNumber.replace(/\D/g, '')}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="mt-2 px-6 py-3 gold-gradient rounded-full text-zinc-950 text-sm font-black text-center luxury-shadow"
+                  className="mt-4 w-full py-4 gold-gradient rounded-xl text-zinc-950 text-lg font-black text-center luxury-shadow active:scale-95 transition-transform"
                 >
                   اطلب الآن
                 </a>

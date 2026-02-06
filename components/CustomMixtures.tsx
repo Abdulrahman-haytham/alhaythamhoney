@@ -1,8 +1,13 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Beaker, Zap, ShieldCheck, Scale, Sparkles, MessageCircle } from 'lucide-react';
+import { Beaker, Zap, ShieldCheck, Scale, Sparkles, MessageCircle, ArrowLeft } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
-export const CustomMixtures: React.FC = () => {
+interface CustomMixturesProps {
+  isTeaser?: boolean;
+}
+
+export const CustomMixtures: React.FC<CustomMixturesProps> = ({ isTeaser }) => {
   const mixtures = [
     {
       title: 'خلطات للطاقة والتحمّل',
@@ -25,6 +30,8 @@ export const CustomMixtures: React.FC = () => {
       description: 'تركيبة خاصة تُصمم بالكامل بناءً على متطلباتك الفريدة.'
     }
   ];
+
+  const displayedMixtures = isTeaser ? mixtures.slice(0, 2) : mixtures;
 
   return (
     <section className="py-16 sm:py-24 bg-zinc-900 relative overflow-hidden">
@@ -76,21 +83,31 @@ export const CustomMixtures: React.FC = () => {
             </div>
 
             <div className="mt-8">
-              <a 
-                href="https://wa.me/963947931959" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-3 bg-amber-500 hover:bg-amber-600 text-zinc-900 font-bold py-4 px-8 rounded-xl transition-all duration-300 hover:scale-105 shadow-lg shadow-amber-500/20 w-full sm:w-auto"
-              >
-                <span>اطلب خلطتك الخاصة الآن</span>
-                <MessageCircle className="w-5 h-5" />
-              </a>
+              {isTeaser ? (
+                <Link 
+                  to="/custom-mixtures"
+                  className="inline-flex items-center justify-center gap-3 bg-amber-500 hover:bg-amber-600 text-zinc-900 font-bold py-4 px-8 rounded-xl transition-all duration-300 hover:scale-105 shadow-lg shadow-amber-500/20 w-full sm:w-auto"
+                >
+                  <span>اكتشف المزيد عن الخلطات</span>
+                  <ArrowLeft className="w-5 h-5" />
+                </Link>
+              ) : (
+                <a 
+                  href="https://wa.me/963947931959" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center gap-3 bg-amber-500 hover:bg-amber-600 text-zinc-900 font-bold py-4 px-8 rounded-xl transition-all duration-300 hover:scale-105 shadow-lg shadow-amber-500/20 w-full sm:w-auto"
+                >
+                  <span>اطلب خلطتك الخاصة الآن</span>
+                  <MessageCircle className="w-5 h-5" />
+                </a>
+              )}
             </div>
           </motion.div>
 
           {/* Cards Side */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 order-1 lg:order-2">
-            {mixtures.map((item, idx) => (
+            {displayedMixtures.map((item, idx) => (
               <motion.div
                 key={idx}
                 initial={{ opacity: 0, y: 20 }}
@@ -99,19 +116,31 @@ export const CustomMixtures: React.FC = () => {
                 transition={{ delay: idx * 0.1 }}
                 className="bg-zinc-950/50 border border-zinc-800 hover:border-amber-500/30 rounded-2xl p-6 group transition-all duration-300 hover:-translate-y-1"
               >
-                <div className="w-12 h-12 bg-amber-500/10 rounded-xl flex items-center justify-center mb-4 group-hover:bg-amber-500/20 transition-colors">
+                <div className="w-12 h-12 bg-zinc-900 rounded-xl flex items-center justify-center mb-4 group-hover:bg-amber-500/10 transition-colors">
                   <item.icon className="w-6 h-6 text-amber-500" />
                 </div>
-                <h3 className="text-white font-amiri font-bold text-xl mb-2 group-hover:text-amber-400 transition-colors">
-                  {item.title}
-                </h3>
-                <p className="text-zinc-400 text-sm leading-relaxed">
-                  {item.description}
-                </p>
+                <h3 className="text-lg font-bold text-white mb-2">{item.title}</h3>
+                <p className="text-zinc-400 text-sm leading-relaxed">{item.description}</p>
               </motion.div>
             ))}
+            {isTeaser && (
+               <motion.div
+               initial={{ opacity: 0, y: 20 }}
+               whileInView={{ opacity: 1, y: 0 }}
+               viewport={{ once: true }}
+               transition={{ delay: 0.3 }}
+               className="bg-zinc-950/50 border border-dashed border-zinc-800 hover:border-amber-500/30 rounded-2xl p-6 group transition-all duration-300 flex flex-col items-center justify-center text-center cursor-pointer"
+             >
+               <Link to="/custom-mixtures" className="flex flex-col items-center w-full h-full">
+                  <div className="w-12 h-12 bg-zinc-900 rounded-xl flex items-center justify-center mb-4 group-hover:bg-amber-500/10 transition-colors">
+                    <Sparkles className="w-6 h-6 text-amber-500" />
+                  </div>
+                  <h3 className="text-lg font-bold text-white mb-2">والمزيد...</h3>
+                  <p className="text-zinc-400 text-sm leading-relaxed">اكتشف جميع الخلطات المتاحة</p>
+               </Link>
+             </motion.div>
+            )}
           </div>
-
         </div>
       </div>
     </section>

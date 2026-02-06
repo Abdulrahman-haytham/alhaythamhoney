@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { ShoppingCart, Sparkles, Droplets, Eye, ArrowRight } from 'lucide-react';
 import { ProductDetailModal } from '../components/ProductDetailModal';
 import { Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 
 interface ProductItem {
   name: string;
@@ -260,6 +261,7 @@ const StoreProductGroupSection = memo(({ group, onProductClick, phoneNumber }: {
             <img
               src={item.image}
               alt={item.name}
+              loading="lazy"
               className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/40 to-transparent"></div>
@@ -329,6 +331,12 @@ export const Store: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 pt-32">
+      <Helmet>
+        <title>متجر الهيثم - منتجات النحل الطبيعية</title>
+        <meta name="description" content="تسوق أفضل أنواع العسل الطبيعي، عسل حبة البركة، عسل الدردار، وعسل الجيجان. منتجات طبيعية 100% ومفحوصة مخبرياً." />
+        <meta property="og:title" content="متجر الهيثم - منتجات النحل الطبيعية" />
+        <meta property="og:description" content="تسوق أفضل أنواع العسل الطبيعي، عسل حبة البركة، عسل الدردار، وعسل الجيجان. منتجات طبيعية 100% ومفحوصة مخبرياً." />
+      </Helmet>
       <div className="container mx-auto px-6 py-12">
         {/* Header Section */}
         <motion.div

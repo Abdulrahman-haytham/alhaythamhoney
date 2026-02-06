@@ -1,11 +1,26 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ShieldCheck, RefreshCw, AlertCircle, CheckCircle2, XCircle, ArrowRight } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { ShieldCheck, RefreshCw, AlertCircle, CheckCircle2, XCircle } from 'lucide-react';
+import { Helmet } from 'react-helmet-async';
+import { Breadcrumbs } from '../components/Breadcrumbs';
 
 export const ReturnPolicyPage: React.FC = () => {
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 pt-24 pb-12 flex flex-col justify-center">
+    <div className="pt-24 pb-12 flex flex-col justify-center">
+      <Helmet>
+        <title>سياسة الاسترجاع وضمان الجودة - الهيثم لنحل وعسل</title>
+        <meta name="description" content="نضمن لك جودة منتجاتنا 100%. تعرف على سياسة الاسترجاع وضمان الجودة في مناحل الهيثم." />
+        <meta name="robots" content="noindex" />
+      </Helmet>
+      
+      <div className="container mx-auto px-4 mb-8">
+        <Breadcrumbs items={[{ label: 'سياسة الاسترجاع' }]} />
+      </div>
+
       <div className="container mx-auto px-4">
         {/* Header */}
         <motion.div
@@ -13,15 +28,6 @@ export const ReturnPolicyPage: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-8"
         >
-          <div className="flex items-center justify-center gap-4 mb-4">
-            <Link
-              to="/"
-              className="flex items-center gap-2 text-amber-500 hover:text-amber-400 transition-colors text-sm"
-            >
-              <ArrowRight className="w-4 h-4" />
-              <span>العودة للرئيسية</span>
-            </Link>
-          </div>
           <h1 className="text-3xl md:text-4xl font-amiri font-bold text-white mb-3">
             ضمان الجودة وسياسة الاسترجاع
           </h1>

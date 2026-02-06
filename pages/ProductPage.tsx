@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { ArrowRight, ShoppingCart, CheckCircle2, Leaf, Heart, Zap } from 'lucide-react';
 import { Header } from '../components/Header';
 import { Footer } from '../components/Footer';
+import { Helmet } from 'react-helmet-async';
 
 interface ProductData {
   id: string;
@@ -73,7 +74,7 @@ const products: Record<string, ProductData> = {
     name: 'عسل الدردار',
     nameEn: 'Dardar Honey',
     desc: 'طعم الطبيعة السورية الأصيل، رحيق نادر يجسد عراقة الأرض.',
-    image: 'https://res.cloudinary.com/dkbvnupge/image/upload/v1768245563/my-app-uploads/bdtoimsuk9sjkirvpvbw.jpg',
+    image: 'https://res.cloudinary.com/dkbvnupge/image/upload/f_auto,q_auto/v1768245563/my-app-uploads/bdtoimsuk9sjkirvpvbw.jpg',
     benefit: 'طاقة وتنفس',
     detailedInfo: {
       benefits: [
@@ -173,7 +174,7 @@ const products: Record<string, ProductData> = {
     name: 'غذاء ملكات النحل',
     nameEn: 'Royal Jelly',
     desc: 'منبع الحيوية والنشاط الدائم، مركز طاقة نقي.',
-    image: 'https://res.cloudinary.com/dkbvnupge/image/upload/v1768244891/my-app-uploads/hydwzteebguygp6fg3ak.jpg',
+    image: 'https://res.cloudinary.com/dkbvnupge/image/upload/f_auto,q_auto/v1768244891/my-app-uploads/hydwzteebguygp6fg3ak.jpg',
     badge: 'ملك الخلية',
     benefit: 'إصدار فاخر',
     detailedInfo: {
@@ -209,6 +210,10 @@ export const ProductPage: React.FC = () => {
   if (!product) {
     return (
       <div className="min-h-screen bg-zinc-950 text-zinc-100 pt-32">
+        <Helmet>
+          <title>المنتج غير موجود - عسل الهيثم</title>
+          <meta name="robots" content="noindex" />
+        </Helmet>
         <div className="container mx-auto px-6 py-12 text-center">
           <h1 className="text-4xl font-bold mb-4">المنتج غير موجود</h1>
           <Link to="/" className="text-amber-500 hover:text-amber-400">
@@ -221,6 +226,13 @@ export const ProductPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100">
+      <Helmet>
+        <title>{`${product.name} - عسل الهيثم`}</title>
+        <meta name="description" content={product.desc} />
+        <meta property="og:title" content={product.name} />
+        <meta property="og:description" content={product.desc} />
+        <meta property="og:image" content={product.image} />
+      </Helmet>
       <Header />
       <main className="pt-32 pb-16">
         <div className="container mx-auto px-4 sm:px-6">
@@ -243,7 +255,7 @@ export const ProductPage: React.FC = () => {
               <img
                 src={product.image}
                 alt={`${product.name} - عسل طبيعي 100% من الهيثم لنحل وعسل`}
-                loading="lazy"
+                fetchPriority="high"
                 className="w-full h-full object-cover"
               />
               {product.badge && (
@@ -350,7 +362,7 @@ export const ProductPage: React.FC = () => {
           )}
 
           {/* CTA */}
-          <section className="text-center bg-gradient-to-br from-amber-500/10 to-transparent p-12 rounded-2xl border border-amber-500/20">
+          <section className="text-center bg-gradient-to-br from-amber-500/10 to-transparent p-12 rounded-2xl border border-amber-500/20 mb-20">
             <h2 className="text-3xl font-amiri font-bold text-white mb-4">
               جاهز لتجربة {product.name}؟
             </h2>
@@ -367,6 +379,22 @@ export const ProductPage: React.FC = () => {
           </section>
         </div>
       </main>
+
+      {/* Sticky Mobile CTA */}
+      <motion.div 
+        initial={{ y: 100 }}
+        animate={{ y: 0 }}
+        className="fixed bottom-0 left-0 right-0 p-4 bg-zinc-950/90 backdrop-blur-md border-t border-zinc-800 z-40 md:hidden"
+      >
+        <a
+          href={`https://wa.me/${phoneNumber.replace(/\D/g, '')}?text=أريد طلب ${product.name}`}
+          className="flex items-center justify-center gap-2 w-full py-3 bg-amber-500 text-zinc-950 rounded-xl font-bold hover:bg-amber-400 transition-colors"
+        >
+          <ShoppingCart className="w-5 h-5" />
+          <span>اطلب الآن - {product.name}</span>
+        </a>
+      </motion.div>
+
       <Footer />
     </div>
   );

@@ -22,9 +22,9 @@ export const Hero: React.FC = () => {
         className="absolute inset-0 z-0"
       >
         <img 
-          src="https://res.cloudinary.com/dkbvnupge/image/upload/v1767958674/my-app-uploads/kromozksoa3vpcwrnvtw.jpg" 
+          src="https://res.cloudinary.com/dkbvnupge/image/upload/f_auto,q_auto/v1767958674/my-app-uploads/kromozksoa3vpcwrnvtw.jpg" 
           alt="عسل طبيعي 100% من مراعي سوريا - الهيثم لنحل وعسل"
-          loading="lazy"
+          fetchPriority="high"
           className="w-full h-full object-cover grayscale-[10%] brightness-[0.3]"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/60 to-transparent"></div>

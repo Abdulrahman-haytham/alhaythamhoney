@@ -1,9 +1,14 @@
 
 import React from 'react';
-import { Microscope, Mountain, PackageCheck } from 'lucide-react';
+import { Microscope, Mountain, PackageCheck, ArrowLeft } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 
-export const Quality: React.FC = () => {
+interface QualityProps {
+  isTeaser?: boolean;
+}
+
+export const Quality: React.FC<QualityProps> = ({ isTeaser }) => {
   const factors = [
     {
       title: 'انتقاء المرعى',
@@ -34,12 +39,12 @@ export const Quality: React.FC = () => {
           className="text-center mb-12 sm:mb-16 md:mb-24"
         >
           <span className="text-amber-500 font-bold mb-3 md:mb-4 block tracking-[0.3em] sm:tracking-[0.4em] uppercase text-[10px] sm:text-xs italic">Quality Standards</span>
-          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-amiri font-bold mb-4 md:mb-6 px-2">معايير الجودة في الهيثم لنحل وعسل</h2>
+          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-amiri font-bold mb-4 md:mb-6 px-2">شهادة عملائنا هي فخرنا وإرثنا هو الضمان</h2>
           <p className="text-zinc-500 text-base sm:text-lg md:text-xl font-light px-4">معايير لا نساوم عليها لأن صحتك هي أمانتنا</p>
           <div className="w-20 sm:w-24 h-1 bg-amber-500 mx-auto mt-6 md:mt-8 rounded-full"></div>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 sm:gap-12 md:gap-16">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 sm:gap-12 md:gap-16 mb-12">
           {factors.map((f, idx) => (
             <motion.div 
               key={idx}
@@ -57,6 +62,18 @@ export const Quality: React.FC = () => {
             </motion.div>
           ))}
         </div>
+
+        {isTeaser && (
+          <div className="text-center">
+            <Link 
+              to="/quality-standards" 
+              className="inline-flex items-center gap-2 bg-zinc-900 hover:bg-zinc-800 text-white px-8 py-4 rounded-xl border border-zinc-800 hover:border-amber-500/50 transition-all duration-300 group"
+            >
+              <span>اطلاع على الشهادات والمعايير</span>
+              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+            </Link>
+          </div>
+        )}
       </div>
     </section>
   );
