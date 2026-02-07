@@ -16,15 +16,22 @@ export const Hero: React.FC = () => {
     <section className="relative min-h-screen w-full flex flex-col items-center justify-center overflow-hidden pt-16 md:pt-20 pb-8 md:pb-0">
       {/* Background with subtle animation */}
       <motion.div 
-        initial={{ scale: 1.1, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
+        initial={{ scale: 1.1 }}
+        animate={{ scale: 1 }}
         transition={{ duration: 2, ease: "easeOut" }}
         className="absolute inset-0 z-0"
       >
         <img 
           src="https://res.cloudinary.com/dkbvnupge/image/upload/f_auto,q_auto/v1767958674/my-app-uploads/kromozksoa3vpcwrnvtw.jpg" 
+          srcSet="https://res.cloudinary.com/dkbvnupge/image/upload/c_scale,w_768,f_auto,q_auto/v1767958674/my-app-uploads/kromozksoa3vpcwrnvtw.jpg 768w,
+                  https://res.cloudinary.com/dkbvnupge/image/upload/c_scale,w_1200,f_auto,q_auto/v1767958674/my-app-uploads/kromozksoa3vpcwrnvtw.jpg 1200w,
+                  https://res.cloudinary.com/dkbvnupge/image/upload/c_scale,w_1920,f_auto,q_auto/v1767958674/my-app-uploads/kromozksoa3vpcwrnvtw.jpg 1920w"
+          sizes="(max-width: 768px) 768px, (max-width: 1200px) 1200px, 100vw"
           alt="عسل طبيعي 100% من مراعي سوريا - الهيثم لنحل وعسل"
           fetchPriority="high"
+          loading="eager"
+          width="1920"
+          height="1080"
           className="w-full h-full object-cover grayscale-[10%] brightness-[0.3]"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/60 to-transparent"></div>

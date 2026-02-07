@@ -21,6 +21,16 @@ export default defineConfig(({ mode }) => {
         alias: {
           '@': path.resolve(__dirname, '.'),
         }
+      },
+      build: {
+        rollupOptions: {
+          output: {
+            manualChunks: {
+              'react-vendor': ['react', 'react-dom', 'react-router-dom', 'react-helmet-async'],
+              'ui-vendor': ['framer-motion', 'lucide-react']
+            }
+          }
+        }
       }
     };
 });
