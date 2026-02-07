@@ -1,12 +1,22 @@
-
-import React, { useEffect } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { CustomMixtures } from '../components/CustomMixtures';
+import { SmartMixtureAssistant, StepData, Recommendation } from '../components/SmartMixtureAssistant';
+import { MixturePhilosophy } from '../components/MixturePhilosophy';
+import { MixtureShowcase } from '../components/MixtureShowcase';
+import { MixtureCTA } from '../components/MixtureCTA';
 import { Breadcrumbs } from '../components/Breadcrumbs';
 
 export const CustomMixturesPage: React.FC = () => {
+  const [mixtureData, setMixtureData] = useState<StepData>({});
+  const [recommendation, setRecommendation] = useState<Recommendation | undefined>(undefined);
+
   useEffect(() => {
     window.scrollTo(0, 0);
+  }, []);
+
+  const handleAssistantUpdate = useCallback((data: StepData, rec: Recommendation) => {
+    setMixtureData(data);
+    setRecommendation(rec);
   }, []);
 
   return (
@@ -20,7 +30,19 @@ export const CustomMixturesPage: React.FC = () => {
         <Breadcrumbs items={[{ label: 'الخلطات الخاصة' }]} />
       </div>
 
-      <CustomMixtures />
+      {/* 1. THE INTERACTIVE HOOK */}
+      <div className="container mx-auto px-4 sm:px-6 mb-8">
+        <SmartMixtureAssistant onDataUpdate={handleAssistantUpdate} />
+      </div>
+
+      {/* 2. THE PHILOSOPHY */}
+      <MixturePhilosophy />
+
+      {/* 3. THE SHOWCASE */}
+      <MixtureShowcase />
+
+      {/* 4. THE FINAL CTA */}
+      <MixtureCTA mixtureData={mixtureData} recommendation={recommendation} />
     </div>
   );
 };
