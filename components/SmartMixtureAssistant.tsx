@@ -112,6 +112,15 @@ export const SmartMixtureAssistant: React.FC<SmartMixtureAssistantProps> = ({ on
     }
   }, [data, onDataUpdate]);
 
+  // Helper to go back
+  const prevStep = () => {
+    if (showResult) {
+      setShowResult(false);
+    } else if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
+
   // Helper to go to next step
   const nextStep = () => {
     if (currentStep < 3) {
