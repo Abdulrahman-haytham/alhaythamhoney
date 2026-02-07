@@ -101,4 +101,45 @@
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
+  <!-- Article Pages -->
+  <url>
+    <loc>https://alhaythamhoney.sy/articles/black-seed-honey-benefits</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://alhaythamhoney.sy/articles/how-to-identify-natural-honey</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://alhaythamhoney.sy/articles/honey-crystallization</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://alhaythamhoney.sy/articles/honey-for-children-cough</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://alhaythamhoney.sy/articles/honey-royal-jelly-sexual-health</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://alhaythamhoney.sy/articles/honey-for-stomach-and-colon</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://alhaythamhoney.sy/articles/secrets-of-bees-kingdom</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://alhaythamhoney.sy/articles/best-honey-types-in-syria-guide</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
 </urlset>
