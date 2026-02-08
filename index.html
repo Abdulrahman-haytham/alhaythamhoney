@@ -227,6 +227,80 @@
       color: #fbbf24;
       font-weight: 600;
     }
+    
+    /* Loading Screen Styles */
+    .app-loader {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background-color: #09090b;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Cairo', sans-serif;
+    }
+    
+    .loader-logo {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      margin-bottom: 2rem;
+      box-shadow: 0 0 30px rgba(184, 134, 11, 0.2);
+      animation: pulse-gold 2s infinite ease-in-out;
+    }
+
+    .loader-progress-container {
+      width: 240px;
+      height: 4px;
+      background-color: rgba(184, 134, 11, 0.2);
+      border-radius: 4px;
+      position: relative;
+      margin-top: 1rem;
+    }
+
+    .loader-progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #b8860b, #f9d976);
+      border-radius: 4px;
+      width: 0%;
+      animation: progress-fill 2s ease-out forwards;
+      position: relative;
+    }
+
+    .loader-bee {
+      position: absolute;
+      right: -10px;
+      top: -14px;
+      font-size: 24px;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+      transform: scaleX(-1); /* Face direction of movement */
+    }
+
+    .loader-text {
+      margin-top: 1rem;
+      color: #b8860b;
+      font-size: 0.875rem;
+      letter-spacing: 0.05em;
+      opacity: 0.8;
+      animation: fade-pulse 1.5s infinite;
+    }
+
+    @keyframes progress-fill {
+      0% { width: 0%; }
+      50% { width: 70%; }
+      100% { width: 100%; }
+    }
+
+    @keyframes pulse-gold {
+      0%, 100% { box-shadow: 0 0 30px rgba(184, 134, 11, 0.2); transform: scale(1); }
+      50% { box-shadow: 0 0 50px rgba(184, 134, 11, 0.4); transform: scale(1.05); }
+    }
+
+    @keyframes fade-pulse {
+      0%, 100% { opacity: 0.5; }
+      50% { opacity: 1; }
+    }
   </style>
 
 <link rel="stylesheet" href="/index.css">
@@ -246,8 +320,21 @@
   <link rel="modulepreload" crossorigin href="/assets/ui-vendor-BPqrUW4c.js">
 <link rel="manifest" href="/manifest.webmanifest"><script id="vite-plugin-pwa:register-sw" src="/registerSW.js"></script></head>
 <body class="bg-zinc-950 text-zinc-100 overflow-x-hidden">
-  <div id="root"></div>
-<script>
+  <div id="root">
+    <!-- Initial Loading State (Removed automatically by React) -->
+    <div class="app-loader">
+      <img src="https://res.cloudinary.com/dkbvnupge/image/upload/f_auto,q_auto/v1767958674/my-app-uploads/kromozksoa3vpcwrnvtw.jpg" alt="الهيثم لنحل وعسل" class="loader-logo">
+      
+      <div class="loader-progress-container">
+        <div class="loader-progress-bar">
+          <div class="loader-bee">🐝</div>
+        </div>
+      </div>
+      
+      <div class="loader-text">جاري تحضير الخلية...</div>
+    </div>
+  </div>
+  <script>
   (function() {
     try {
       var params = new URLSearchParams(window.location.search);
