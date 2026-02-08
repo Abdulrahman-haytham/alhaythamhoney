@@ -143,6 +143,19 @@
     @keyframes shine {
       to { background-position: 200% center; }
     }
+    @keyframes marquee {
+      0% { transform: translateX(100%); }
+      100% { transform: translateX(-100%); }
+    }
+    .animate-marquee {
+      display: inline-block;
+      white-space: nowrap;
+      animation: marquee 20s linear infinite;
+    }
+    /* Pause animation on hover for better readability */
+    .animate-marquee:hover {
+      animation-play-state: paused;
+    }
     .luxury-shadow {
       box-shadow: 0 10px 40px -10px rgba(184, 134, 11, 0.2);
     }
@@ -228,7 +241,7 @@
   }
 }
 </script>
-  <script type="module" crossorigin src="/assets/index-BCHBJOhI.js"></script>
+  <script type="module" crossorigin src="/assets/index-DD7qycUG.js"></script>
   <link rel="modulepreload" crossorigin href="/assets/react-vendor-B9iW3bDF.js">
   <link rel="modulepreload" crossorigin href="/assets/ui-vendor-BPqrUW4c.js">
 </head>
