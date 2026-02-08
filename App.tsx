@@ -50,7 +50,7 @@ const HomePage: React.FC = () => {
   return (
     <div className="min-h-screen selection:bg-amber-500/30 overflow-x-hidden bg-zinc-950 text-zinc-100">
       <Helmet>
-        <title>عسل الهيثم - عسل طبيعي 100% من مراعي سوريا | ضمان الجودة</title>
+        <title>عسل الهيثم - عسل  طبيعي 100% من مراعي سوريا |  أفضل عسل سوري مع ضمانات جودة</title>
         <meta name="description" content="تسوق أفضل أنواع العسل الطبيعي، عسل حبة البركة، عسل الدردار، وعسل الجيجان. مفحوص مخبرياً ومكفول. شحن آمن لكل المحافظات السورية." />
         <meta name="keywords" content="عسل, عسل طبيعي, عسل سوريا, عسل حبة البركة, غذاء ملكي, عكبر, الهيثم للعسل" />
       </Helmet>
@@ -104,6 +104,15 @@ const HomePage: React.FC = () => {
 };
 
 const App: React.FC = () => {
+  // Handle SPA redirect from 404.html
+  React.useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const redirectPath = params.get('p');
+    if (redirectPath) {
+      window.history.replaceState(null, '', redirectPath);
+    }
+  }, []);
+
   return (
     <HelmetProvider>
       <Router>

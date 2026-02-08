@@ -58,20 +58,40 @@ export const Header: React.FC = () => {
   return (
     <header className="fixed top-0 left-0 w-full z-50">
       {/* Top Excellence Bar */}
-      <div className="bg-black border-b border-amber-900/30 py-1.5 sm:py-2 px-3 sm:px-4 text-[10px] sm:text-xs md:text-sm font-light tracking-wide">
-        <div className="container mx-auto flex flex-col md:flex-row justify-center items-center gap-1.5 sm:gap-2 md:gap-8 text-amber-200/80">
-          <div className="flex items-center gap-1.5 sm:gap-2">
-            <ShieldCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-500" />
+      <div className="bg-black border-b border-amber-900/30 py-1.5 sm:py-2 px-3 sm:px-4 text-[10px] sm:text-xs md:text-sm font-light tracking-wide overflow-hidden">
+        
+        {/* Mobile Marquee View */}
+        <div className="md:hidden w-full relative">
+          <div className="animate-marquee whitespace-nowrap">
+            <div className="inline-flex items-center gap-1.5 mx-3 text-amber-200/80">
+              <ShieldCheck className="w-3.5 h-3.5 text-amber-500" />
+              <span>طبيعي 100% ومفحوص مخبرياً</span>
+            </div>
+            <div className="inline-flex items-center gap-1.5 mx-3 text-amber-200/80">
+              <Award className="w-3.5 h-3.5 text-amber-500" />
+              <span>خبرة عائلية +25 عاماً</span>
+            </div>
+            <div className="inline-flex items-center gap-1.5 mx-3 text-amber-200/80">
+              <Truck className="w-3.5 h-3.5 text-amber-500" />
+              <span>شحن آمن لكافة المحافظات السورية</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Desktop Static View */}
+        <div className="hidden md:flex container mx-auto justify-center items-center gap-8 text-amber-200/80">
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="w-4 h-4 text-amber-500" />
             <span>طبيعي 100% ومفحوص مخبرياً</span>
           </div>
-          <div className="hidden md:block w-px h-4 bg-amber-900/50"></div>
-          <div className="flex items-center gap-1.5 sm:gap-2">
-            <Award className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-500" />
+          <div className="w-px h-4 bg-amber-900/50"></div>
+          <div className="flex items-center gap-2">
+            <Award className="w-4 h-4 text-amber-500" />
             <span>خبرة عائلية +25 عاماً</span>
           </div>
-          <div className="hidden md:block w-px h-4 bg-amber-900/50"></div>
-          <div className="flex items-center gap-1.5 sm:gap-2">
-            <Truck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-500" />
+          <div className="w-px h-4 bg-amber-900/50"></div>
+          <div className="flex items-center gap-2">
+            <Truck className="w-4 h-4 text-amber-500" />
             <span className="hidden sm:inline">شحن آمن لكافة المحافظات السورية</span>
             <span className="sm:hidden">شحن آمن</span>
           </div>
