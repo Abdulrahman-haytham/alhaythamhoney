@@ -18,14 +18,19 @@ export default defineConfig(({ mode }) => {
         VitePWA({
           registerType: 'autoUpdate',
           includeAssets: ['favicon.ico', 'favicon-16x16.png', 'favicon-32x32.png', 'apple-touch-icon.png'],
+          workbox: {
+            clientsClaim: true,
+            skipWaiting: true,
+            cleanupOutdatedCaches: true
+          },
           manifest: {
             name: 'الهيثم نحل و عسل',
             short_name: 'الهيثم',
             start_url: '/',
             scope: '/',
             display: 'standalone',
-            background_color: '#ffffff',
-            theme_color: '#f5a623',
+            background_color: '#09090b',
+            theme_color: '#09090b',
             icons: [
               {
                 src: '/android-chrome-192x192.png',
