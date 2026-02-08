@@ -1,145 +1,140 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <!-- Static Routes -->
   <url>
     <loc>https://alhaythamhoney.sy/</loc>
-    <changefreq>weekly</changefreq>
+    <lastmod>2026-02-08</lastmod>
+    <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://alhaythamhoney.sy/about-us</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
     <loc>https://alhaythamhoney.sy/shop</loc>
+    <lastmod>2026-02-08</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
+    <priority>0.8</priority>
   </url>
   <url>
     <loc>https://alhaythamhoney.sy/custom-mixtures</loc>
+    <lastmod>2026-02-08</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
+    <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://alhaythamhoney.sy/articles</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://alhaythamhoney.sy/quality-standards</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://alhaythamhoney.sy/faq</loc>
+    <loc>https://alhaythamhoney.sy/about-us</loc>
+    <lastmod>2026-02-08</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
-  <!-- Product Pages -->
   <url>
-    <loc>https://alhaythamhoney.sy/product/sidr-doani</loc>
+    <loc>https://alhaythamhoney.sy/quality-standards</loc>
+    <lastmod>2026-02-08</lastmod>
     <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://alhaythamhoney.sy/faq</loc>
+    <lastmod>2026-02-08</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://alhaythamhoney.sy/articles</loc>
+    <lastmod>2026-02-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://alhaythamhoney.sy/return-policy</loc>
+    <lastmod>2026-02-08</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.3</priority>
+  </url>
+
+  <!-- Products -->
+  <url>
+    <loc>https://alhaythamhoney.sy/product/black-seed-honey</loc>
+    <lastmod>2026-02-08</lastmod>
+    <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://alhaythamhoney.sy/product/royal-sidr</loc>
-    <changefreq>monthly</changefreq>
+    <loc>https://alhaythamhoney.sy/product/dardar-honey</loc>
+    <lastmod>2026-02-08</lastmod>
+    <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://alhaythamhoney.sy/product/black-seed</loc>
-    <changefreq>monthly</changefreq>
+    <loc>https://alhaythamhoney.sy/product/jejan-honey</loc>
+    <lastmod>2026-02-08</lastmod>
+    <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://alhaythamhoney.sy/product/mountain-honey</loc>
-    <changefreq>monthly</changefreq>
+    <loc>https://alhaythamhoney.sy/product/propolis</loc>
+    <lastmod>2026-02-08</lastmod>
+    <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://alhaythamhoney.sy/product/citrus-honey</loc>
-    <changefreq>monthly</changefreq>
+    <loc>https://alhaythamhoney.sy/product/royal-jelly</loc>
+    <lastmod>2026-02-08</lastmod>
+    <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://alhaythamhoney.sy/product/anise-honey</loc>
-    <changefreq>monthly</changefreq>
+    <loc>https://alhaythamhoney.sy/product/pollen</loc>
+    <lastmod>2026-02-08</lastmod>
+    <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
-  <url>
-    <loc>https://alhaythamhoney.sy/product/eucalyptus-honey</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://alhaythamhoney.sy/product/propolis-liquid</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://alhaythamhoney.sy/product/fresh-royal-jelly</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://alhaythamhoney.sy/product/pollen-grains</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://alhaythamhoney.sy/product/energy-mixture</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://alhaythamhoney.sy/product/immunity-mixture</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://alhaythamhoney.sy/product/fertility-mixture</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <!-- Article Pages -->
+
+  <!-- Articles -->
   <url>
     <loc>https://alhaythamhoney.sy/articles/black-seed-honey-benefits</loc>
+    <lastmod>2026-02-08</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://alhaythamhoney.sy/articles/how-to-identify-natural-honey</loc>
+    <lastmod>2026-02-08</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://alhaythamhoney.sy/articles/honey-crystallization</loc>
+    <lastmod>2026-02-08</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://alhaythamhoney.sy/articles/honey-for-children-cough</loc>
+    <lastmod>2026-02-08</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://alhaythamhoney.sy/articles/honey-royal-jelly-sexual-health</loc>
+    <lastmod>2026-02-08</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://alhaythamhoney.sy/articles/honey-for-stomach-and-colon</loc>
+    <lastmod>2026-02-08</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://alhaythamhoney.sy/articles/secrets-of-bees-kingdom</loc>
+    <lastmod>2026-02-08</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://alhaythamhoney.sy/articles/best-honey-types-in-syria-guide</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
+    <lastmod>2026-02-08</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
   </url>
 </urlset>
