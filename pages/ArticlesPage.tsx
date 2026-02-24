@@ -56,26 +56,39 @@ export const ArticlesPage: React.FC = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: idx * 0.1 }}
-              className="group bg-zinc-900/40 rounded-2xl p-6 border border-white/5 hover:border-amber-500/30 transition-all duration-500"
+              className="group bg-zinc-900/40 rounded-2xl border border-white/5 hover:border-amber-500/30 transition-all duration-500 flex flex-col overflow-hidden"
             >
-              <div className="flex items-center gap-3 mb-4">
-                <div className="p-3 bg-amber-500/10 rounded-xl">
-                  <Sparkles className="w-5 h-5 text-amber-500" />
+              {article.image && (
+                <div className="relative h-40 sm:h-48 w-full overflow-hidden">
+                  <img
+                    src={article.image}
+                    alt={article.title}
+                    loading="lazy"
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/80 via-transparent to-transparent pointer-events-none" />
                 </div>
-                <h2 className="text-xl font-amiri font-bold text-white group-hover:text-amber-400 transition-colors">
-                  {article.title}
-                </h2>
+              )}
+              <div className="p-6 flex-1 flex flex-col">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-3 bg-amber-500/10 rounded-xl">
+                    <Sparkles className="w-5 h-5 text-amber-500" />
+                  </div>
+                  <h2 className="text-xl font-amiri font-bold text-white group-hover:text-amber-400 transition-colors">
+                    {article.title}
+                  </h2>
+                </div>
+                <p className="text-zinc-400 mb-6 leading-relaxed line-clamp-3">
+                  {article.description}
+                </p>
+                <Link
+                  to={`/articles/${article.id}`}
+                  className="mt-auto inline-flex items-center gap-2 text-amber-500 hover:text-amber-400 transition-colors font-bold"
+                >
+                  اقرأ المزيد
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
               </div>
-              <p className="text-zinc-400 mb-6 leading-relaxed line-clamp-3">
-                {article.description}
-              </p>
-              <Link
-                to={`/articles/${article.id}`}
-                className="inline-flex items-center gap-2 text-amber-500 hover:text-amber-400 transition-colors font-bold"
-              >
-                اقرأ المزيد
-                <ArrowRight className="w-4 h-4" />
-              </Link>
             </motion.div>
           ))}
         </div>
@@ -94,7 +107,7 @@ export const ArticlesPage: React.FC = () => {
             اطلب الآن واحصل على عسل طبيعي 100% مفحوص مخبرياً
           </p>
           <a
-            href={`https://wa.me/${phoneNumber.replace(/\D/g, '')}?text=أريد طلب عسل طبيعي`}
+            href={`https://wa.me/${phoneNumber.replace(/\D/g, '')}?text=${encodeURIComponent('مرحباً عسل الهيثم، أود الاستفسار عن المنتج المعروض في الموقع.')}`}
             className="inline-flex items-center gap-3 px-10 py-5 bg-amber-500 text-zinc-950 rounded-full font-black hover:bg-amber-400 transition-all duration-300 hover:scale-105 text-xl"
           >
             🍯 اطلب الآن عبر واتساب

@@ -35,6 +35,7 @@ export const ArticleDetailPage: React.FC = () => {
         <meta name="description" content={article.description} />
         <meta property="og:title" content={article.title} />
         <meta property="og:description" content={article.description} />
+        {article.image && <meta property="og:image" content={article.image} />}
         <meta property="og:type" content="article" />
       </Helmet>
 
@@ -64,6 +65,16 @@ export const ArticleDetailPage: React.FC = () => {
           <p className="text-zinc-400 text-lg leading-relaxed mb-6">
             {article.description}
           </p>
+          {article.image && (
+            <div className="mt-6 rounded-3xl overflow-hidden border border-amber-500/20 bg-zinc-900/40">
+              <img
+                src={article.image}
+                alt={article.title}
+                loading="lazy"
+                className="w-full h-full max-h-[360px] object-cover"
+              />
+            </div>
+          )}
         </motion.div>
 
         {/* Article Content */}
@@ -96,7 +107,7 @@ export const ArticleDetailPage: React.FC = () => {
             اطلب الآن واحصل على عسل طبيعي 100% مفحوص مخبرياً
           </p>
           <a
-            href={`https://wa.me/${phoneNumber.replace(/\D/g, '')}?text=أريد طلب عسل طبيعي`}
+            href={`https://wa.me/${phoneNumber.replace(/\D/g, '')}?text=${encodeURIComponent('مرحباً عسل الهيثم، أود الاستفسار عن المنتج المعروض في الموقع.')}`}
             className="inline-flex items-center gap-3 px-10 py-5 bg-amber-500 text-zinc-950 rounded-full font-black hover:bg-amber-400 transition-all duration-300 hover:scale-105 text-xl"
           >
             <ShoppingCart className="w-6 h-6" />

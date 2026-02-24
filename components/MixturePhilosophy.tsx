@@ -13,7 +13,7 @@ export const MixturePhilosophy: React.FC = () => {
           className="max-w-4xl mx-auto text-center"
         >
           <h2 className="text-3xl md:text-5xl font-amiri font-bold mb-8 text-white leading-tight">
-            خلطات خُصّصت لك... <br />
+            خلطات خُصّصت لك… <br />
             <span className="text-amber-500">لا للجميع</span> 🍯
           </h2>
 
@@ -24,6 +24,12 @@ export const MixturePhilosophy: React.FC = () => {
             <p>
               نختار المكوّنات ونضبط الجرعات بخبرة نحّال، وبما ينسجم مع طبيعة الجسم والاحتياج الفعلي.
             </p>
+            <ul className="list-disc list-inside space-y-2 text-base md:text-lg text-zinc-200 marker:text-amber-500 text-right">
+              <li>خلطات للطاقة والتحمّل.</li>
+              <li>خلطات للمناعة والتعب.</li>
+              <li>خلطات للتوازن الحيوي والخصوبة.</li>
+              <li>خلطات حسب الحاجة وحسب الحالة.</li>
+            </ul>
           </div>
 
           <div className="inline-block bg-amber-900/20 border border-amber-500/20 rounded-xl p-6 relative mx-auto max-w-2xl">

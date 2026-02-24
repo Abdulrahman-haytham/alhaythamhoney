@@ -29,7 +29,7 @@ const products: Record<string, ProductData> = {
     name: 'عسل حبة البركة',
     nameEn: 'Black Seed Honey',
     desc: 'القوة السوداء والشفاء العريق، مستخلص لضمان أعلى الفوائد المناعية.',
-    image: 'https://images.unsplash.com/photo-1558642452-9d2a7deb7f62?auto=format&fit=crop&q=80&w=800',
+    image: 'https://images.unsplash.com/photo-1558642452-9d2a7deb7f62?auto=format&fit=crop&q=80&w=800&fm=webp',
     badge: 'الأكثر طلباً',
     benefit: 'دعم المناعة',
     detailedInfo: {
@@ -114,7 +114,7 @@ const products: Record<string, ProductData> = {
     name: 'عسل الجيجان',
     nameEn: 'Jeejan Honey',
     desc: 'نكهة برية فريدة لا تُنسى، يجمع من أزهار الجيجان البرية في البادية.',
-    image: 'https://images.unsplash.com/photo-1587049352851-8d4e89133924?auto=format&fit=crop&q=80&w=800',
+    image: 'https://images.unsplash.com/photo-1587049352851-8d4e89133924?auto=format&fit=crop&q=80&w=800&fm=webp',
     benefit: 'تغذية عامة',
     detailedInfo: {
       benefits: [
@@ -255,7 +255,7 @@ export const ProductPage: React.FC = () => {
               <img
                 src={product.image}
                 alt={`${product.name} - عسل طبيعي 100% من الهيثم لنحل وعسل`}
-                fetchPriority="high"
+                loading="lazy"
                 className="w-full h-full object-cover"
               />
               {product.badge && (
@@ -278,7 +278,7 @@ export const ProductPage: React.FC = () => {
                 {product.desc}
               </p>
               <a
-                href={`https://wa.me/${phoneNumber.replace(/\D/g, '')}?text=أريد طلب ${product.name}`}
+                href={`https://wa.me/${phoneNumber.replace(/\D/g, '')}?text=${encodeURIComponent(`مرحباً عسل الهيثم، أود الاستفسار عن المنتج المعروض في الموقع: ${product.name}`)}`}
                 className="inline-flex items-center gap-3 px-8 py-4 bg-amber-500 text-zinc-950 rounded-full font-bold hover:bg-amber-400 transition-all duration-300 hover:scale-105 text-lg"
               >
                 <ShoppingCart className="w-6 h-6" />
@@ -370,7 +370,7 @@ export const ProductPage: React.FC = () => {
               اطلب الآن واحصل على عسل طبيعي 100% مفحوص مخبرياً
             </p>
             <a
-              href={`https://wa.me/${phoneNumber.replace(/\D/g, '')}?text=أريد طلب ${product.name}`}
+              href={`https://wa.me/${phoneNumber.replace(/\D/g, '')}?text=${encodeURIComponent(`مرحباً عسل الهيثم، أود الاستفسار عن المنتج المعروض في الموقع: ${product.name}`)}`}
               className="inline-flex items-center gap-3 px-10 py-5 bg-amber-500 text-zinc-950 rounded-full font-black hover:bg-amber-400 transition-all duration-300 hover:scale-105 text-xl"
             >
               <ShoppingCart className="w-6 h-6" />
@@ -387,7 +387,7 @@ export const ProductPage: React.FC = () => {
         className="fixed bottom-0 left-0 right-0 p-4 bg-zinc-950/90 backdrop-blur-md border-t border-zinc-800 z-40 md:hidden"
       >
         <a
-          href={`https://wa.me/${phoneNumber.replace(/\D/g, '')}?text=أريد طلب ${product.name}`}
+          href={`https://wa.me/${phoneNumber.replace(/\D/g, '')}?text=${encodeURIComponent(`مرحباً عسل الهيثم، أود الاستفسار عن المنتج المعروض في الموقع: ${product.name}`)}`}
           className="flex items-center justify-center gap-2 w-full py-3 bg-amber-500 text-zinc-950 rounded-xl font-bold hover:bg-amber-400 transition-colors"
         >
           <ShoppingCart className="w-5 h-5" />

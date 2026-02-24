@@ -83,6 +83,7 @@ export const ProductDetailsPage: React.FC = () => {
               <img 
                 src={product.image} 
                 alt={product.name}
+                loading="lazy"
                 className="w-full h-full object-cover"
               />
               {product.badge && (
@@ -117,7 +118,7 @@ export const ProductDetailsPage: React.FC = () => {
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-4">
               <a 
-                href={`https://wa.me/${phoneNumber}?text=مرحباً، أريد طلب ${product.name}`}
+                href={`https://wa.me/${phoneNumber}?text=${encodeURIComponent(`مرحباً عسل الهيثم، أود الاستفسار عن المنتج المعروض في الموقع: ${product.name}`)}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex-1 bg-amber-500 text-zinc-900 py-4 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-amber-400 transition-all hover:scale-[1.02] shadow-lg shadow-amber-500/20"

@@ -46,7 +46,7 @@ export const StickyWhatsApp: React.FC = () => {
           </AnimatePresence>
           
           <a
-            href={`https://wa.me/${phoneNumber}?text=مرحباً، أود الاستفسار عن منتجات الهيثم`}
+            href={`https://wa.me/${phoneNumber}?text=${encodeURIComponent('مرحباً عسل الهيثم، أود الاستفسار عن المنتج المعروض في الموقع.')}`}
             target="_blank"
             rel="noopener noreferrer"
             className="bg-[#25D366] text-white p-4 rounded-full shadow-lg hover:shadow-[#25D366]/40 hover:scale-110 transition-all duration-300 relative group"

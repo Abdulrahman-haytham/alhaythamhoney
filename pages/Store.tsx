@@ -40,7 +40,7 @@ const groups: ProductGroup[] = [
         name: "عسل حبة البركة",
         benefit: "دعم المناعة",
         desc: "القوة السوداء والشفاء العريق، مستخلص لضمان أعلى الفوائد المناعية.",
-        image: "https://images.unsplash.com/photo-1558642452-9d2a7deb7f62?auto=format&fit=crop&q=80&w=800",
+        image: "https://images.unsplash.com/photo-1558642452-9d2a7deb7f62?auto=format&fit=crop&q=80&w=800&fm=webp",
         badge: "الأكثر طلباً",
         detailedInfo: {
           benefits: [
@@ -97,7 +97,7 @@ const groups: ProductGroup[] = [
         name: "عسل الجيجان",
         benefit: "تغذية عامة",
         desc: "نكهة برية فريدة لا تُنسى، يجمع من أزهار الجيجان البرية في البادية.",
-        image: "https://images.unsplash.com/photo-1587049352851-8d4e89133924?auto=format&fit=crop&q=80&w=800",
+        image: "https://images.unsplash.com/photo-1587049352851-8d4e89133924?auto=format&fit=crop&q=80&w=800&fm=webp",
         detailedInfo: {
           benefits: [
             "تغذية شاملة للجسم",
@@ -299,7 +299,7 @@ const StoreProductGroupSection = memo(({ group, onProductClick, phoneNumber }: {
                 التفاصيل
               </button>
               <a
-                href={`https://wa.me/${phoneNumber.replace(/\D/g, '')}?text=أريد طلب ${item.name}`}
+                href={`https://wa.me/${phoneNumber.replace(/\D/g, '')}?text=${encodeURIComponent(`مرحباً عسل الهيثم، أود الاستفسار عن المنتج المعروض في الموقع: ${item.name}`)}`}
                 onClick={(e) => e.stopPropagation()}
                 className="flex-1 py-3 bg-amber-500 text-zinc-950 rounded-xl flex items-center justify-center gap-2 hover:bg-amber-400 transition-all duration-300 font-bold text-sm"
               >
