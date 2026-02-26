@@ -3,8 +3,9 @@ import { motion } from 'framer-motion';
 import { ShoppingCart, Eye } from 'lucide-react';
 import { groups, ProductItem, ProductGroup } from '../data/products';
 import { Link } from 'react-router-dom';
+import { getWhatsAppLink } from '../config/site';
 
-const ProductGroupSection = memo(({ group, phoneNumber }: { group: ProductGroup; phoneNumber: string }) => (
+const ProductGroupSection = memo(({ group }: { group: ProductGroup }) => (
   <div className="mb-16 sm:mb-24 md:mb-32">
     <motion.div 
       initial={{ opacity: 0, y: 20 }}
@@ -63,7 +64,7 @@ const ProductGroupSection = memo(({ group, phoneNumber }: { group: ProductGroup;
                 تفاصيل
               </Link>
               <a
-                href={`https://wa.me/${phoneNumber.replace(/\D/g, '')}?text=مرحباً، أريد طلب ${item.name}`}
+                href={getWhatsAppLink(`مرحباً، أريد طلب ${item.name}`)}
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={(e) => e.stopPropagation()}
@@ -81,8 +82,6 @@ const ProductGroupSection = memo(({ group, phoneNumber }: { group: ProductGroup;
 ));
 
 export const Products: React.FC = () => {
-  const phoneNumber = "+963947931959";
-
   return (
     <section id="products" className="py-12 sm:py-16 md:py-24 px-4 sm:px-6 bg-zinc-950">
       <div className="container mx-auto">
@@ -90,7 +89,6 @@ export const Products: React.FC = () => {
           <ProductGroupSection 
             key={group.id} 
             group={group} 
-            phoneNumber={phoneNumber}
           />
         ))}
       </div>

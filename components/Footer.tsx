@@ -2,9 +2,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { MessageCircle, Instagram, Facebook, Phone, Heart, MapPin, Mail } from 'lucide-react';
+import { SITE, getTelLink, getWhatsAppLink } from '../config/site';
 
 export const Footer: React.FC = () => {
-  const phoneNumber = "+963947931959";
+  const phoneNumber = SITE.phoneNumber;
   const facebookLink = "https://www.facebook.com/profile.php?id=100064934053886";
 
   return (
@@ -27,7 +28,7 @@ export const Footer: React.FC = () => {
             
             <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
               <a 
-                href={`https://wa.me/${phoneNumber.replace(/\D/g, '')}`} 
+                href={getWhatsAppLink()} 
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center justify-center gap-2 sm:gap-4 bg-amber-500 text-zinc-950 px-6 sm:px-8 md:px-12 py-3 sm:py-4 md:py-5 rounded-full font-black text-sm sm:text-base md:text-xl shadow-lg shadow-amber-500/20 hover:shadow-amber-500/40 hover:scale-105 transition-all"
@@ -38,7 +39,7 @@ export const Footer: React.FC = () => {
               <div className="flex items-center justify-center gap-4 sm:gap-6 px-6 sm:px-8 py-4 sm:py-5 bg-zinc-900/50 rounded-full border border-white/5">
                 <a href="#" className="text-zinc-400 hover:text-amber-500 transition-colors"><Instagram className="w-5 h-5 sm:w-6 sm:h-6" /></a>
                 <a href={facebookLink} target="_blank" rel="noopener noreferrer" className="text-zinc-400 hover:text-amber-500 transition-colors"><Facebook className="w-5 h-5 sm:w-6 sm:h-6" /></a>
-                <a href={`tel:${phoneNumber}`} className="text-zinc-400 hover:text-amber-500 transition-colors"><Phone className="w-5 h-5 sm:w-6 sm:h-6" /></a>
+                <a href={getTelLink()} className="text-zinc-400 hover:text-amber-500 transition-colors"><Phone className="w-5 h-5 sm:w-6 sm:h-6" /></a>
               </div>
             </div>
           </div>
@@ -93,11 +94,11 @@ export const Footer: React.FC = () => {
               </li>
               <li className="flex items-center gap-2">
                 <Phone className="w-4 h-4 text-amber-500" />
-                <a href={`tel:${phoneNumber}`} className="hover:text-amber-500 transition-colors" dir="ltr">{phoneNumber}</a>
+                <a href={getTelLink()} className="hover:text-amber-500 transition-colors" dir="ltr">{phoneNumber}</a>
               </li>
               <li className="flex items-center gap-2">
                 <MessageCircle className="w-4 h-4 text-amber-500" />
-                <a href={`https://wa.me/${phoneNumber.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" className="hover:text-amber-500 transition-colors">تواصل عبر واتساب</a>
+                <a href={getWhatsAppLink()} target="_blank" rel="noopener noreferrer" className="hover:text-amber-500 transition-colors">تواصل عبر واتساب</a>
               </li>
             </ul>
           </div>

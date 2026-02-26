@@ -2,6 +2,7 @@
 import React from 'react';
 import { MapPin, Navigation } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { SITE, getTelLink } from '../config/site';
 
 export const Location: React.FC = () => {
   const address = "حماة، قمحانة، جانب مسجد بلال الحبشي";
@@ -55,10 +56,10 @@ export const Location: React.FC = () => {
               <h4 className="text-amber-500 font-bold mb-2 text-sm sm:text-base">أوقات الاستقبال</h4>
               <p className="text-zinc-400 text-xs sm:text-sm md:text-base mb-4">يومياً من الساعة 9:00 صباحاً حتى 9:00 مساءً</p>
               <a 
-                href="tel:+963947931959"
+                href={getTelLink()}
                 className="text-amber-500 hover:text-amber-400 font-bold text-lg transition-colors"
               >
-                📞 <span dir="ltr">+963947931959</span>
+                📞 <span dir="ltr">{SITE.phoneNumber}</span>
               </a>
             </div>
           </motion.div>

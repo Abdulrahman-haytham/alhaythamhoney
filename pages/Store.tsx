@@ -4,6 +4,7 @@ import { ShoppingCart, Sparkles, Droplets, Eye, ArrowRight } from 'lucide-react'
 import { ProductDetailModal } from '../components/ProductDetailModal';
 import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
+import { getWhatsAppLink } from '../config/site';
 
 interface ProductItem {
   name: string;
@@ -225,7 +226,7 @@ const groups: ProductGroup[] = [
 
 ];
 
-const StoreProductGroupSection = memo(({ group, onProductClick, phoneNumber }: { group: ProductGroup; onProductClick: (item: ProductItem) => void; phoneNumber: string }) => (
+const StoreProductGroupSection = memo(({ group, onProductClick }: { group: ProductGroup; onProductClick: (item: ProductItem) => void }) => (
   <div className="mb-32">
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -299,7 +300,7 @@ const StoreProductGroupSection = memo(({ group, onProductClick, phoneNumber }: {
                 التفاصيل
               </button>
               <a
-                href={`https://wa.me/${phoneNumber.replace(/\D/g, '')}?text=${encodeURIComponent(`مرحباً عسل الهيثم، أود الاستفسار عن المنتج المعروض في الموقع: ${item.name}`)}`}
+                href={getWhatsAppLink(`مرحباً عسل الهيثم، أود الاستفسار عن المنتج المعروض في الموقع: ${item.name}`)}
                 onClick={(e) => e.stopPropagation()}
                 className="flex-1 py-3 bg-amber-500 text-zinc-950 rounded-xl flex items-center justify-center gap-2 hover:bg-amber-400 transition-all duration-300 font-bold text-sm"
               >
@@ -315,7 +316,6 @@ const StoreProductGroupSection = memo(({ group, onProductClick, phoneNumber }: {
 ));
 
 export const Store: React.FC = () => {
-  const phoneNumber = "+963947931959";
   const [selectedProduct, setSelectedProduct] = useState<ProductItem | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -367,7 +367,6 @@ export const Store: React.FC = () => {
             key={group.id} 
             group={group} 
             onProductClick={handleProductClick} 
-            phoneNumber={phoneNumber}
           />
         ))}
       </div>
@@ -377,7 +376,6 @@ export const Store: React.FC = () => {
         product={selectedProduct}
         isOpen={isModalOpen}
         onClose={handleCloseModal}
-        phoneNumber={phoneNumber}
       />
     </div>
   );

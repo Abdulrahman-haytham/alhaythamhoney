@@ -1,10 +1,11 @@
 import React from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowRight, ShoppingCart, CheckCircle2, Leaf, Heart, Zap } from 'lucide-react';
+import { ShoppingCart, CheckCircle2, Leaf, Heart, Zap } from 'lucide-react';
 import { Header } from '../components/Header';
 import { Footer } from '../components/Footer';
 import { Helmet } from 'react-helmet-async';
+import { getWhatsAppLink } from '../config/site';
 
 interface ProductData {
   id: string;
@@ -205,7 +206,6 @@ const products: Record<string, ProductData> = {
 export const ProductPage: React.FC = () => {
   const { productId } = useParams<{ productId: string }>();
   const product = productId ? products[productId] : null;
-  const phoneNumber = "+963947931959";
 
   if (!product) {
     return (
@@ -278,7 +278,7 @@ export const ProductPage: React.FC = () => {
                 {product.desc}
               </p>
               <a
-                href={`https://wa.me/${phoneNumber.replace(/\D/g, '')}?text=${encodeURIComponent(`مرحباً عسل الهيثم، أود الاستفسار عن المنتج المعروض في الموقع: ${product.name}`)}`}
+                href={getWhatsAppLink(`مرحباً عسل الهيثم، أود الاستفسار عن المنتج المعروض في الموقع: ${product.name}`)}
                 className="inline-flex items-center gap-3 px-8 py-4 bg-amber-500 text-zinc-950 rounded-full font-bold hover:bg-amber-400 transition-all duration-300 hover:scale-105 text-lg"
               >
                 <ShoppingCart className="w-6 h-6" />
@@ -370,7 +370,7 @@ export const ProductPage: React.FC = () => {
               اطلب الآن واحصل على عسل طبيعي 100% مفحوص مخبرياً
             </p>
             <a
-              href={`https://wa.me/${phoneNumber.replace(/\D/g, '')}?text=${encodeURIComponent(`مرحباً عسل الهيثم، أود الاستفسار عن المنتج المعروض في الموقع: ${product.name}`)}`}
+              href={getWhatsAppLink(`مرحباً عسل الهيثم، أود الاستفسار عن المنتج المعروض في الموقع: ${product.name}`)}
               className="inline-flex items-center gap-3 px-10 py-5 bg-amber-500 text-zinc-950 rounded-full font-black hover:bg-amber-400 transition-all duration-300 hover:scale-105 text-xl"
             >
               <ShoppingCart className="w-6 h-6" />
@@ -387,7 +387,7 @@ export const ProductPage: React.FC = () => {
         className="fixed bottom-0 left-0 right-0 p-4 bg-zinc-950/90 backdrop-blur-md border-t border-zinc-800 z-40 md:hidden"
       >
         <a
-          href={`https://wa.me/${phoneNumber.replace(/\D/g, '')}?text=${encodeURIComponent(`مرحباً عسل الهيثم، أود الاستفسار عن المنتج المعروض في الموقع: ${product.name}`)}`}
+          href={getWhatsAppLink(`مرحباً عسل الهيثم، أود الاستفسار عن المنتج المعروض في الموقع: ${product.name}`)}
           className="flex items-center justify-center gap-2 w-full py-3 bg-amber-500 text-zinc-950 rounded-xl font-bold hover:bg-amber-400 transition-colors"
         >
           <ShoppingCart className="w-5 h-5" />

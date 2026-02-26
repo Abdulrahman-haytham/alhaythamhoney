@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MessageCircle, X } from 'lucide-react';
+import { SITE, getWhatsAppLink } from '../config/site';
 
 export const StickyWhatsApp: React.FC = () => {
-  const phoneNumber = "963947931959";
   const [isVisible, setIsVisible] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
 
@@ -46,7 +46,7 @@ export const StickyWhatsApp: React.FC = () => {
           </AnimatePresence>
           
           <a
-            href={`https://wa.me/${phoneNumber}?text=${encodeURIComponent('مرحباً عسل الهيثم، أود الاستفسار عن المنتج المعروض في الموقع.')}`}
+            href={getWhatsAppLink(SITE.whatsappDefaultMessage)}
             target="_blank"
             rel="noopener noreferrer"
             className="bg-[#25D366] text-white p-4 rounded-full shadow-lg hover:shadow-[#25D366]/40 hover:scale-110 transition-all duration-300 relative group"

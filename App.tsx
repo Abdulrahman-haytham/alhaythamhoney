@@ -10,26 +10,42 @@ import { Products } from './components/Products';
 import { CustomMixtures } from './components/CustomMixtures';
 import { Quality } from './components/Quality';
 import { CustomerReviews } from './components/CustomerReviews';
-import { Certificates } from './components/Certificates';
 import { WhyChooseUs } from './components/WhyChooseUs';
 import { SpecialOffers } from './components/SpecialOffers';
 import { Location } from './components/Location';
 import { Footer } from './components/Footer';
-import { Store } from './pages/Store'; // Keeping for reference if needed, but using ShopPage
-import { ShopPage } from './pages/ShopPage';
-import { ProductDetailsPage } from './pages/ProductDetailsPage';
-import { CustomMixturesPage } from './pages/CustomMixturesPage';
-import { AboutPage } from './pages/AboutPage';
-import { QualityPage } from './pages/QualityPage';
-import { FAQPage } from './pages/FAQPage';
-import { BlogPage } from './pages/BlogPage';
-import { ArticlesPage } from './pages/ArticlesPage';
-import { ArticleDetailPage } from './pages/ArticleDetailPage';
-import { ReturnPolicyPage } from './pages/ReturnPolicyPage';
 import { ScrollToTop } from './components/ScrollToTop';
 import { FAQ } from './components/FAQ';
 import { FloatingWhatsApp } from './components/FloatingWhatsApp';
 import { HelmetProvider, Helmet } from 'react-helmet-async';
+
+const ShopPage = React.lazy(() =>
+  import('./pages/ShopPage').then((m) => ({ default: m.ShopPage }))
+);
+const ProductDetailsPage = React.lazy(() =>
+  import('./pages/ProductDetailsPage').then((m) => ({ default: m.ProductDetailsPage }))
+);
+const CustomMixturesPage = React.lazy(() =>
+  import('./pages/CustomMixturesPage').then((m) => ({ default: m.CustomMixturesPage }))
+);
+const AboutPage = React.lazy(() =>
+  import('./pages/AboutPage').then((m) => ({ default: m.AboutPage }))
+);
+const QualityPage = React.lazy(() =>
+  import('./pages/QualityPage').then((m) => ({ default: m.QualityPage }))
+);
+const FAQPage = React.lazy(() =>
+  import('./pages/FAQPage').then((m) => ({ default: m.FAQPage }))
+);
+const ArticlesPage = React.lazy(() =>
+  import('./pages/ArticlesPage').then((m) => ({ default: m.ArticlesPage }))
+);
+const ArticleDetailPage = React.lazy(() =>
+  import('./pages/ArticleDetailPage').then((m) => ({ default: m.ArticleDetailPage }))
+);
+const ReturnPolicyPage = React.lazy(() =>
+  import('./pages/ReturnPolicyPage').then((m) => ({ default: m.ReturnPolicyPage }))
+);
 
 const PageLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <div className="min-h-screen selection:bg-amber-500/30 overflow-x-hidden bg-zinc-950 text-zinc-100">
@@ -118,21 +134,28 @@ const App: React.FC = () => {
       <Router>
         <ScrollToTop />
         <FloatingWhatsApp />
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/shop" element={<PageLayout><ShopPage /></PageLayout>} />
-          <Route path="/store" element={<PageLayout><ShopPage /></PageLayout>} />
-          <Route path="/product/:slug" element={<PageLayout><ProductDetailsPage /></PageLayout>} />
-          <Route path="/custom-mixtures" element={<PageLayout><CustomMixturesPage /></PageLayout>} />
-          <Route path="/about-us" element={<PageLayout><AboutPage /></PageLayout>} />
-          <Route path="/quality-standards" element={<PageLayout><QualityPage /></PageLayout>} />
-          <Route path="/faq" element={<PageLayout><FAQPage /></PageLayout>} />
-          {/* <Route path="/blog" element={<PageLayout><BlogPage /></PageLayout>} /> */}
-          
-          <Route path="/articles" element={<PageLayout><ArticlesPage /></PageLayout>} />
-          <Route path="/articles/:articleId" element={<PageLayout><ArticleDetailPage /></PageLayout>} />
-          <Route path="/return-policy" element={<PageLayout><ReturnPolicyPage /></PageLayout>} />
-        </Routes>
+        <React.Suspense
+          fallback={
+            <div className="min-h-screen bg-zinc-950 text-zinc-100 flex items-center justify-center">
+              <div className="text-amber-500 font-bold">جاري التحميل...</div>
+            </div>
+          }
+        >
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/shop" element={<PageLayout><ShopPage /></PageLayout>} />
+            <Route path="/store" element={<PageLayout><ShopPage /></PageLayout>} />
+            <Route path="/product/:slug" element={<PageLayout><ProductDetailsPage /></PageLayout>} />
+            <Route path="/custom-mixtures" element={<PageLayout><CustomMixturesPage /></PageLayout>} />
+            <Route path="/about-us" element={<PageLayout><AboutPage /></PageLayout>} />
+            <Route path="/quality-standards" element={<PageLayout><QualityPage /></PageLayout>} />
+            <Route path="/faq" element={<PageLayout><FAQPage /></PageLayout>} />
+
+            <Route path="/articles" element={<PageLayout><ArticlesPage /></PageLayout>} />
+            <Route path="/articles/:articleId" element={<PageLayout><ArticleDetailPage /></PageLayout>} />
+            <Route path="/return-policy" element={<PageLayout><ReturnPolicyPage /></PageLayout>} />
+          </Routes>
+        </React.Suspense>
       </Router>
     </HelmetProvider>
   );

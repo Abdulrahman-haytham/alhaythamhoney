@@ -2,9 +2,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ShieldCheck, Award, Truck, Store, Menu, X } from 'lucide-react';
+import { SITE, getWhatsAppLink } from '../config/site';
 
 export const Header: React.FC = () => {
-  const phoneNumber = "+963947931959";
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
@@ -133,7 +133,7 @@ export const Header: React.FC = () => {
 
           <div className="flex items-center gap-4">
             <a 
-              href={`https://wa.me/${phoneNumber.replace(/\D/g, '')}?text=${encodeURIComponent('مرحباً عسل الهيثم، أود الاستفسار عن المنتج المعروض في الموقع.')}`} 
+              href={getWhatsAppLink(SITE.whatsappDefaultMessage)} 
               target="_blank" 
               rel="noopener noreferrer"
               className="hidden md:block px-4 lg:px-6 py-1.5 lg:py-2 gold-gradient rounded-full text-zinc-950 text-xs lg:text-sm font-black luxury-shadow hover:scale-105 transition-transform"
@@ -199,7 +199,7 @@ export const Header: React.FC = () => {
                   الأسئلة الشائعة
                 </Link>
                 <a
-                  href={`https://wa.me/${phoneNumber.replace(/\D/g, '')}?text=${encodeURIComponent('مرحباً عسل الهيثم، أود الاستفسار عن المنتج المعروض في الموقع.')}`}
+                  href={getWhatsAppLink(SITE.whatsappDefaultMessage)}
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={() => setMobileMenuOpen(false)}

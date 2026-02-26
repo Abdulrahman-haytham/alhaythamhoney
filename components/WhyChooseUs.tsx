@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { CheckCircle2, XCircle, TrendingUp } from 'lucide-react';
+import { getWhatsAppLink } from '../config/site';
 
 export const WhyChooseUs: React.FC = () => {
   const comparisons = [
@@ -105,7 +106,7 @@ export const WhyChooseUs: React.FC = () => {
           className="text-center mt-16"
         >
           <a
-            href="https://wa.me/963947931959?text=أريد طلب عسل طبيعي من الهيثم"
+            href={getWhatsAppLink('أريد طلب عسل طبيعي من الهيثم')}
             className="inline-flex items-center gap-3 px-10 py-5 bg-gradient-to-r from-amber-500 to-amber-600 text-zinc-950 rounded-full font-black hover:from-amber-400 hover:to-amber-500 transition-all duration-300 hover:scale-105 text-xl shadow-lg shadow-amber-500/20"
           >
             🍯 اختبر الفرق بنفسك - اطلب الآن

@@ -22,3 +22,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Project Management & Analysis Files
+PROJECT_ANALYSIS.md
+RECOMMENDATIONS.md
+TASKS_DONE.md
+GITHUB_GUIDE.md
+

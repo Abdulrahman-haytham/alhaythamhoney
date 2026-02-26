@@ -5,12 +5,12 @@ import { BookOpen, ShoppingCart } from 'lucide-react';
 import { articles } from '../data/articles';
 import { Helmet } from 'react-helmet-async';
 import { Breadcrumbs } from '../components/Breadcrumbs';
+import { SITE, getWhatsAppLink } from '../config/site';
 
 export const ArticleDetailPage: React.FC = () => {
   const { articleId } = useParams<{ articleId: string }>();
-  const article = articles.find(a => a.id === articleId);
-  const phoneNumber = "+963947931959";
-
+  const normalizedId = articleId ? decodeURIComponent(articleId).trim() : '';
+  const article = articles.find(a => a.id === normalizedId);
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
@@ -107,7 +107,7 @@ export const ArticleDetailPage: React.FC = () => {
             اطلب الآن واحصل على عسل طبيعي 100% مفحوص مخبرياً
           </p>
           <a
-            href={`https://wa.me/${phoneNumber.replace(/\D/g, '')}?text=${encodeURIComponent('مرحباً عسل الهيثم، أود الاستفسار عن المنتج المعروض في الموقع.')}`}
+            href={getWhatsAppLink(SITE.whatsappDefaultMessage)}
             className="inline-flex items-center gap-3 px-10 py-5 bg-amber-500 text-zinc-950 rounded-full font-black hover:bg-amber-400 transition-all duration-300 hover:scale-105 text-xl"
           >
             <ShoppingCart className="w-6 h-6" />

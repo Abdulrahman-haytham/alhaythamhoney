@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Star, ExternalLink, Quote, ChevronLeft, ChevronRight } from 'lucide-react';
+import { getWhatsAppLink } from '../config/site';
 
 interface Review {
   id: number;
@@ -281,7 +282,7 @@ export const CustomerReviews: React.FC = () => {
             شاركنا تجربتك مع منتجاتنا
           </p>
           <a
-            href="https://wa.me/963947931959?text=أريد مشاركة تجربتي مع منتجاتكم"
+            href={getWhatsAppLink('أريد مشاركة تجربتي مع منتجاتكم')}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-6 py-3 bg-amber-500 text-zinc-950 rounded-full font-bold hover:bg-amber-400 transition-all duration-300 hover:scale-105 text-sm"

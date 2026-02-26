@@ -1,6 +1,7 @@
 import React from 'react';
 import { Send } from 'lucide-react';
 import { StepData, Recommendation, Goal, Age } from './SmartMixtureAssistant';
+import { getWhatsAppLink } from '../config/site';
 
 interface MixtureCTAProps {
   mixtureData?: StepData;
@@ -33,7 +34,7 @@ export const MixtureCTA: React.FC<MixtureCTAProps> = ({ mixtureData, recommendat
 هل يمكن تأكيد الطلب؟`;
   }
 
-  const whatsappLink = `https://wa.me/963947931959?text=${encodeURIComponent(whatsappMessage)}`;
+  const whatsappLink = getWhatsAppLink(whatsappMessage);
 
   return (
     <section className="py-20 bg-zinc-950 relative overflow-hidden">

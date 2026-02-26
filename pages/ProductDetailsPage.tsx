@@ -1,18 +1,16 @@
 
 import React, { useEffect } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowRight, ShoppingCart, CheckCircle2, Leaf, Heart, Zap, Award, ShieldCheck, Truck, Home } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
 import { groups, ProductItem } from '../data/products';
 
 import { Breadcrumbs } from '../components/Breadcrumbs';
+import { getWhatsAppLink } from '../config/site';
 
 export const ProductDetailsPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
-  const navigate = useNavigate();
-  const phoneNumber = "963947931959";
-
   // Find product by slug
   const product = groups
     .flatMap(group => group.items)
@@ -118,7 +116,7 @@ export const ProductDetailsPage: React.FC = () => {
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-4">
               <a 
-                href={`https://wa.me/${phoneNumber}?text=${encodeURIComponent(`مرحباً عسل الهيثم، أود الاستفسار عن المنتج المعروض في الموقع: ${product.name}`)}`}
+                href={getWhatsAppLink(`مرحباً عسل الهيثم، أود الاستفسار عن المنتج المعروض في الموقع: ${product.name}`)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex-1 bg-amber-500 text-zinc-900 py-4 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-amber-400 transition-all hover:scale-[1.02] shadow-lg shadow-amber-500/20"

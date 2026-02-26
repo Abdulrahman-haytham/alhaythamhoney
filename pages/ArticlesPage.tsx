@@ -5,10 +5,9 @@ import { ArrowRight, BookOpen, Sparkles } from 'lucide-react';
 import { articles } from '../data/articles';
 import { Helmet } from 'react-helmet-async';
 import { Breadcrumbs } from '../components/Breadcrumbs';
+import { SITE, getWhatsAppLink } from '../config/site';
 
 export const ArticlesPage: React.FC = () => {
-  const phoneNumber = "+963947931959";
-
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
@@ -82,7 +81,7 @@ export const ArticlesPage: React.FC = () => {
                   {article.description}
                 </p>
                 <Link
-                  to={`/articles/${article.id}`}
+                  to={`/articles/${encodeURIComponent(article.id)}`}
                   className="mt-auto inline-flex items-center gap-2 text-amber-500 hover:text-amber-400 transition-colors font-bold"
                 >
                   اقرأ المزيد
@@ -107,7 +106,7 @@ export const ArticlesPage: React.FC = () => {
             اطلب الآن واحصل على عسل طبيعي 100% مفحوص مخبرياً
           </p>
           <a
-            href={`https://wa.me/${phoneNumber.replace(/\D/g, '')}?text=${encodeURIComponent('مرحباً عسل الهيثم، أود الاستفسار عن المنتج المعروض في الموقع.')}`}
+            href={getWhatsAppLink(SITE.whatsappDefaultMessage)}
             className="inline-flex items-center gap-3 px-10 py-5 bg-amber-500 text-zinc-950 rounded-full font-black hover:bg-amber-400 transition-all duration-300 hover:scale-105 text-xl"
           >
             🍯 اطلب الآن عبر واتساب

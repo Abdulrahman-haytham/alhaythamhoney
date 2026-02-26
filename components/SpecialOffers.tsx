@@ -1,10 +1,9 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Sparkles, Gift, ShoppingCart, Clock } from 'lucide-react';
+import { getWhatsAppLink } from '../config/site';
 
 export const SpecialOffers: React.FC = () => {
-  const phoneNumber = "+963947931959";
-  
   const offers = [
     {
         id: 1,
@@ -101,7 +100,7 @@ export const SpecialOffers: React.FC = () => {
 
                 {/* CTA */}
                 <a
-                  href={`https://wa.me/${phoneNumber.replace(/\D/g, '')}?text=أريد ${offer.title}`}
+                  href={getWhatsAppLink(`أريد ${offer.title}`)}
                   className="block w-full py-4 bg-gradient-to-r from-amber-500 to-amber-600 text-zinc-950 rounded-xl font-black text-center hover:from-amber-400 hover:to-amber-500 transition-all duration-300 hover:scale-105 shadow-lg shadow-amber-500/20"
                 >
                   <ShoppingCart className="w-5 h-5 inline-block ml-2" />

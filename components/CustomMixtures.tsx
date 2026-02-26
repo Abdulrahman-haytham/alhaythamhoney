@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Beaker, Zap, ShieldCheck, Scale, Sparkles, MessageCircle, ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { getWhatsAppLink } from '../config/site';
 
 interface CustomMixturesProps {
   isTeaser?: boolean;
@@ -93,7 +94,7 @@ export const CustomMixtures: React.FC<CustomMixturesProps> = ({ isTeaser }) => {
                 </Link>
               ) : (
                 <a 
-                  href="https://wa.me/963947931959" 
+                  href={getWhatsAppLink()} 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="inline-flex items-center justify-center gap-3 bg-amber-500 hover:bg-amber-600 text-zinc-900 font-bold py-4 px-8 rounded-xl transition-all duration-300 hover:scale-105 shadow-lg shadow-amber-500/20 w-full sm:w-auto"

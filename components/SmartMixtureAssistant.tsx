@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check, ChevronLeft, ChevronRight, ShieldAlert, Sparkles, Activity, Heart, User, AlertCircle, Send } from 'lucide-react';
+import { getWhatsAppLink } from '../config/site';
 
 // Types
 export type Goal = 'Immunity' | 'Energy' | 'Fertility' | 'General Health';
@@ -139,7 +140,7 @@ export const SmartMixtureAssistant: React.FC<SmartMixtureAssistantProps> = ({ on
 - التوصية: ${recommendation.name}
 هل يمكن تأكيد المكونات والطلب؟`;
 
-  const whatsappLink = `https://wa.me/963947931959?text=${encodeURIComponent(whatsappMessage)}`;
+  const whatsappLink = getWhatsAppLink(whatsappMessage);
 
   return (
     <section className="py-16 px-4 bg-zinc-900/50 my-12 rounded-3xl border border-zinc-800 relative overflow-hidden">

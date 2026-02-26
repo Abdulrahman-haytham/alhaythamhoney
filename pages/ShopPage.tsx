@@ -5,8 +5,9 @@ import { groups, ProductItem, ProductGroup } from '../data/products';
 import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
 import { Breadcrumbs } from '../components/Breadcrumbs';
+import { getWhatsAppLink } from '../config/site';
 
-const StoreProductGroupSection = memo(({ group, phoneNumber }: { group: ProductGroup; phoneNumber: string }) => (
+const StoreProductGroupSection = memo(({ group }: { group: ProductGroup }) => (
   <div className="mb-20">
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -76,7 +77,7 @@ const StoreProductGroupSection = memo(({ group, phoneNumber }: { group: ProductG
                 التفاصيل
               </Link>
               <a
-                href={`https://wa.me/${phoneNumber.replace(/\D/g, '')}?text=مرحباً، أريد طلب ${item.name}`}
+                href={getWhatsAppLink(`مرحباً، أريد طلب ${item.name}`)}
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={(e) => e.stopPropagation()}
@@ -94,8 +95,6 @@ const StoreProductGroupSection = memo(({ group, phoneNumber }: { group: ProductG
 ));
 
 export const ShopPage: React.FC = () => {
-  const phoneNumber = "+963947931959";
-
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
@@ -147,7 +146,6 @@ export const ShopPage: React.FC = () => {
           <StoreProductGroupSection 
             key={group.id} 
             group={group} 
-            phoneNumber={phoneNumber}
           />
         ))}
       </div>
