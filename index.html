@@ -20,7 +20,6 @@
         imagesrcset="https://res.cloudinary.com/dkbvnupge/image/upload/c_scale,w_768,f_auto,q_auto/v1767958674/my-app-uploads/kromozksoa3vpcwrnvtw.jpg 768w, https://res.cloudinary.com/dkbvnupge/image/upload/c_scale,w_1200,f_auto,q_auto/v1767958674/my-app-uploads/kromozksoa3vpcwrnvtw.jpg 1200w, https://res.cloudinary.com/dkbvnupge/image/upload/c_scale,w_1920,f_auto,q_auto/v1767958674/my-app-uploads/kromozksoa3vpcwrnvtw.jpg 1920w"
         imagesizes="(max-width: 768px) 768px, (max-width: 1200px) 1200px, 100vw"
         fetchpriority="high">
-  <link rel="preload" href="https://cdn.tailwindcss.com" as="script">
   
   <!-- Favicon & Site Icon -->
   <link rel="icon" href="https://res.cloudinary.com/dkbvnupge/image/upload/f_auto,q_auto/v1767958674/my-app-uploads/kromozksoa3vpcwrnvtw.jpg">
@@ -117,222 +116,56 @@
   
   <!-- Canonical URL -->
   <link rel="canonical" href="https://alhaythamhoney.sy/">
-  <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Critical CSS (inlined to prevent FOUC) -->
   <style>
-    body {
-      font-family: 'Cairo', sans-serif;
-      scroll-behavior: smooth;
-      background-color: #09090b;
-    }
-    .font-amiri {
-      font-family: 'Amiri', serif;
-    }
-    .gold-gradient {
-      background: linear-gradient(135deg, #b8860b 0%, #f9d976 50%, #d4af37 100%);
-    }
-    .gold-text {
-      background: linear-gradient(135deg, #b8860b 0%, #f9d976 50%, #d4af37 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-size: 200% auto;
-      animation: shine 4s linear infinite;
-    }
-    @keyframes shine {
-      to { background-position: 200% center; }
-    }
-    @keyframes marquee {
-      0% { transform: translateX(-100%); }
-      100% { transform: translateX(100%); }
-    }
-    .animate-marquee {
-      display: inline-block;
-      white-space: nowrap;
-      animation: marquee 20s linear infinite;
-    }
-    /* Pause animation on hover for better readability */
-    .animate-marquee:hover {
-      animation-play-state: paused;
-    }
-    .luxury-shadow {
-      box-shadow: 0 10px 40px -10px rgba(184, 134, 11, 0.2);
-    }
-    .luxury-shadow-lg {
-      box-shadow: 0 20px 60px -15px rgba(184, 134, 11, 0.3);
-    }
-    .golden-glow {
-      box-shadow: 0 0 30px rgba(184, 134, 11, 0.3);
-    }
-    .heritage-border {
-      border: 2px solid;
-      border-image: linear-gradient(135deg, #b8860b, #f9d976, #d4af37) 1;
-    }
-    .glass {
-      background: rgba(9, 9, 11, 0.7);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-    }
-    ::-webkit-scrollbar {
-      width: 6px;
-    }
-    ::-webkit-scrollbar-track {
-      background: #09090b;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: #d4af37;
-      border-radius: 10px;
-    }
-    /* Article Content Styles */
-    .prose h2 {
-      font-size: 1.5rem;
-      font-weight: 700;
-      color: #fbbf24;
-      margin-top: 2rem;
-      margin-bottom: 1rem;
-      font-family: 'Amiri', serif;
-    }
-    @media (min-width: 768px) {
-      .prose h2 {
-        font-size: 1.875rem;
-      }
-    }
-    .prose h3 {
-      font-size: 1.25rem;
-      font-weight: 600;
-      color: #fbbf24;
-      margin-top: 1.5rem;
-      margin-bottom: 0.75rem;
-      font-family: 'Amiri', serif;
-    }
-    @media (min-width: 768px) {
-      .prose h3 {
-        font-size: 1.5rem;
-      }
-    }
-    .prose p {
-      margin-bottom: 1rem;
-      line-height: 1.8;
-    }
-    .prose ul, .prose ol {
-      margin: 1rem 0;
-      padding-right: 2rem;
-    }
-    .prose li {
-      margin-bottom: 0.75rem;
-      line-height: 1.8;
-    }
-    .prose strong {
-      color: #fbbf24;
-      font-weight: 600;
-    }
-    
-    /* Loading Screen Styles */
-    .app-loader {
-      position: fixed;
-      inset: 0;
-      z-index: 9999;
-      background-color: #09090b;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      font-family: 'Cairo', sans-serif;
-    }
-    
-    .loader-logo {
-      width: 120px;
-      height: 120px;
-      border-radius: 50%;
-      margin-bottom: 2rem;
-      box-shadow: 0 0 30px rgba(184, 134, 11, 0.2);
-      animation: pulse-gold 2s infinite ease-in-out;
-    }
+    *,*::before,*::after{box-sizing:border-box}
+    html{font-size:100%;-webkit-text-size-adjust:100%}
+    body{margin:0;font-family:'Cairo',sans-serif;background-color:#09090b;color:#f5f5f5;overflow-x:hidden;scroll-behavior:smooth;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+    #root{min-height:100vh;visibility:hidden}
+    #root.ready{visibility:visible}
+    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+    .font-amiri{font-family:'Amiri',serif}
 
-    .loader-progress-container {
-      width: 240px;
-      height: 4px;
-      background-color: rgba(184, 134, 11, 0.2);
-      border-radius: 4px;
-      position: relative;
-      margin-top: 1rem;
-    }
+    /* Loader styles (must load before CSS bundle arrives) */
+    .app-loader{position:fixed;inset:0;z-index:9999;background-color:#09090b;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'Cairo',sans-serif}
+    .loader-logo{width:120px;height:120px;border-radius:50%;margin-bottom:2rem;box-shadow:0 0 30px rgba(184,134,11,0.2);animation:pulse-gold 2s infinite ease-in-out}
+    .loader-progress-container{width:240px;height:4px;background-color:rgba(184,134,11,0.2);border-radius:4px;position:relative;margin-top:1rem}
+    .loader-progress-bar{height:100%;background:linear-gradient(90deg,#b8860b,#f9d976);border-radius:4px;width:0%;animation:progress-fill 2s ease-out forwards;position:relative}
+    .loader-bee{position:absolute;right:-10px;top:-14px;font-size:24px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));transform:scaleX(-1)}
+    .loader-text{margin-top:1rem;color:#b8860b;font-size:0.875rem;letter-spacing:0.05em;opacity:0.8;animation:fade-pulse 1.5s infinite}
 
-    .loader-progress-bar {
-      height: 100%;
-      background: linear-gradient(90deg, #b8860b, #f9d976);
-      border-radius: 4px;
-      width: 0%;
-      animation: progress-fill 2s ease-out forwards;
-      position: relative;
-    }
-
-    .loader-bee {
-      position: absolute;
-      right: -10px;
-      top: -14px;
-      font-size: 24px;
-      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
-      transform: scaleX(-1); /* Face direction of movement */
-    }
-
-    .loader-text {
-      margin-top: 1rem;
-      color: #b8860b;
-      font-size: 0.875rem;
-      letter-spacing: 0.05em;
-      opacity: 0.8;
-      animation: fade-pulse 1.5s infinite;
-    }
-
-    @keyframes progress-fill {
-      0% { width: 0%; }
-      50% { width: 70%; }
-      100% { width: 100%; }
-    }
-
-    @keyframes pulse-gold {
-      0%, 100% { box-shadow: 0 0 30px rgba(184, 134, 11, 0.2); transform: scale(1); }
-      50% { box-shadow: 0 0 50px rgba(184, 134, 11, 0.4); transform: scale(1.05); }
-    }
-
-    @keyframes fade-pulse {
-      0%, 100% { opacity: 0.5; }
-      50% { opacity: 1; }
-    }
+    @keyframes progress-fill{0%{width:0%}50%{width:70%}100%{width:100%}}
+    @keyframes pulse-gold{0%,100%{box-shadow:0 0 30px rgba(184,134,11,0.2);transform:scale(1)}50%{box-shadow:0 0 50px rgba(184,134,11,0.4);transform:scale(1.05)}}
+    @keyframes fade-pulse{0%,100%{opacity:0.5}50%{opacity:1}}
   </style>
-
-<script type="importmap">
-{
-  "imports": {
-    "lucide-react": "https://esm.sh/lucide-react@^0.562.0",
-    "framer-motion": "https://esm.sh/framer-motion@^11.11.11",
-    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
-    "react/": "https://esm.sh/react@^19.2.3/",
-    "react": "https://esm.sh/react@^19.2.3"
-  }
-}
-</script>
-  <script type="module" crossorigin src="/assets/index-DKRRT-zg.js"></script>
-  <link rel="modulepreload" crossorigin href="/assets/react-vendor-FmkgGabu.js">
-  <link rel="modulepreload" crossorigin href="/assets/ui-vendor-BTmqGccU.js">
+  <script type="module" crossorigin src="/assets/index-m57U6xv4.js"></script>
+  <link rel="modulepreload" crossorigin href="/assets/react-vendor-D6WrN88W.js">
+  <link rel="modulepreload" crossorigin href="/assets/ui-vendor-JTpqAvWm.js">
+  <link rel="stylesheet" crossorigin href="/assets/index-BORIxVDz.css">
 <link rel="manifest" href="/manifest.webmanifest"><script id="vite-plugin-pwa:register-sw" src="/registerSW.js"></script></head>
 <body class="bg-zinc-950 text-zinc-100 overflow-x-hidden">
-  <div id="root">
-    <!-- Initial Loading State (Removed automatically by React) -->
-    <div class="app-loader">
-      <img src="https://res.cloudinary.com/dkbvnupge/image/upload/f_auto,q_auto/v1767958674/my-app-uploads/kromozksoa3vpcwrnvtw.jpg" alt="الهيثم لنحل وعسل" class="loader-logo">
-      
-      <div class="loader-progress-container">
-        <div class="loader-progress-bar">
-          <div class="loader-bee">🐝</div>
-        </div>
+  <!-- Persistent Loading Screen (outside #root, removed only after full load) -->
+  <div id="splash-loader" class="app-loader">
+    <img src="https://res.cloudinary.com/dkbvnupge/image/upload/f_auto,q_auto/v1767958674/my-app-uploads/kromozksoa3vpcwrnvtw.jpg" alt="الهيثم لنحل وعسل" class="loader-logo" width="120" height="120" fetchpriority="high" loading="eager" decoding="async">
+    <div class="loader-progress-container">
+      <div class="loader-progress-bar">
+        <div class="loader-bee">🐝</div>
       </div>
-      
-      <div class="loader-text">جاري تحضير الخلية...</div>
     </div>
+    <div class="loader-text">جاري تحضير الخلية...</div>
   </div>
+
+  <div id="root">
+    <!-- React will hydrate here -->
+  </div>
+  <script>
+  // Splash loader stays visible (z-index: 9999) until React removes it.
+  // React will remove it ONLY after confirming CSS is loaded.
+  </script>
   <script>
   (function() {
     try {
@@ -344,6 +177,6 @@
       }
     } catch (e) { /* noop */ }
   })();
-</script>
+</script>
 </body>
 </html>
