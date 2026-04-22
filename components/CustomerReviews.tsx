@@ -2,6 +2,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Star, ExternalLink, Quote, ChevronLeft, ChevronRight } from 'lucide-react';
 import { getWhatsAppLink } from '../config/site';
+import { Image } from './Image';
 
 interface Review {
   id: number;
@@ -236,10 +237,9 @@ export const CustomerReviews: React.FC = () => {
                         }
                       }}
                     >
-                      <img
+                      <Image
                         src={review.image}
                         alt={review.name}
-                        loading="lazy"
                         className="w-12 h-12 rounded-full object-cover border-2 border-amber-500/20 group-hover/image:border-amber-500 transition-all duration-300"
                       />
                       {review.imageLink && (

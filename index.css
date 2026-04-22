@@ -1,0 +1,137 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html,
+  body {
+    @apply overflow-x-hidden;
+  }
+
+  body {
+    @apply font-cairo bg-zinc-950 text-zinc-100;
+    scroll-behavior: smooth;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-zinc-950;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-gold-500 rounded-full;
+  }
+}
+
+@layer components {
+  .gold-text {
+    background: linear-gradient(135deg, #b8860b 0%, #f9d976 50%, #d4af37 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-size: 200% auto;
+    animation: shine 4s linear infinite;
+  }
+
+  .gold-gradient {
+    background: linear-gradient(135deg, #b8860b 0%, #f9d976 50%, #d4af37 100%);
+  }
+
+  .luxury-shadow {
+    @apply shadow-luxury;
+  }
+
+  .luxury-shadow-lg {
+    @apply shadow-luxury-lg;
+  }
+
+  .golden-glow {
+    @apply shadow-glow;
+  }
+
+  .heritage-border {
+    border: 2px solid;
+    border-image: linear-gradient(135deg, #b8860b, #f9d976, #d4af37) 1;
+  }
+
+  .glass {
+    background: rgba(9, 9, 11, 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  .animate-marquee {
+    display: inline-block;
+    white-space: nowrap;
+    animation: marquee 20s linear infinite;
+  }
+
+  .animate-marquee:hover {
+    animation-play-state: paused;
+  }
+
+  /* Article Content Styles */
+  .prose h2 {
+    @apply text-2xl md:text-3xl font-bold text-gold-400 font-amiri mt-8 mb-4;
+  }
+
+  .prose h3 {
+    @apply text-xl md:text-2xl font-semibold text-gold-400 font-amiri mt-6 mb-3;
+  }
+
+  .prose p {
+    @apply mb-4 leading-relaxed;
+  }
+
+  .prose ul, .prose ol {
+    @apply my-4 pr-8;
+  }
+
+  .prose li {
+    @apply mb-3 leading-relaxed;
+  }
+
+  .prose strong {
+    @apply text-gold-400 font-semibold;
+  }
+
+  /* Loading Screen Styles */
+  .app-loader {
+    @apply fixed inset-0 z-[9999] bg-zinc-950 flex flex-col items-center justify-center font-cairo;
+  }
+
+  .loader-logo {
+    @apply w-[120px] h-[120px] rounded-full mb-8;
+    box-shadow: 0 0 30px rgba(184, 134, 11, 0.2);
+    animation: pulse-gold 2s infinite ease-in-out;
+  }
+
+  .loader-progress-container {
+    @apply w-[240px] h-1 bg-gold-600/20 rounded mt-4 relative;
+  }
+
+  .loader-progress-bar {
+    @apply h-full rounded;
+    background: linear-gradient(90deg, #b8860b, #f9d976);
+    width: 0%;
+    animation: progress-fill 2s ease-out forwards;
+    position: relative;
+  }
+
+  .loader-bee {
+    @apply absolute -right-[10px] -top-[14px] text-2xl;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+    transform: scaleX(-1);
+  }
+
+  .loader-text {
+    @apply mt-4 text-gold-600 text-sm tracking-wider opacity-80;
+    animation: fade-pulse 1.5s infinite;
+  }
+
+  @keyframes progress-fill {
+    0% { width: 0%; }
+    50% { width: 70%; }
+    100% { width: 100%; }
+  }
+}

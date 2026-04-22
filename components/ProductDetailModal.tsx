@@ -2,6 +2,7 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ShoppingCart, CheckCircle2, Leaf, Heart, Zap } from 'lucide-react';
 import { getWhatsAppLink } from '../config/site';
+import { Image } from './Image';
 
 interface ProductItem {
   name: string;
@@ -62,7 +63,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
               <div className="flex flex-col lg:flex-row">
                 {/* Image Section */}
                 <div className="lg:w-1/2 relative h-64 sm:h-80 md:h-96 lg:h-auto">
-                  <img
+                  <Image
                     src={product.image}
                     alt={product.name}
                     className="w-full h-full object-cover"

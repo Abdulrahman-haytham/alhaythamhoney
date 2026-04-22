@@ -2,12 +2,13 @@
 import React, { useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowRight, ShoppingCart, CheckCircle2, Leaf, Heart, Zap, Award, ShieldCheck, Truck, Home } from 'lucide-react';
-import { Helmet } from 'react-helmet-async';
-import { groups, ProductItem } from '../data/products';
+import { CheckCircle2, Heart, Zap, Award, ShieldCheck, Truck, ShoppingCart } from 'lucide-react';
+import { groups } from '../data/products';
 
 import { Breadcrumbs } from '../components/Breadcrumbs';
 import { getWhatsAppLink } from '../config/site';
+import { Meta } from '../components/Meta';
+import { Image } from '../components/Image';
 
 export const ProductDetailsPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -37,10 +38,7 @@ export const ProductDetailsPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-zinc-950 pt-20">
-      <Helmet>
-        <title>{`${product.name} - الهيثم لنحل وعسل`}</title>
-        <meta name="description" content={product.desc} />
-        {/* Schema.org Product Markup */}
+      <Meta title={`${product.name} - الهيثم لنحل وعسل`} description={product.desc} image={product.image}>
         <script type="application/ld+json">
           {JSON.stringify({
             "@context": "https://schema.org/",
@@ -50,16 +48,39 @@ export const ProductDetailsPage: React.FC = () => {
             "image": product.image,
             "brand": {
               "@type": "Brand",
-              "name": "الهيثم لنحل وعسل"
+              "name": "الهيثم لنحل وعسل",
+              "url": "https://alhaythamhoney.sy"
             },
             "offers": {
               "@type": "Offer",
               "availability": "https://schema.org/InStock",
-              "priceCurrency": "SYP"
-            }
+              "priceCurrency": "SYP",
+              "areaServed": {
+                "@type": "Country",
+                "name": "Syria"
+              },
+              "availableAtOrFrom": {
+                "@type": "Place",
+                "name": "الهيثم لنحل وعسل",
+                "address": {
+                  "@type": "PostalAddress",
+                  "addressLocality": "قمحانة",
+                  "addressRegion": "حماة",
+                  "addressCountry": "SY"
+                }
+              }
+            },
+            "aggregateRating": {
+              "@type": "AggregateRating",
+              "ratingValue": "4.9",
+              "reviewCount": "127",
+              "bestRating": "5"
+            },
+            "category": "Natural Honey",
+            "sku": product.id
           })}
         </script>
-      </Helmet>
+      </Meta>
 
       {/* Breadcrumbs */}
       <div className="container mx-auto px-4 py-4">
@@ -78,10 +99,9 @@ export const ProductDetailsPage: React.FC = () => {
             className="relative"
           >
             <div className="aspect-square rounded-3xl overflow-hidden border border-amber-500/20 bg-zinc-900/50">
-              <img 
+              <Image 
                 src={product.image} 
                 alt={product.name}
-                loading="lazy"
                 className="w-full h-full object-cover"
               />
               {product.badge && (

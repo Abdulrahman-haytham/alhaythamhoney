@@ -47,7 +47,7 @@ export const CustomMixtures: React.FC<CustomMixturesProps> = ({ isTeaser }) => {
           
           {/* Content Side */}
           <motion.div
-            initial={{ opacity: 0, x: 20 }}
+            initial={false}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             className="text-right order-2 lg:order-1"
@@ -110,8 +110,8 @@ export const CustomMixtures: React.FC<CustomMixturesProps> = ({ isTeaser }) => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 order-1 lg:order-2">
             {displayedMixtures.map((item, idx) => (
               <motion.div
-                key={idx}
-                initial={{ opacity: 0, y: 20 }}
+                key={item.title}
+                initial={false}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: idx * 0.1 }}
@@ -126,7 +126,7 @@ export const CustomMixtures: React.FC<CustomMixturesProps> = ({ isTeaser }) => {
             ))}
             {isTeaser && (
                <motion.div
-               initial={{ opacity: 0, y: 20 }}
+               initial={false}
                whileInView={{ opacity: 1, y: 0 }}
                viewport={{ once: true }}
                transition={{ delay: 0.3 }}

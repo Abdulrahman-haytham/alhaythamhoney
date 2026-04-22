@@ -1,8 +1,8 @@
 import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ShieldCheck, RefreshCw, AlertCircle, CheckCircle2, XCircle } from 'lucide-react';
-import { Helmet } from 'react-helmet-async';
 import { Breadcrumbs } from '../components/Breadcrumbs';
+import { Meta } from '../components/Meta';
 
 export const ReturnPolicyPage: React.FC = () => {
   useEffect(() => {
@@ -11,11 +11,11 @@ export const ReturnPolicyPage: React.FC = () => {
 
   return (
     <div className="pt-24 pb-12 flex flex-col justify-center">
-      <Helmet>
-        <title>سياسة الاسترجاع وضمان الجودة - الهيثم لنحل وعسل</title>
-        <meta name="description" content="نضمن لك جودة منتجاتنا 100%. تعرف على سياسة الاسترجاع وضمان الجودة في مناحل الهيثم." />
-        <meta name="robots" content="noindex" />
-      </Helmet>
+      <Meta
+        title="سياسة الاسترجاع وضمان الجودة - الهيثم لنحل وعسل"
+        description="نضمن لك جودة منتجاتنا 100%. تعرف على سياسة الاسترجاع وضمان الجودة في مناحل الهيثم."
+        noIndex
+      />
       
       <div className="container mx-auto px-4 mb-8">
         <Breadcrumbs items={[{ label: 'سياسة الاسترجاع' }]} />

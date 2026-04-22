@@ -3,9 +3,10 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowRight, BookOpen, Sparkles } from 'lucide-react';
 import { articles } from '../data/articles';
-import { Helmet } from 'react-helmet-async';
 import { Breadcrumbs } from '../components/Breadcrumbs';
 import { SITE, getWhatsAppLink } from '../config/site';
+import { Meta } from '../components/Meta';
+import { Image } from '../components/Image';
 
 export const ArticlesPage: React.FC = () => {
   useEffect(() => {
@@ -14,12 +15,10 @@ export const ArticlesPage: React.FC = () => {
 
   return (
     <div className="pt-24 pb-16">
-      <Helmet>
-        <title>مدونة الهيثم - الهيثم لنحل وعسل</title>
-        <meta name="description" content="اكتشف فوائد العسل الطبيعي، طرق التمييز بين العسل الأصلي والمغشوش، ونصائح صحية لاستخدام منتجات النحل." />
-        <meta property="og:title" content="مدونة الهيثم - الهيثم لنحل وعسل" />
-        <meta property="og:description" content="اكتشف فوائد العسل الطبيعي، طرق التمييز بين العسل الأصلي والمغشوش، ونصائح صحية لاستخدام منتجات النحل." />
-      </Helmet>
+      <Meta
+        title="مدونة الهيثم - الهيثم لنحل وعسل"
+        description="اكتشف فوائد العسل الطبيعي، طرق التمييز بين العسل الأصلي والمغشوش، ونصائح صحية لاستخدام منتجات النحل."
+      />
       
       <div className="container mx-auto px-4 sm:px-6 mb-8">
         <Breadcrumbs items={[{ label: 'المقالات' }]} />
@@ -59,10 +58,9 @@ export const ArticlesPage: React.FC = () => {
             >
               {article.image && (
                 <div className="relative h-40 sm:h-48 w-full overflow-hidden">
-                  <img
+                  <Image
                     src={article.image}
                     alt={article.title}
-                    loading="lazy"
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/80 via-transparent to-transparent pointer-events-none" />

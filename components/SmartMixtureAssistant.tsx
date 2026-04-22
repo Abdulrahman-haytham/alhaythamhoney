@@ -111,6 +111,7 @@ export const SmartMixtureAssistant: React.FC<SmartMixtureAssistantProps> = ({ on
     if (onDataUpdate) {
       onDataUpdate(data, recommendation);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, onDataUpdate]);
 
   // Helper to go back

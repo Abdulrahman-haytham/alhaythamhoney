@@ -14,7 +14,9 @@ export default defineConfig(({ mode }) => {
         host: '0.0.0.0',
       },
       plugins: [
-        react(),
+        react({
+          strictMode: false,
+        }),
         VitePWA({
           registerType: 'autoUpdate',
           includeAssets: ['favicon.ico', 'favicon-16x16.png', 'favicon-32x32.png', 'apple-touch-icon.png'],
@@ -59,7 +61,7 @@ export default defineConfig(({ mode }) => {
         rollupOptions: {
           output: {
             manualChunks: {
-              'react-vendor': ['react', 'react-dom', 'react-router-dom', 'react-helmet-async'],
+              'react-vendor': ['react', 'react-dom', 'react-router-dom', 'react-helmet-async', '@tanstack/react-query'],
               'ui-vendor': ['framer-motion', 'lucide-react']
             }
           }

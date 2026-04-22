@@ -1,8 +1,9 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { MessageCircle, Instagram, Facebook, Phone, Heart, MapPin, Mail } from 'lucide-react';
+import { MessageCircle, Instagram, Facebook, Phone, Heart, MapPin } from 'lucide-react';
 import { SITE, getTelLink, getWhatsAppLink } from '../config/site';
+import { Image } from './Image';
 
 export const Footer: React.FC = () => {
   const phoneNumber = SITE.phoneNumber;
@@ -46,7 +47,7 @@ export const Footer: React.FC = () => {
 
           <div className="hidden lg:block relative text-center">
             <div className="absolute inset-0 bg-amber-500/10 blur-3xl rounded-full"></div>
-            <img 
+            <Image 
               src="https://res.cloudinary.com/dkbvnupge/image/upload/f_auto,q_auto/v1767958674/my-app-uploads/kromozksoa3vpcwrnvtw.jpg" 
               alt="Golden Honey Legacy" 
               className="relative w-full max-w-sm mx-auto object-contain brightness-110 drop-shadow-[0_0_20px_rgba(212,175,55,0.2)] rounded-2xl"
@@ -57,10 +58,9 @@ export const Footer: React.FC = () => {
         {/* 9. الفوتر - تثبيت العلامة */}
         <div className="pt-12 sm:pt-16 md:pt-20 border-t border-zinc-900 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 sm:gap-10 md:gap-12 text-zinc-500 text-xs sm:text-sm text-right">
           <div className="col-span-1 sm:col-span-2 md:col-span-1 flex flex-col items-start md:items-end">
-             <img 
+             <Image 
                src="https://res.cloudinary.com/dkbvnupge/image/upload/f_auto,q_auto/v1767958674/my-app-uploads/kromozksoa3vpcwrnvtw.jpg" 
                alt="Logo" 
-               loading="lazy"
                className="h-12 sm:h-14 md:h-16 mb-3 sm:mb-4 brightness-110 rounded-lg" 
              />
              <h3 className="text-xl sm:text-2xl font-amiri font-bold text-amber-500 mb-3 sm:mb-4">الهيثم لنحل وعسل</h3>

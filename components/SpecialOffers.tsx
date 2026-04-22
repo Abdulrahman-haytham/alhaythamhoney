@@ -38,7 +38,7 @@ export const SpecialOffers: React.FC = () => {
       
       <div className="container mx-auto relative z-10">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={false}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           className="text-center mb-16"
@@ -61,7 +61,7 @@ export const SpecialOffers: React.FC = () => {
           {offers.map((offer, idx) => (
             <motion.div
               key={offer.id}
-              initial={{ opacity: 0, y: 30 }}
+              initial={false}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: idx * 0.15 }}
@@ -117,7 +117,7 @@ export const SpecialOffers: React.FC = () => {
 
         {/* Limited Time Notice */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={false}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           className="text-center mt-12"

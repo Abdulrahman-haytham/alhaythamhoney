@@ -3,9 +3,11 @@ import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { BookOpen, ShoppingCart } from 'lucide-react';
 import { articles } from '../data/articles';
-import { Helmet } from 'react-helmet-async';
 import { Breadcrumbs } from '../components/Breadcrumbs';
 import { SITE, getWhatsAppLink } from '../config/site';
+import { MarkdownContent } from '../components/MarkdownContent';
+import { Meta } from '../components/Meta';
+import { Image } from '../components/Image';
 
 export const ArticleDetailPage: React.FC = () => {
   const { articleId } = useParams<{ articleId: string }>();
@@ -30,14 +32,13 @@ export const ArticleDetailPage: React.FC = () => {
 
   return (
     <div className="pt-24 pb-16">
-      <Helmet>
-        <title>{`${article.title} - مدونة الهيثم`}</title>
-        <meta name="description" content={article.description} />
-        <meta property="og:title" content={article.title} />
-        <meta property="og:description" content={article.description} />
-        {article.image && <meta property="og:image" content={article.image} />}
-        <meta property="og:type" content="article" />
-      </Helmet>
+      <Meta
+        title={`${article.title} - مدونة الهيثم`}
+        description={article.description}
+        keywords={article.keywords}
+        image={article.image}
+        type="article"
+      />
 
       <div className="container mx-auto px-4 sm:px-6 mb-8">
         <Breadcrumbs items={[
@@ -67,10 +68,9 @@ export const ArticleDetailPage: React.FC = () => {
           </p>
           {article.image && (
             <div className="mt-6 rounded-3xl overflow-hidden border border-amber-500/20 bg-zinc-900/40">
-              <img
+              <Image
                 src={article.image}
                 alt={article.title}
-                loading="lazy"
                 className="w-full h-full max-h-[360px] object-cover"
               />
             </div>
@@ -82,15 +82,8 @@ export const ArticleDetailPage: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="prose prose-invert prose-base md:prose-lg max-w-none"
         >
-          <div 
-            className="text-zinc-300 leading-relaxed space-y-6"
-            dangerouslySetInnerHTML={{ __html: article.content }}
-            style={{
-              lineHeight: '1.8'
-            }}
-          />
+          <MarkdownContent content={article.content} className="text-zinc-300 leading-relaxed" />
         </motion.div>
 
         {/* CTA */}

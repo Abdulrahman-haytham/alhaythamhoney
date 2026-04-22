@@ -16,6 +16,7 @@ dist-ssr
 .vscode/*
 !.vscode/extensions.json
 .idea
+.qwen
 .DS_Store
 *.suo
 *.ntvs*
@@ -28,4 +29,3 @@ PROJECT_ANALYSIS.md
 RECOMMENDATIONS.md
 TASKS_DONE.md
 GITHUB_GUIDE.md
-

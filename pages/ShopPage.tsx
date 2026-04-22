@@ -1,16 +1,22 @@
 import React, { memo, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ShoppingCart, Eye } from 'lucide-react';
-import { groups, ProductItem, ProductGroup } from '../data/products';
-import { Helmet } from 'react-helmet-async';
+import { ShoppingCart, Eye, Heart } from 'lucide-react';
+import { groups, ProductGroup } from '../data/products';
 import { Link } from 'react-router-dom';
 import { Breadcrumbs } from '../components/Breadcrumbs';
-import { getWhatsAppLink } from '../config/site';
+import { useCart } from '../hooks/useCart';
+import { useWishlist } from '../hooks/useWishlist';
+import { Meta } from '../components/Meta';
+import { Image } from '../components/Image';
 
-const StoreProductGroupSection = memo(({ group }: { group: ProductGroup }) => (
+const StoreProductGroupSection = memo(({ group }: { group: ProductGroup }) => {
+  const { addItem } = useCart();
+  const { addItem: addWishlist, removeItem: removeWishlist, isWishlisted } = useWishlist();
+
+  return (
   <div className="mb-20">
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={false}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       className="mb-12"
@@ -31,18 +37,18 @@ const StoreProductGroupSection = memo(({ group }: { group: ProductGroup }) => (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
       {group.items.map((item, idx) => (
         <motion.div
-          key={idx}
-          initial={{ opacity: 0, y: 30 }}
+          key={item.id}
+          initial={false}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ delay: idx * 0.1 }}
           className="group relative bg-zinc-900/40 rounded-3xl overflow-hidden border border-white/5 hover:border-amber-500/30 transition-all duration-500 cursor-pointer flex flex-col h-full"
         >
-          <Link to={`/product/${item.id}`} className="block relative h-64 overflow-hidden flex-shrink-0">
-            <img
+          <Link to={`/product/${item.id}`} className="block relative overflow-hidden flex-shrink-0">
+            <Image
               src={item.image}
               alt={item.name}
-              loading="lazy"
+              wrapperClassName="w-full aspect-[4/3]"
               className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/20 to-transparent"></div>
@@ -67,32 +73,54 @@ const StoreProductGroupSection = memo(({ group }: { group: ProductGroup }) => (
             <p className="text-zinc-400 text-sm mb-6 leading-relaxed line-clamp-3 flex-grow">
               {item.desc}
             </p>
-            
-            <div className="flex gap-3 mt-auto">
+
+            {/* Action Buttons: Details + Cart + Wishlist */}
+            <div className="flex gap-2 mt-auto">
               <Link
                 to={`/product/${item.id}`}
-                className="flex-1 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-white/5 rounded-xl flex items-center justify-center gap-2 transition-all duration-300 font-bold text-sm"
+                className="flex items-center justify-center gap-1.5 flex-1 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-white/5 rounded-xl transition-all duration-300 font-bold text-sm"
+                aria-label={`تفاصيل ${item.name}`}
               >
                 <Eye className="w-4 h-4" />
                 التفاصيل
               </Link>
-              <a
-                href={getWhatsAppLink(`مرحباً، أريد طلب ${item.name}`)}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={(e) => e.stopPropagation()}
-                className="flex-1 py-2.5 bg-amber-500 hover:bg-amber-400 text-zinc-950 rounded-xl flex items-center justify-center gap-2 transition-all duration-300 font-bold text-sm shadow-lg shadow-amber-500/20"
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  addItem({ id: item.id, name: item.name, image: item.image });
+                }}
+                className="flex items-center justify-center gap-1.5 flex-1 py-2.5 bg-amber-500 hover:bg-amber-400 text-zinc-950 rounded-xl transition-all duration-300 font-bold text-sm shadow-lg shadow-amber-500/20"
+                aria-label={`أضف ${item.name} إلى السلة`}
               >
                 <ShoppingCart className="w-4 h-4" />
-                طلب
-              </a>
+                للسلة
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (isWishlisted(item.id)) {
+                    removeWishlist(item.id);
+                  } else {
+                    addWishlist({ id: item.id, name: item.name, image: item.image, benefit: item.benefit });
+                  }
+                }}
+                className={`flex items-center justify-center p-2.5 rounded-xl transition-all duration-300 ${
+                  isWishlisted(item.id)
+                    ? 'bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30'
+                    : 'bg-zinc-800 text-zinc-400 hover:text-red-400 hover:bg-zinc-700 border border-white/5'
+                }`}
+                aria-label={isWishlisted(item.id) ? `إزالة ${item.name} من المفضلة` : `أضف ${item.name} إلى المفضلة`}
+              >
+                <Heart className={`w-4 h-4 ${isWishlisted(item.id) ? 'fill-current' : ''}`} />
+              </button>
             </div>
           </div>
         </motion.div>
       ))}
     </div>
   </div>
-));
+  );
+});
 
 export const ShopPage: React.FC = () => {
   useEffect(() => {
@@ -101,13 +129,11 @@ export const ShopPage: React.FC = () => {
 
   return (
     <div className="pt-24 pb-16">
-      <Helmet>
-        <title>المتجر - الهيثم لنحل وعسل | تسوق العسل الطبيعي</title>
-        <meta name="description" content="تسوق أفضل أنواع العسل الطبيعي، عسل حبة البركة، عسل الدردار، وعسل الجيجان. منتجات طبيعية 100% ومفحوصة مخبرياً." />
-        <meta property="og:title" content="المتجر - الهيثم لنحل وعسل" />
-        <meta property="og:description" content="تسوق منتجات النحل الطبيعية الأصلية من مناحل الهيثم." />
-      </Helmet>
-      
+      <Meta
+        title="المتجر - الهيثم لنحل وعسل | تسوق العسل الطبيعي"
+        description="تسوق أفضل أنواع العسل الطبيعي، عسل حبة البركة، عسل الدردار، وعسل الجيجان. منتجات طبيعية 100% ومفحوصة مخبرياً."
+      />
+
       <div className="container mx-auto px-4 sm:px-6">
         <Breadcrumbs items={[{ label: 'المتجر' }]} />
 
@@ -123,7 +149,7 @@ export const ShopPage: React.FC = () => {
               Our Store
             </span>
           </motion.div>
-          <motion.h1 
+          <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
@@ -131,7 +157,7 @@ export const ShopPage: React.FC = () => {
           >
             منتجاتنا الطبيعية
           </motion.h1>
-          <motion.p 
+          <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
@@ -143,9 +169,9 @@ export const ShopPage: React.FC = () => {
 
         {/* Products Grid */}
         {groups.map((group) => (
-          <StoreProductGroupSection 
-            key={group.id} 
-            group={group} 
+          <StoreProductGroupSection
+            key={group.id}
+            group={group}
           />
         ))}
       </div>

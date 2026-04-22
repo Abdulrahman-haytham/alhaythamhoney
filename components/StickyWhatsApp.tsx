@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageCircle, X } from 'lucide-react';
+import { MessageCircle } from 'lucide-react';
 import { SITE, getWhatsAppLink } from '../config/site';
 
 export const StickyWhatsApp: React.FC = () => {

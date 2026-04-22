@@ -39,20 +39,22 @@ export const Stats: React.FC = () => {
 
   return (
     <section className="bg-zinc-950 py-12 sm:py-16 md:py-20 px-4 sm:px-6 relative border-y border-amber-900/10">
-      <div className="container mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 sm:gap-10 md:gap-12 lg:gap-4">
+      <div className="container mx-auto grid grid-cols-3 gap-2 sm:gap-6 md:gap-8">
         {stats.map((stat, idx) => (
           <motion.div 
-            key={idx}
-            initial={{ opacity: 0, y: 10 }}
+            key={stat.label}
+            initial={false}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: idx * 0.1 }}
-            className="text-center md:border-l last:border-l-0 border-amber-900/10 py-4 sm:py-5 md:py-6"
+            className="text-center border-l last:border-l-0 border-amber-900/10 py-3 sm:py-5 md:py-6 min-w-0"
           >
-            <div className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black gold-text mb-1 sm:mb-2">
+            <div className="text-2xl sm:text-5xl md:text-6xl lg:text-7xl font-black gold-text mb-1 sm:mb-2 whitespace-nowrap leading-none">
               <Counter from={stat.from} to={stat.to} suffix={stat.suffix} />
             </div>
-            <div className="text-zinc-500 font-medium tracking-wide text-xs sm:text-sm uppercase px-2">{stat.label}</div>
+            <div className="text-zinc-500 font-medium tracking-wide text-[10px] sm:text-sm uppercase px-1 sm:px-2 leading-snug">
+              {stat.label}
+            </div>
           </motion.div>
         ))}
       </div>

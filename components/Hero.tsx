@@ -3,6 +3,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { ShieldCheck, Microscope, Award, Truck } from 'lucide-react';
 import { getWhatsAppLink } from '../config/site';
+import { Image } from './Image';
 
 export const Hero: React.FC = () => {
   const trustIcons = [
@@ -21,7 +22,7 @@ export const Hero: React.FC = () => {
         transition={{ duration: 2, ease: "easeOut" }}
         className="absolute inset-0 z-0"
       >
-        <img 
+        <Image 
           src="https://res.cloudinary.com/dkbvnupge/image/upload/f_auto,q_auto/v1767958674/my-app-uploads/kromozksoa3vpcwrnvtw.jpg" 
           srcSet="https://res.cloudinary.com/dkbvnupge/image/upload/c_scale,w_768,f_auto,q_auto/v1767958674/my-app-uploads/kromozksoa3vpcwrnvtw.jpg 768w,
                   https://res.cloudinary.com/dkbvnupge/image/upload/c_scale,w_1200,f_auto,q_auto/v1767958674/my-app-uploads/kromozksoa3vpcwrnvtw.jpg 1200w,
