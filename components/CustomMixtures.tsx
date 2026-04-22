@@ -50,7 +50,7 @@ export const CustomMixtures: React.FC<CustomMixturesProps> = ({ isTeaser }) => {
             initial={false}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
-            className="text-right order-2 lg:order-1"
+            className="text-right order-1"
           >
             <div className="inline-flex items-center gap-2 mb-4 justify-end w-full lg:justify-start lg:flex-row-reverse">
               <Beaker className="w-6 h-6 text-amber-500" />
@@ -107,7 +107,7 @@ export const CustomMixtures: React.FC<CustomMixturesProps> = ({ isTeaser }) => {
           </motion.div>
 
           {/* Cards Side */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 order-1 lg:order-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 order-2">
             {displayedMixtures.map((item, idx) => (
               <motion.div
                 key={item.title}
