@@ -42,7 +42,7 @@ const StoreProductGroupSection = memo(({ group }: { group: ProductGroup }) => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ delay: idx * 0.1 }}
-          className="group relative bg-zinc-900/40 rounded-3xl overflow-hidden border border-white/5 hover:border-amber-500/30 transition-all duration-500 cursor-pointer flex flex-col h-full"
+          className="group relative bg-zinc-900/40 rounded-3xl overflow-hidden border border-white/10 hover:border-amber-500/30 ring-1 ring-white/10 hover:ring-amber-500/20 shadow-lg shadow-black/40 hover:shadow-2xl hover:shadow-black/50 transition-all duration-500 cursor-pointer hover:-translate-y-1 flex flex-col h-full"
         >
           <Link to={`/product/${item.id}`} className="block relative overflow-hidden flex-shrink-0">
             <Image

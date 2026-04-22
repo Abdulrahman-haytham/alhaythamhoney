@@ -10,16 +10,16 @@ export const Footer: React.FC = () => {
   const facebookLink = "https://www.facebook.com/profile.php?id=100064934053886";
 
   return (
-    <footer className="bg-zinc-950 pt-16 sm:pt-24 md:pt-32 pb-8 sm:pb-12 border-t border-amber-900/10 px-4 sm:px-6">
+    <footer className="bg-zinc-950 pt-12 sm:pt-20 md:pt-24 pb-8 sm:pb-12 border-t border-amber-900/10 px-4 sm:px-6">
       <div className="container mx-auto">
         {/* 8. الخاتمة البيعية – القرار الهادئ */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12 md:gap-16 mb-12 sm:mb-16 md:mb-24 items-center text-right">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-10 md:gap-12 mb-10 sm:mb-14 md:mb-20 items-center text-right">
           <div>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-amiri font-bold mb-6 sm:mb-8 text-white leading-tight px-2">
+            <h2 className="text-xl sm:text-3xl md:text-4xl lg:text-5xl font-amiri font-black mb-5 sm:mb-7 text-white leading-tight px-1 sm:px-2">
               الهيثم… لسنا مجرد متجر. <br />
               <span className="text-amber-500">نحن عائلة تتقن فن تربية النحل.</span>
             </h2>
-            <div className="space-y-3 sm:space-y-4 text-zinc-400 text-base sm:text-lg md:text-xl font-light mb-8 sm:mb-10 leading-relaxed">
+            <div className="space-y-2.5 sm:space-y-4 text-zinc-400 text-sm sm:text-lg md:text-xl font-light mb-6 sm:mb-9 leading-relaxed">
               <p>عسل طبيعي يصلك بنفس الجودة التي خرج بها من المنحل.</p>
               <p className="flex items-center gap-2 sm:gap-3 text-amber-500 font-bold text-sm sm:text-base md:text-lg">
                 <span className="w-1.5 h-1.5 rounded-full bg-amber-500 flex-shrink-0"></span>
@@ -32,12 +32,12 @@ export const Footer: React.FC = () => {
                 href={getWhatsAppLink()} 
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 sm:gap-4 bg-amber-500 text-zinc-950 px-6 sm:px-8 md:px-12 py-3 sm:py-4 md:py-5 rounded-full font-black text-sm sm:text-base md:text-xl shadow-lg shadow-amber-500/20 hover:shadow-amber-500/40 hover:scale-105 transition-all"
+                className="flex items-center justify-center gap-2 sm:gap-3 bg-amber-500 text-zinc-950 px-5 sm:px-8 md:px-10 py-3 sm:py-3.5 md:py-4 rounded-full font-black text-sm sm:text-base md:text-lg shadow-lg shadow-amber-500/20 hover:shadow-amber-500/40 hover:scale-105 transition-all"
               >
-                <MessageCircle className="w-6 h-6" />
+                <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6" />
                 اطلب الآن عبر واتساب
               </a>
-              <div className="flex items-center justify-center gap-4 sm:gap-6 px-6 sm:px-8 py-4 sm:py-5 bg-zinc-900/50 rounded-full border border-white/5">
+              <div className="flex items-center justify-center gap-4 sm:gap-6 px-5 sm:px-8 py-3.5 sm:py-4 bg-zinc-900/50 rounded-full border border-white/5">
                 <a href="#" className="text-zinc-400 hover:text-amber-500 transition-colors"><Instagram className="w-5 h-5 sm:w-6 sm:h-6" /></a>
                 <a href={facebookLink} target="_blank" rel="noopener noreferrer" className="text-zinc-400 hover:text-amber-500 transition-colors"><Facebook className="w-5 h-5 sm:w-6 sm:h-6" /></a>
                 <a href={getTelLink()} className="text-zinc-400 hover:text-amber-500 transition-colors"><Phone className="w-5 h-5 sm:w-6 sm:h-6" /></a>
@@ -50,7 +50,7 @@ export const Footer: React.FC = () => {
             <Image 
               src="https://res.cloudinary.com/dkbvnupge/image/upload/f_auto,q_auto/v1767958674/my-app-uploads/kromozksoa3vpcwrnvtw.jpg" 
               alt="Golden Honey Legacy" 
-              className="relative w-full max-w-sm mx-auto object-contain brightness-110 drop-shadow-[0_0_20px_rgba(212,175,55,0.2)] rounded-2xl"
+              className="relative w-full max-w-xs mx-auto object-contain brightness-110 drop-shadow-[0_0_18px_rgba(212,175,55,0.18)] rounded-2xl"
             />
           </div>
         </div>

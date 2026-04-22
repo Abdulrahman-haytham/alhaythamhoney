@@ -23,9 +23,14 @@ const ProductGroupSection = memo(({ group }: { group: ProductGroup }) => {
         <div className="p-2 sm:p-2.5 md:p-3 bg-amber-500/10 rounded-lg sm:rounded-xl border border-amber-500/20">
           <div className="scale-75 sm:scale-90 md:scale-100">{group.icon}</div>
         </div>
-        <h3 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-amiri font-bold text-white">{group.title}</h3>
+        <h3 className="text-2xl sm:text-3xl md:text-4xl font-amiri font-black text-white leading-tight">
+          {group.title}
+        </h3>
       </div>
-      <p className="text-zinc-500 text-sm sm:text-base max-w-2xl border-r-2 border-amber-500/20 pr-3 sm:pr-4">{group.subtitle}</p>
+      <div className="w-12 h-1 bg-amber-500/70 rounded-full mb-4 sm:mb-5" />
+      <p className="text-zinc-400 text-sm sm:text-base max-w-2xl border-r-2 border-amber-500/20 pr-3 sm:pr-4">
+        {group.subtitle}
+      </p>
     </motion.div>
 
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 md:gap-10">
@@ -36,7 +41,7 @@ const ProductGroupSection = memo(({ group }: { group: ProductGroup }) => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ delay: idx * 0.1 }}
-          className="group relative bg-gradient-to-br from-zinc-900/60 to-zinc-950/80 backdrop-blur-sm rounded-2xl sm:rounded-[2rem] md:rounded-[2.5rem] overflow-hidden border border-white/5 hover:border-amber-500/40 transition-all duration-500 cursor-pointer luxury-shadow hover:luxury-shadow-lg flex flex-col"
+          className="group relative bg-gradient-to-br from-zinc-900/60 to-zinc-950/80 backdrop-blur-sm rounded-2xl sm:rounded-[2rem] md:rounded-[2.5rem] overflow-hidden border border-white/10 hover:border-amber-500/40 ring-1 ring-white/10 hover:ring-amber-500/20 shadow-lg shadow-black/40 hover:shadow-2xl hover:shadow-black/50 transition-all duration-500 cursor-pointer hover:-translate-y-1 flex flex-col"
         >
           <Link to={`/product/${item.id}`} className="block relative overflow-hidden flex-shrink-0">
             <Image 
