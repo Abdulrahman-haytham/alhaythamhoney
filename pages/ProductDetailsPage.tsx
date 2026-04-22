@@ -38,7 +38,7 @@ export const ProductDetailsPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-zinc-950 pt-20">
-      <Meta title={`${product.name} - الهيثم لنحل وعسل`} description={product.desc} image={product.image}>
+      <Meta title={`${product.name} - الهيثم نحل و عسل`} description={product.desc} image={product.image}>
         <script type="application/ld+json">
           {JSON.stringify({
             "@context": "https://schema.org/",
@@ -48,7 +48,7 @@ export const ProductDetailsPage: React.FC = () => {
             "image": product.image,
             "brand": {
               "@type": "Brand",
-              "name": "الهيثم لنحل وعسل",
+              "name": "الهيثم نحل و عسل",
               "url": "https://alhaythamhoney.sy"
             },
             "offers": {
@@ -61,7 +61,7 @@ export const ProductDetailsPage: React.FC = () => {
               },
               "availableAtOrFrom": {
                 "@type": "Place",
-                "name": "الهيثم لنحل وعسل",
+                "name": "الهيثم نحل و عسل",
                 "address": {
                   "@type": "PostalAddress",
                   "addressLocality": "قمحانة",

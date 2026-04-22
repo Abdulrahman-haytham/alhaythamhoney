@@ -12,7 +12,7 @@ export const ReturnPolicyPage: React.FC = () => {
   return (
     <div className="pt-24 pb-12 flex flex-col justify-center">
       <Meta
-        title="سياسة الاسترجاع وضمان الجودة - الهيثم لنحل وعسل"
+        title="سياسة الاسترجاع وضمان الجودة - الهيثم نحل و عسل"
         description="نضمن لك جودة منتجاتنا 100%. تعرف على سياسة الاسترجاع وضمان الجودة في مناحل الهيثم."
         noIndex
       />

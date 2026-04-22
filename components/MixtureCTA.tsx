@@ -22,10 +22,10 @@ const agesLabels: Record<Age, string> = {
 };
 
 export const MixtureCTA: React.FC<MixtureCTAProps> = ({ mixtureData, recommendation }) => {
-  let whatsappMessage = "مرحباً الهيثم لنحل وعسل، أرغب في طلب خلطة خاصة.";
+  let whatsappMessage = "مرحباً الهيثم نحل و عسل، أرغب في طلب خلطة خاصة.";
 
   if (mixtureData && recommendation && (mixtureData.goal || mixtureData.age)) {
-    whatsappMessage = `مرحباً الهيثم لنحل وعسل، لقد استخدمت المساعد الذكي وأرغب في استشارة النحال لطلب خلطة:
+    whatsappMessage = `مرحباً الهيثم نحل و عسل، لقد استخدمت المساعد الذكي وأرغب في استشارة النحال لطلب خلطة:
 - الهدف: ${mixtureData.goal ? goalsLabels[mixtureData.goal] : 'غير محدد'}
 - العمر: ${mixtureData.age ? agesLabels[mixtureData.age] : 'غير محدد'}
 - حساسية: ${mixtureData.allergy === 'Yes' ? 'نعم' : 'لا'}

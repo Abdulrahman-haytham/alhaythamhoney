@@ -12,7 +12,7 @@ export const FAQPage: React.FC = () => {
   return (
     <div className="pt-24 bg-zinc-950 min-h-screen">
       <Meta
-        title="الأسئلة الشائعة - الهيثم لنحل وعسل"
+        title="الأسئلة الشائعة - الهيثم نحل و عسل"
         description="إجابات على الأسئلة الأكثر شيوعاً حول منتجات عسل الهيثم، الشحن، وطرق الاستخدام."
       />
       

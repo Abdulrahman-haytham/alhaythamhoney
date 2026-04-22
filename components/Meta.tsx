@@ -13,7 +13,7 @@ type MetaProps = {
   children?: React.ReactNode;
 };
 
-const SITE_NAME = 'الهيثم لنحل وعسل';
+const SITE_NAME = 'الهيثم نحل و عسل';
 const DEFAULT_DESCRIPTION =
   'عسل طبيعي 100% مفحوص مخبرياً من مراعي سوريا. خبرة عائلية منذ 1997، شحن آمن لكل المحافظات. اطلب الآن عبر واتساب.';
 const DEFAULT_OG_IMAGE =

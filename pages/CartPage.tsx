@@ -32,7 +32,7 @@ export const CartPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-zinc-950 pt-24 pb-16" dir="rtl">
-      <Meta title="سلة الطلبات - الهيثم لنحل وعسل" description="راجع طلباتك وأرسلها عبر واتساب لإتمام عملية الشراء." />
+      <Meta title="سلة الطلبات - الهيثم نحل و عسل" description="راجع طلباتك وأرسلها عبر واتساب لإتمام عملية الشراء." />
 
       {/* Breadcrumbs */}
       <div className="container mx-auto px-4 py-4">

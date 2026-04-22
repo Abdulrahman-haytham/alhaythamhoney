@@ -46,7 +46,7 @@ const ProductGroupSection = memo(({ group }: { group: ProductGroup }) => {
           <Link to={`/product/${item.id}`} className="block relative overflow-hidden flex-shrink-0">
             <Image 
               src={item.image} 
-              alt={`${item.name} - عسل طبيعي 100% من الهيثم لنحل وعسل في سوريا`}
+              alt={`${item.name} - عسل طبيعي 100% من الهيثم نحل و عسل في سوريا`}
               wrapperClassName="w-full aspect-[4/3]"
               className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
             />

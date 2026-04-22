@@ -13,7 +13,7 @@ export const AboutPage: React.FC = () => {
   return (
     <div className="pt-24 bg-zinc-950 min-h-screen">
       <Meta
-        title="قصتنا - الهيثم لنحل وعسل | إرث عائلي منذ 1997"
+        title="قصتنا - الهيثم نحل و عسل | إرث عائلي منذ 1997"
         description="تعرف على حكاية عسل الهيثم. إرث عائلي في تربية النحل وإنتاج العسل الطبيعي في سوريا منذ عام 1997."
       />
       

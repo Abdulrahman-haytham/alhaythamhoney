@@ -19,7 +19,7 @@ export const Story: React.FC = () => {
           <div className="relative z-10 rounded-2xl sm:rounded-[2.5rem] md:rounded-[3rem] overflow-hidden luxury-shadow border border-amber-500/10 aspect-square">
             <Image 
               src="https://res.cloudinary.com/dkbvnupge/image/upload/f_auto,q_auto/v1768231269/my-app-uploads/jo3ljfxuqemiwep7wjkc.jpg" 
-              alt="الهيثم لنحل وعسل - إرث عائلي منذ 1997 في سوريا"
+              alt="الهيثم نحل و عسل - إرث عائلي منذ 1997 في سوريا"
               className="w-full h-full object-cover grayscale-[30%] hover:grayscale-0 transition-all duration-700"
             />
           </div>

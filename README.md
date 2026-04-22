@@ -1,4 +1,4 @@
-# 🍯 الهيثم لنحل وعسل | Al-Haytham Honey
+# 🍯 الهيثم نحل و عسل | Al-Haytham Honey
 
 > Premium Syrian Natural Honey — Since 1997
 

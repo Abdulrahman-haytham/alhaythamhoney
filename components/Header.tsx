@@ -103,7 +103,7 @@ export const Header: React.FC = () => {
               href="/"
               onClick={handleLogoClick}
               className="flex items-center gap-2 sm:gap-3 md:gap-4 hover:opacity-80 transition-opacity cursor-pointer"
-              aria-label="الهيثم لنحل وعسل - الصفحة الرئيسية"
+              aria-label="الهيثم نحل و عسل - الصفحة الرئيسية"
             >
               <Image
                 src="https://res.cloudinary.com/dkbvnupge/image/upload/f_auto,q_auto/v1767958674/my-app-uploads/kromozksoa3vpcwrnvtw.jpg"

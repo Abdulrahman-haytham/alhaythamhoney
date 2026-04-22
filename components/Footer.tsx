@@ -63,7 +63,7 @@ export const Footer: React.FC = () => {
                alt="Logo" 
                className="h-12 sm:h-14 md:h-16 mb-3 sm:mb-4 brightness-110 rounded-lg" 
              />
-             <h3 className="text-xl sm:text-2xl font-amiri font-bold text-amber-500 mb-3 sm:mb-4">الهيثم لنحل وعسل</h3>
+             <h3 className="text-xl sm:text-2xl font-amiri font-bold text-amber-500 mb-3 sm:mb-4">الهيثم نحل و عسل</h3>
              <p className="leading-relaxed text-xs sm:text-sm">منذ 1997 ونحن نضع اسمنا ضماناً لكل قطرة عسل. إرث الوالد المؤسس يحيى في كل خلية.</p>
           </div>
           <div>
@@ -105,7 +105,7 @@ export const Footer: React.FC = () => {
         </div>
         
         <div className="mt-12 sm:mt-16 md:mt-20 pt-8 sm:pt-10 md:pt-12 border-t border-zinc-900 flex flex-col md:flex-row justify-between items-center gap-4 sm:gap-6 text-zinc-600 text-[9px] sm:text-[10px] uppercase tracking-wider sm:tracking-widest font-bold">
-          <p>© 2026 الهيثم لنحل وعسل. جميع الحقوق محفوظة.</p>
+          <p>© 2026 الهيثم نحل و عسل. جميع الحقوق محفوظة.</p>
           <p className="flex items-center gap-2">
             صُنع بكل حب في <span className="text-zinc-400">سوريا</span>
             <Heart className="w-3 h-3 text-red-900 fill-red-900" />

@@ -40,7 +40,7 @@ export const WishlistPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-zinc-950 pt-24 pb-16" dir="rtl">
-      <Meta title="المفضلة - الهيثم لنحل وعسل" description="منتجاتك المفضلة المحفوظة لوقت لاحق." />
+      <Meta title="المفضلة - الهيثم نحل و عسل" description="منتجاتك المفضلة المحفوظة لوقت لاحق." />
 
       {/* Breadcrumbs */}
       <div className="container mx-auto px-4 py-4">

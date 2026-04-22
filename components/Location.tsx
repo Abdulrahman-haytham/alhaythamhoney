@@ -80,7 +80,7 @@ export const Location: React.FC = () => {
               allowFullScreen={true} 
               loading="lazy" 
               referrerPolicy="no-referrer-when-downgrade"
-              title="موقع الهيثم لنحل وعسل"
+              title="موقع الهيثم نحل و عسل"
             ></iframe>
           </motion.div>
         </div>

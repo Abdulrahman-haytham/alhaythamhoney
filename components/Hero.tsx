@@ -28,7 +28,7 @@ export const Hero: React.FC = () => {
                   https://res.cloudinary.com/dkbvnupge/image/upload/c_scale,w_1200,f_auto,q_auto/v1767958674/my-app-uploads/kromozksoa3vpcwrnvtw.jpg 1200w,
                   https://res.cloudinary.com/dkbvnupge/image/upload/c_scale,w_1920,f_auto,q_auto/v1767958674/my-app-uploads/kromozksoa3vpcwrnvtw.jpg 1920w"
           sizes="(max-width: 768px) 768px, (max-width: 1200px) 1200px, 100vw"
-          alt="عسل طبيعي 100% من مراعي سوريا - الهيثم لنحل وعسل"
+          alt="عسل طبيعي 100% من مراعي سوريا - الهيثم نحل و عسل"
           fetchPriority="high"
           loading="eager"
           width="1920"
@@ -58,7 +58,7 @@ export const Hero: React.FC = () => {
           className="text-3xl sm:text-4xl md:text-6xl lg:text-8xl font-amiri font-bold text-white mb-4 md:mb-6 leading-tight px-2"
         >
           عسل طبيعي 100% من مراعي سوريا <br />
-          <span className="gold-text">الهيثم لنحل وعسل – منذ 1997</span>
+          <span className="gold-text">الهيثم نحل و عسل – منذ 1997</span>
         </motion.h1>
 
         <motion.p 

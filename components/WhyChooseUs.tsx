@@ -45,7 +45,7 @@ export const WhyChooseUs: React.FC = () => {
             </span>
           </div>
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-amiri font-bold mb-6 text-white">
-            لماذا الهيثم لنحل وعسل؟
+            لماذا الهيثم نحل و عسل؟
           </h2>
           <p className="text-zinc-400 text-lg max-w-2xl mx-auto">
             مقارنة سريعة توضح الفرق بيننا وبين الآخرين

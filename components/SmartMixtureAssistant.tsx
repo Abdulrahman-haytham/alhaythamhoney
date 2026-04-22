@@ -134,7 +134,7 @@ export const SmartMixtureAssistant: React.FC<SmartMixtureAssistantProps> = ({ on
 
 
   // WhatsApp Link Generator
-  const whatsappMessage = `مرحباً الهيثم لنحل وعسل، لقد استخدمت المساعد الذكي وأرغب في استشارة النحال:
+  const whatsappMessage = `مرحباً الهيثم نحل و عسل، لقد استخدمت المساعد الذكي وأرغب في استشارة النحال:
 - الهدف: ${goals.find(g => g.id === data.goal)?.label || data.goal}
 - العمر: ${ages.find(a => a.id === data.age)?.label || data.age}
 - حساسية: ${data.allergy === 'Yes' ? 'نعم' : 'لا'}
