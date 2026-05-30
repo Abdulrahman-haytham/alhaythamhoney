@@ -2,13 +2,15 @@ import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowRight, BookOpen, Sparkles } from 'lucide-react';
-import { articles } from '../data/articles';
+import { useArticles } from '../hooks/useArticles';
 import { Breadcrumbs } from '../components/Breadcrumbs';
 import { SITE, getWhatsAppLink } from '../config/site';
 import { Meta } from '../components/Meta';
 import { Image } from '../components/Image';
 
 export const ArticlesPage: React.FC = () => {
+  const { data: articles, isLoading, isError } = useArticles();
+
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
@@ -45,9 +47,20 @@ export const ArticlesPage: React.FC = () => {
           </p>
         </motion.div>
 
+        {isLoading && (
+          <div className="text-center py-20 text-amber-500 font-bold">
+            جاري تحميل المقالات...
+          </div>
+        )}
+        {isError && (
+          <div className="text-center py-20 text-zinc-400">
+            تعذّر تحميل المقالات حالياً.
+          </div>
+        )}
+
         {/* Articles Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
-          {articles.map((article, idx) => (
+          {articles?.map((article, idx) => (
             <motion.div
               key={article.id}
               initial={{ opacity: 0, y: 30 }}
