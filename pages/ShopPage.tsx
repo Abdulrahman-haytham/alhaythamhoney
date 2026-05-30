@@ -1,7 +1,8 @@
 import React, { memo, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ShoppingCart, Eye, Heart } from 'lucide-react';
-import { groups, ProductGroup } from '../data/products';
+import { ProductGroup } from '../data/products';
+import { useProductGroups } from '../hooks/useProducts';
 import { Link } from 'react-router-dom';
 import { Breadcrumbs } from '../components/Breadcrumbs';
 import { useCart } from '../hooks/useCart';
@@ -123,6 +124,8 @@ const StoreProductGroupSection = memo(({ group }: { group: ProductGroup }) => {
 });
 
 export const ShopPage: React.FC = () => {
+  const { data: groups, isLoading, isError } = useProductGroups();
+
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
@@ -168,7 +171,17 @@ export const ShopPage: React.FC = () => {
         </div>
 
         {/* Products Grid */}
-        {groups.map((group) => (
+        {isLoading && (
+          <div className="text-center py-20 text-amber-500 font-bold">
+            جاري تحميل المنتجات...
+          </div>
+        )}
+        {isError && (
+          <div className="text-center py-20 text-zinc-400">
+            تعذّر تحميل المنتجات حالياً. يرجى المحاولة لاحقاً.
+          </div>
+        )}
+        {groups?.map((group) => (
           <StoreProductGroupSection
             key={group.id}
             group={group}
