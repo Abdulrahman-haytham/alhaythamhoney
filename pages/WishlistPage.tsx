@@ -6,13 +6,14 @@ import { useWishlist } from '../hooks/useWishlist';
 import { useCart } from '../hooks/useCart';
 import { getWhatsAppLink } from '../config/site';
 import { Breadcrumbs } from '../components/Breadcrumbs';
-import { groups } from '../data/products';
+import { useProductGroups } from '../hooks/useProducts';
 import { Meta } from '../components/Meta';
 import { Image } from '../components/Image';
 
 export const WishlistPage: React.FC = () => {
   const { state, removeItem, totalItems } = useWishlist();
   const { addItem: addToCart } = useCart();
+  const { data: groups } = useProductGroups();
 
   const handleMoveToCart = (item: { id: string; name: string; image?: string }) => {
     addToCart({ id: item.id, name: item.name, image: item.image });
@@ -29,7 +30,7 @@ export const WishlistPage: React.FC = () => {
 
   // Find product details for each wishlist item
   const getWishlistItemsWithDetails = () => {
-    const allProducts = groups.flatMap((g) => g.items);
+    const allProducts = (groups ?? []).flatMap((g) => g.items);
     return state.items.map((wishlistItem) => {
       const product = allProducts.find((p) => p.id === wishlistItem.id);
       return { ...wishlistItem, product };
