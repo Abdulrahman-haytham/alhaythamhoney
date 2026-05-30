@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { BookOpen, ShoppingCart } from 'lucide-react';
-import { articles } from '../data/articles';
+import { useArticle } from '../hooks/useArticles';
 import { Breadcrumbs } from '../components/Breadcrumbs';
 import { SITE, getWhatsAppLink } from '../config/site';
 import { MarkdownContent } from '../components/MarkdownContent';
@@ -12,10 +12,18 @@ import { Image } from '../components/Image';
 export const ArticleDetailPage: React.FC = () => {
   const { articleId } = useParams<{ articleId: string }>();
   const normalizedId = articleId ? decodeURIComponent(articleId).trim() : '';
-  const article = articles.find(a => a.id === normalizedId);
+  const { data: article, isLoading } = useArticle(normalizedId);
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, []);
+  }, [normalizedId]);
+
+  if (isLoading) {
+    return (
+      <div className="pt-32 pb-16 text-center text-amber-500 font-bold">
+        جاري تحميل المقال...
+      </div>
+    );
+  }
 
   if (!article) {
     return (
