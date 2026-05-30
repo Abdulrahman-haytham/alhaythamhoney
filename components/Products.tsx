@@ -1,7 +1,8 @@
 import React, { memo } from 'react';
 import { motion } from 'framer-motion';
 import { ShoppingCart, Eye, Heart } from 'lucide-react';
-import { groups, ProductGroup } from '../data/products';
+import { ProductGroup } from '../data/products';
+import { useProductGroups } from '../hooks/useProducts';
 import { Link } from 'react-router-dom';
 import { useCart } from '../hooks/useCart';
 import { useWishlist } from '../hooks/useWishlist';
@@ -114,6 +115,8 @@ const ProductGroupSection = memo(({ group }: { group: ProductGroup }) => {
 });
 
 export const Products: React.FC = () => {
+  const { data: groups, isLoading, isError } = useProductGroups();
+
   if (import.meta.env.DEV) {
     console.log('--- List Rendered ---');
   }
@@ -129,10 +132,20 @@ export const Products: React.FC = () => {
   return (
     <section id="products" className="py-12 sm:py-16 md:py-24 px-4 sm:px-6 bg-zinc-950">
       <div className="container mx-auto">
-        {groups.map((group) => (
-          <ProductGroupSection 
-            key={group.id} 
-            group={group} 
+        {isLoading && (
+          <div className="text-center py-20 text-amber-500 font-bold">
+            جاري تحميل المنتجات...
+          </div>
+        )}
+        {isError && (
+          <div className="text-center py-20 text-zinc-400">
+            تعذّر تحميل المنتجات حالياً.
+          </div>
+        )}
+        {groups?.map((group) => (
+          <ProductGroupSection
+            key={group.id}
+            group={group}
           />
         ))}
       </div>
