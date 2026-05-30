@@ -5,12 +5,13 @@ import { Link } from 'react-router-dom';
 import { useCart } from '../hooks/useCart';
 import { getWhatsAppLink } from '../config/site';
 import { Breadcrumbs } from '../components/Breadcrumbs';
-import { groups } from '../data/products';
+import { useProductGroups } from '../hooks/useProducts';
 import { Meta } from '../components/Meta';
 import { Image } from '../components/Image';
 
 export const CartPage: React.FC = () => {
   const { state, removeItem, updateQuantity, clearCart, totalItems } = useCart();
+  const { data: groups } = useProductGroups();
 
   const handleWhatsAppOrder = () => {
     if (state.items.length === 0) return;
@@ -21,7 +22,7 @@ export const CartPage: React.FC = () => {
 
   // Find product details for each cart item
   const getCartItemsWithDetails = () => {
-    const allProducts = groups.flatMap((g) => g.items);
+    const allProducts = (groups ?? []).flatMap((g) => g.items);
     return state.items.map((cartItem) => {
       const product = allProducts.find((p) => p.id === cartItem.id);
       return { ...cartItem, product };
