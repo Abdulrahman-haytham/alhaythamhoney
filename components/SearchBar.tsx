@@ -2,7 +2,8 @@ import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react'
 import { Search, X, ShoppingCart, Heart } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { groups } from '../data/products';
+import { ProductItem } from '../data/products';
+import { useProductGroups } from '../hooks/useProducts';
 import { useCart } from '../hooks/useCart';
 import { useWishlist } from '../hooks/useWishlist';
 import { getWhatsAppLink } from '../config/site';
@@ -39,11 +40,13 @@ export const SearchBar: React.FC<SearchBarProps> = ({ isOpen, onClose }) => {
     };
   }, [isOpen, onClose]);
 
+  const { data: groups } = useProductGroups();
+
   const allProducts = useMemo(() => {
-    return groups.flatMap((group) =>
+    return (groups ?? []).flatMap((group) =>
       group.items.map((item) => ({ ...item, groupTitle: group.title }))
     );
-  }, []);
+  }, [groups]);
 
   const filteredProducts = useMemo(() => {
     if (!query.trim()) return [];
