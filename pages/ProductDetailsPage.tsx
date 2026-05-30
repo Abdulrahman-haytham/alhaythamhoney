@@ -3,7 +3,7 @@ import React, { useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { CheckCircle2, Heart, Zap, Award, ShieldCheck, Truck, ShoppingCart } from 'lucide-react';
-import { groups } from '../data/products';
+import { useProduct } from '../hooks/useProducts';
 
 import { Breadcrumbs } from '../components/Breadcrumbs';
 import { getWhatsAppLink } from '../config/site';
@@ -12,14 +12,19 @@ import { Image } from '../components/Image';
 
 export const ProductDetailsPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
-  // Find product by slug
-  const product = groups
-    .flatMap(group => group.items)
-    .find(item => item.id === slug);
+  const { data: product, isLoading } = useProduct(slug);
 
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [slug]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-zinc-950 flex items-center justify-center text-amber-500 font-bold">
+        جاري تحميل المنتج...
+      </div>
+    );
+  }
 
   if (!product) {
     return (
