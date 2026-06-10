@@ -1,52 +1,52 @@
-# State Management
+# إدارة الحالة (State Management)
 
-The app uses React Context + `useReducer` for global UI state (cart and wishlist). Access is wrapped with dedicated hooks.
+التطبيق يستخدم React Context + `useReducer` لإدارة الحالة العامة للواجهة (السلة والمفضلة). الوصول للحالة يتم عبر hooks مخصصة.
 
-## Cart
+## السلة (Cart)
 
-**Source**
-- Provider + reducer: [CartContext](file:///workspace/context/CartContext.tsx)
-- Hook: [useCart](file:///workspace/hooks/useCart.ts)
+**المصدر**
+- الـ Provider والـ reducer: [CartContext](file:///workspace/context/CartContext.tsx)
+- الـ Hook: [useCart](file:///workspace/hooks/useCart.ts)
 
-**State shape**
+**شكل الحالة (State shape)**
 - `items: CartItem[]`
 - `isOpen: boolean` (controls the sidebar visibility)
 
-**Key reducer logic**
-- `cartReducer` adds/increments items and ensures quantity never drops below 0 (and removes items when quantity reaches 0) in [CartContext](file:///workspace/context/CartContext.tsx#L31-L75).
-- Derived value `totalItems` is computed as a sum of item quantities in [CartContext](file:///workspace/context/CartContext.tsx#L121-L126).
+**منطق reducer الأساسي**
+- `cartReducer` يضيف/يزيد الكميات ويضمن أن الكمية لا تنخفض تحت 0 (ويحذف العنصر عندما تصل الكمية إلى 0) في [CartContext](file:///workspace/context/CartContext.tsx#L31-L75).
+- القيمة المشتقة `totalItems` تُحسب كمجموع كميات العناصر في [CartContext](file:///workspace/context/CartContext.tsx#L121-L126).
 
-**Primary consumers**
-- Sidebar overlay: [CartSidebar](file:///workspace/components/CartSidebar.tsx)
-- Full page: [CartPage](file:///workspace/pages/CartPage.tsx)
+**أهم نقاط الاستخدام**
+- الشريط الجانبي (Overlay): [CartSidebar](file:///workspace/components/CartSidebar.tsx)
+- الصفحة الكاملة: [CartPage](file:///workspace/pages/CartPage.tsx)
 
-**Checkout model**
-- There is no payment backend in this repo. “Checkout” is a generated WhatsApp message built from cart items in [CartSidebar](file:///workspace/components/CartSidebar.tsx#L12-L17), using [getWhatsAppLink](file:///workspace/config/site.ts#L8-L15).
+**نموذج الطلب (Checkout)**
+- لا يوجد دفع أو Backend هنا. “الطلب” هو رسالة واتساب يتم توليدها من عناصر السلة في [CartSidebar](file:///workspace/components/CartSidebar.tsx#L12-L17)، باستخدام [getWhatsAppLink](file:///workspace/config/site.ts#L8-L15).
 
-## Wishlist
+## المفضلة (Wishlist)
 
-**Source**
-- Provider + reducer: [WishlistContext](file:///workspace/context/WishlistContext.tsx)
-- Hook: [useWishlist](file:///workspace/hooks/useWishlist.ts)
+**المصدر**
+- الـ Provider والـ reducer: [WishlistContext](file:///workspace/context/WishlistContext.tsx)
+- الـ Hook: [useWishlist](file:///workspace/hooks/useWishlist.ts)
 
-**State shape**
+**شكل الحالة (State shape)**
 - `items: WishlistItem[]`
 - `isOpen: boolean` (controls the sidebar visibility)
 
-**Persistence**
-- Wishlist is loaded and persisted to `localStorage` under key `alhaytham-wishlist` via:
+**التخزين**
+- يتم تحميل/حفظ المفضلة في `localStorage` تحت المفتاح `alhaytham-wishlist` عبر:
   - `getStoredWishlist()` ([WishlistContext](file:///workspace/context/WishlistContext.tsx#L27-L34))
   - `saveToStorage()` ([WishlistContext](file:///workspace/context/WishlistContext.tsx#L36-L42))
-  - `useEffect` persistence hook ([WishlistContext](file:///workspace/context/WishlistContext.tsx#L92-L96))
+  - `useEffect` لحفظ التغييرات ([WishlistContext](file:///workspace/context/WishlistContext.tsx#L92-L96))
 
-**Primary consumers**
-- Sidebar overlay: [WishlistSidebar](file:///workspace/components/WishlistSidebar.tsx)
-- Full page: [WishlistPage](file:///workspace/pages/WishlistPage.tsx)
+**أهم نقاط الاستخدام**
+- الشريط الجانبي (Overlay): [WishlistSidebar](file:///workspace/components/WishlistSidebar.tsx)
+- الصفحة الكاملة: [WishlistPage](file:///workspace/pages/WishlistPage.tsx)
 
-**Wishlist → Cart flow**
-- The sidebar offers a “move to cart” interaction implemented in [WishlistSidebar](file:///workspace/components/WishlistSidebar.tsx#L14-L17).
+**نقل من المفضلة إلى السلة**
+- الشريط الجانبي يوفر خيار “نقل إلى السلة” في [WishlistSidebar](file:///workspace/components/WishlistSidebar.tsx#L14-L17).
 
-## Provider Composition
+## تركيب الـ Providers
 
 ```mermaid
 flowchart TD
@@ -56,4 +56,3 @@ flowchart TD
   Helmet --> Router[BrowserRouter]
   Router --> UI[Sidebars / Pages]
 ```
-

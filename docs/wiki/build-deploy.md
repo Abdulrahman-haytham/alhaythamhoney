@@ -1,34 +1,34 @@
-# Build & Deploy
+# البناء والنشر (Build & Deploy)
 
-## Toolchain
+## سلسلة الأدوات (Toolchain)
 - Vite + React plugin: [vite.config.ts](file:///workspace/vite.config.ts)
 - TypeScript: [tsconfig.json](file:///workspace/tsconfig.json)
 - Tailwind + PostCSS: [tailwind.config.js](file:///workspace/tailwind.config.js), [postcss.config.js](file:///workspace/postcss.config.js)
 - Testing: Vitest + Testing Library ([vitest.config.ts](file:///workspace/vitest.config.ts))
 - Lint/format: ESLint + Prettier ([eslint.config.js](file:///workspace/eslint.config.js), [.prettierrc.json](file:///workspace/.prettierrc.json))
 
-## Vite Configuration Notes
+## ملاحظات إعدادات Vite
 
-### Dev server
-- Port and host are set explicitly in [vite.config.ts](file:///workspace/vite.config.ts#L12-L15) (useful for container/remote dev).
+### خادم التطوير (Dev server)
+- المنفذ والـ host مضبوطين بشكل صريح في [vite.config.ts](file:///workspace/vite.config.ts#L12-L15) (مفيد للتطوير ضمن حاويات/بيئات بعيدة).
 
 ### PWA
-- PWA support is enabled with `vite-plugin-pwa` in [vite.config.ts](file:///workspace/vite.config.ts#L20-L49).
-- `registerType: autoUpdate` and Workbox settings ensure updated caches are applied quickly.
+- دعم PWA مفعّل عبر `vite-plugin-pwa` في [vite.config.ts](file:///workspace/vite.config.ts#L20-L49).
+- `registerType: autoUpdate` وإعدادات Workbox تساعد على تطبيق التحديثات بسرعة.
 
-### Environment injection
-- `GEMINI_API_KEY` is loaded from `.env` using `loadEnv` and defined into the build as:
+### تمرير متغيرات البيئة إلى البناء
+- يتم تحميل `GEMINI_API_KEY` من `.env` عبر `loadEnv` ثم حقنه ضمن البناء كالتالي:
   - `process.env.API_KEY`
   - `process.env.GEMINI_API_KEY`
-  via [vite.config.ts](file:///workspace/vite.config.ts#L51-L54).
+  في [vite.config.ts](file:///workspace/vite.config.ts#L51-L54).
 
-### Manual chunking
-- Rollup manual chunks split core frameworks and UI libs for caching benefits:
+### تقسيم الحِزم (Manual chunking)
+- يتم تقسيم الحزم لتحسين الكاش:
   - `react-vendor`
   - `ui-vendor`
-  in [vite.config.ts](file:///workspace/vite.config.ts#L60-L68).
+  في [vite.config.ts](file:///workspace/vite.config.ts#L60-L68).
 
-## Build Scripts
+## سكربتات البناء
 
 Source: [package.json](file:///workspace/package.json#L7-L20)
 - `npm run dev`: starts Vite dev server
@@ -39,12 +39,11 @@ Source: [package.json](file:///workspace/package.json#L7-L20)
 - `npm run format`: Prettier
 - `npm run deploy`: publishes `dist` using `gh-pages`
 
-### prebuild cleanup
-- `prebuild` removes the old `dist` folder via [clean-dist.mjs](file:///workspace/scripts/clean-dist.mjs).
+### تنظيف prebuild
+- سكربت `prebuild` يحذف مجلد `dist` قبل البناء عبر [clean-dist.mjs](file:///workspace/scripts/clean-dist.mjs).
 
 ## CI/CD (GitHub Pages)
 - Workflow: [deploy-gh-pages.yml](file:///workspace/.github/workflows/deploy-gh-pages.yml)
 - Trigger: pushes to `main` (and manual workflow dispatch).
 - Steps: `npm ci` → `npm run build` → publish `./dist` to GitHub Pages.
 - Custom domain is set via `cname: alhaythamhoney.sy`.
-

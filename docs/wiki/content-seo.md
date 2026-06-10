@@ -1,43 +1,42 @@
-# Content & SEO
+# المحتوى و SEO
 
-The app is designed for SEO-heavy marketing content (static pages + markdown articles) and provides both global and per-route SEO primitives.
+التطبيق مصمم لصفحات تسويقية ومحتوى SEO (صفحات ثابتة + مقالات Markdown)، ويوفر أدوات SEO عامة وعلى مستوى كل راوت.
 
-## Articles (Markdown)
+## المقالات (Markdown)
 
-### Source of truth
-- Markdown files live in [content/articles](file:///workspace/content/articles).
-- The registry in [articles.ts](file:///workspace/data/articles.ts) imports them as raw strings via Vite `?raw` (e.g. [articles.ts](file:///workspace/data/articles.ts#L2-L10)).
+### مصدر الحقيقة
+- ملفات Markdown موجودة في [content/articles](file:///workspace/content/articles).
+- سجل المقالات في [articles.ts](file:///workspace/data/articles.ts) يستورد الملفات كنص خام عبر Vite `?raw` (مثل [articles.ts](file:///workspace/data/articles.ts#L2-L10)).
 
-### Rendering pipeline
-- Pages pull `Article.content` from the registry and render it using [MarkdownContent](file:///workspace/components/MarkdownContent.tsx).
-- Markdown to HTML conversion happens client-side using Unified/Remark:
+### مسار العرض (Rendering)
+- الصفحات تأخذ `Article.content` من السجل وتعرضه بواسطة [MarkdownContent](file:///workspace/components/MarkdownContent.tsx).
+- التحويل من Markdown إلى HTML يتم على المتصفح باستخدام Unified/Remark:
   - parse: `remark-parse`
   - transform: `remark-html`
   - sanitize: `rehype-sanitize`
-  - code path: [MarkdownContent](file:///workspace/components/MarkdownContent.tsx#L15-L42)
+  - التنفيذ: [MarkdownContent](file:///workspace/components/MarkdownContent.tsx#L15-L42)
 
-## Products (Static Catalog)
-- The catalog is defined as grouped static data in [products.tsx](file:///workspace/data/products.tsx).
-- Product pages look up items by slug (`/product/:slug`) by flattening all groups in [ProductDetailsPage](file:///workspace/pages/ProductDetailsPage.tsx#L14-L18).
+## المنتجات (كتالوج ثابت)
+- الكتالوج مُعرّف كبيانات ثابتة ومجمّعة في [products.tsx](file:///workspace/data/products.tsx).
+- صفحة تفاصيل المنتج تبحث عن المنتج بواسطة slug (`/product/:slug`) عبر flatten لكل المجموعات في [ProductDetailsPage](file:///workspace/pages/ProductDetailsPage.tsx#L14-L18).
 
-## Meta Tags (Per Route)
-- The shared SEO component [Meta](file:///workspace/components/Meta.tsx) sets:
-  - `<title>` and `meta[name=description]`
-  - canonical link using current route via `useLocation` ([Meta](file:///workspace/components/Meta.tsx#L33-L48))
-  - Open Graph and Twitter card tags ([Meta](file:///workspace/components/Meta.tsx#L49-L61))
+## وسوم Meta (لكل راوت)
+- المكوّن [Meta](file:///workspace/components/Meta.tsx) يقوم بضبط:
+  - `<title>` و `meta[name=description]`
+  - canonical حسب المسار الحالي عبر `useLocation` ([Meta](file:///workspace/components/Meta.tsx#L33-L48))
+  - وسوم Open Graph و Twitter ([Meta](file:///workspace/components/Meta.tsx#L49-L61))
 
 ## Structured Data (Schema.org)
-- `index.html` includes site-level structured data (Organization/LocalBusiness) as JSON-LD.
-- Product pages inject product-level schema via `Meta` children in [ProductDetailsPage](file:///workspace/pages/ProductDetailsPage.tsx#L41-L83).
+- ملف [index.html](file:///workspace/index.html) يتضمن Structured Data للموقع (Organization/LocalBusiness) بصيغة JSON-LD.
+- صفحة المنتج تضيف schema خاص بالمنتج عبر children داخل `Meta` في [ProductDetailsPage](file:///workspace/pages/ProductDetailsPage.tsx#L41-L83).
 
 ## Sitemap
-- A static [public/sitemap.xml](file:///workspace/public/sitemap.xml) exists for production.
-- A dynamic generator is available in [generate-sitemap.ts](file:///workspace/scripts/generate-sitemap.ts) and derives URLs from:
-  - the static route list
+- يوجد ملف ثابت [public/sitemap.xml](file:///workspace/public/sitemap.xml) للاستخدام الإنتاجي.
+- يوجد مولّد ديناميكي في [generate-sitemap.ts](file:///workspace/scripts/generate-sitemap.ts) يستخرج الروابط من:
+  - قائمة الصفحات الثابتة
   - [articles](file:///workspace/data/articles.ts)
   - [groups](file:///workspace/data/products.tsx)
 
 ## Analytics
-- GA4 can be loaded through [Analytics](file:///workspace/components/Analytics.tsx). It is currently not mounted in [App.tsx](file:///workspace/App.tsx).
-- `index.html` includes a commented GA placeholder block ([index.html](file:///workspace/index.html#L87-L102)).
-
+- يمكن تحميل GA4 عبر [Analytics](file:///workspace/components/Analytics.tsx)، لكنه غير مركّب حالياً ضمن [App.tsx](file:///workspace/App.tsx).
+- [index.html](file:///workspace/index.html#L87-L102) يحتوي بلوك placeholder معطّل (commented) لإضافة GA.

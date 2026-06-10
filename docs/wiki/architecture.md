@@ -1,37 +1,37 @@
-# Architecture
+# المعمارية
 
-## System Overview
-- **Frontend type**: Client-side rendered React SPA (no backend in this repository).
-- **Build tool**: Vite ([vite.config.ts](file:///workspace/vite.config.ts)).
-- **Styling**: Tailwind CSS ([index.css](file:///workspace/index.css), [tailwind.config.js](file:///workspace/tailwind.config.js)).
-- **Routing**: React Router DOM (route table in [App.tsx](file:///workspace/App.tsx#L99-L116)).
-- **Animations & icons**: Framer Motion + Lucide.
-- **Deployment**: GitHub Pages (CI workflow in [deploy-gh-pages.yml](file:///workspace/.github/workflows/deploy-gh-pages.yml)).
+## نظرة عامة
+- **نوع الواجهة**: تطبيق React SPA يعمل بالكامل على المتصفح (لا يوجد Backend ضمن هذا المستودع).
+- **أداة البناء**: Vite ([vite.config.ts](file:///workspace/vite.config.ts)).
+- **التنسيق**: Tailwind CSS ([index.css](file:///workspace/index.css)، [tailwind.config.js](file:///workspace/tailwind.config.js)).
+- **التوجيه (Routing)**: React Router DOM (جدول الراوتات في [App.tsx](file:///workspace/App.tsx#L99-L116)).
+- **الحركات والأيقونات**: Framer Motion + Lucide.
+- **النشر**: GitHub Pages (ووركفلو النشر في [deploy-gh-pages.yml](file:///workspace/.github/workflows/deploy-gh-pages.yml)).
 
-## Runtime Bootstrap
+## الإقلاع وقت التشغيل (Runtime Bootstrap)
 
-### HTML shell
-- The HTML shell defines base meta tags, structured data, a persistent splash loader, and a GitHub Pages deep-link redirect fix in [index.html](file:///workspace/index.html).
-- The splash loader is a DOM node outside `#root` and is removed only after the `window.load` + extra paint-buffer logic in [index.tsx](file:///workspace/index.tsx#L13-L36).
+### غلاف HTML
+- ملف [index.html](file:///workspace/index.html) يحتوي على: وسوم meta الأساسية، Structured Data، شاشة تحميل ثابتة (Splash Loader)، وحل إعادة توجيه الروابط العميقة على GitHub Pages.
+- شاشة التحميل موجودة خارج `#root` ويتم حذفها فقط بعد اكتمال `window.load` مع “buffer” للرسم (paint buffer) في [index.tsx](file:///workspace/index.tsx#L13-L36).
 
-### React bootstrap
-- React mounts into `#root` in [index.tsx](file:///workspace/index.tsx#L8-L12).
-- React Query is initialized globally (even though the current codebase primarily uses static data) in [index.tsx](file:///workspace/index.tsx#L39-L54).
+### إقلاع React
+- يتم تركيب React داخل `#root` في [index.tsx](file:///workspace/index.tsx#L8-L12).
+- يتم تهيئة React Query بشكل عام (حتى لو الاستخدام الحالي يغلب عليه البيانات الثابتة) في [index.tsx](file:///workspace/index.tsx#L39-L54).
 
-### Application composition
-[App.tsx](file:///workspace/App.tsx) composes cross-cutting providers and global UI:
-- Error containment: [ErrorBoundary](file:///workspace/components/ErrorBoundary.tsx)
-- State: [CartProvider](file:///workspace/context/CartContext.tsx), [WishlistProvider](file:///workspace/context/WishlistContext.tsx)
-- SEO provider: `HelmetProvider` (react-helmet-async)
-- Router: `BrowserRouter`
-- Global overlays: [CartSidebar](file:///workspace/components/CartSidebar.tsx), [WishlistSidebar](file:///workspace/components/WishlistSidebar.tsx), [FloatingWhatsApp](file:///workspace/components/FloatingWhatsApp.tsx)
+### تركيب التطبيق
+الملف [App.tsx](file:///workspace/App.tsx) يجمع الـ providers ومكوّنات الواجهة العامة:
+- احتواء الأخطاء: [ErrorBoundary](file:///workspace/components/ErrorBoundary.tsx)
+- الحالة: [CartProvider](file:///workspace/context/CartContext.tsx)، [WishlistProvider](file:///workspace/context/WishlistContext.tsx)
+- مزوّد SEO: `HelmetProvider` (react-helmet-async)
+- الراوتر: `BrowserRouter`
+- طبقات فوقية (Overlays) على مستوى التطبيق: [CartSidebar](file:///workspace/components/CartSidebar.tsx)، [WishlistSidebar](file:///workspace/components/WishlistSidebar.tsx)، [FloatingWhatsApp](file:///workspace/components/FloatingWhatsApp.tsx)
 
-## Routing Architecture
+## معمارية التوجيه (Routing)
 
-### Route table
-Routes are lazy-loaded for code-splitting (see the `React.lazy` imports at the top of [App.tsx](file:///workspace/App.tsx#L15-L50)).
+### جدول الراوتات
+الصفحات يتم تحميلها كسولاً (Lazy Loading) لتحقيق code-splitting (راجع `React.lazy` في أعلى [App.tsx](file:///workspace/App.tsx#L15-L50)).
 
-Primary route mapping (source of truth: [App.tsx](file:///workspace/App.tsx#L99-L116)):
+خريطة الراوتات الأساسية (المصدر: [App.tsx](file:///workspace/App.tsx#L99-L116)):
 - `/` → Home
 - `/shop` and `/store` → Shop listing (alias)
 - `/product/:slug` → Product details
@@ -41,19 +41,19 @@ Primary route mapping (source of truth: [App.tsx](file:///workspace/App.tsx#L99-
 - `/cart`, `/wishlist` → Full pages (sidebars also exist globally)
 - `/about-us`, `/quality-standards`, `/faq`, `/return-policy`
 
-### Layout strategy
-- Home uses its own composition (header/footer are included inside the page component).
-- Other routes use `PageLayout` inside [App.tsx](file:///workspace/App.tsx#L52-L58) to standardize Header/Footer + `<main id="main-content">`.
+### استراتيجية الـ Layout
+- الصفحة الرئيسية تقوم بتركيب واجهتها بذاتها (Header/Footer داخل الصفحة).
+- باقي الصفحات تستخدم `PageLayout` في [App.tsx](file:///workspace/App.tsx#L52-L58) لتوحيد Header/Footer و `<main id="main-content">`.
 
-## GitHub Pages Deep-Link Handling
-GitHub Pages serves a static site and does not natively support SPA deep links. This repo implements a common redirect strategy:
-- `public/404.html` rewrites unknown routes to `/?p=<encodedOriginalPath>` ([404.html](file:///workspace/public/404.html#L15-L24)).
-- On load, both:
-  - [index.html](file:///workspace/index.html#L168-L177) and
+## دعم الروابط العميقة على GitHub Pages
+GitHub Pages يقدم ملفات ثابتة ولا يدعم SPA deep-links تلقائياً. هذا المشروع يستخدم استراتيجية إعادة توجيه شائعة:
+- [public/404.html](file:///workspace/public/404.html#L15-L24) يعيد كتابة أي مسار غير معروف إلى `/?p=<المسار_الأصلي_مشفّر>`.
+- عند التحميل، كل من:
+  - [index.html](file:///workspace/index.html#L168-L177) و
   - [App.tsx](file:///workspace/App.tsx#L73-L80)
-  read query param `p` and `history.replaceState` back to the intended client route.
+  يقرأ `p` ثم يستدعي `history.replaceState` لإرجاع المسار المقصود داخل الـ SPA.
 
-## Key Dependencies (Runtime)
+## الاعتماديات الأساسية وقت التشغيل
 
 ```mermaid
 graph TD
@@ -68,4 +68,3 @@ graph TD
   Pages --> Meta[components/Meta.tsx]
   Components[components/*] --> WhatsApp[config/site.ts]
 ```
-

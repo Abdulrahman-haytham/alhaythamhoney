@@ -1,42 +1,42 @@
-# Running Locally
+# تشغيل المشروع محلياً
 
-## Prerequisites
+## المتطلبات
 - Node.js 18+
 - npm 9+
 
-## Install
+## التثبيت
 
 ```bash
 npm install
 cp .env.example .env
 ```
 
-## Environment Variables
-- Template: [.env.example](file:///workspace/.env.example)
-- `GA_MEASUREMENT_ID` (optional): used by [Analytics](file:///workspace/components/Analytics.tsx)
-- `GEMINI_API_KEY` (optional): injected by Vite define in [vite.config.ts](file:///workspace/vite.config.ts#L51-L54)
+## متغيرات البيئة
+- القالب: [.env.example](file:///workspace/.env.example)
+- `GA_MEASUREMENT_ID` (اختياري): يستخدمه [Analytics](file:///workspace/components/Analytics.tsx)
+- `GEMINI_API_KEY` (اختياري): يتم حقنه ضمن البناء عبر Vite define في [vite.config.ts](file:///workspace/vite.config.ts#L51-L54)
 
-## Development
+## التطوير
 
 ```bash
 npm run dev
 ```
 
-- Default dev URL: `http://localhost:3003` (configured in [vite.config.ts](file:///workspace/vite.config.ts#L12-L15)).
+- رابط التطوير الافتراضي: `http://localhost:3003` (مضبوط في [vite.config.ts](file:///workspace/vite.config.ts#L12-L15)).
 
-## Test
+## الاختبارات
 
 ```bash
 npm run test
 ```
 
-CI-friendly, non-watch run:
+تشغيل مناسب للـ CI (بدون watch):
 
 ```bash
 npm run test:run
 ```
 
-Coverage:
+تغطية الاختبارات (Coverage):
 
 ```bash
 npm run test:coverage
@@ -50,18 +50,17 @@ npm run format
 npm run format:check
 ```
 
-## Build & Preview
+## البناء والمعاينة
 
 ```bash
 npm run build
 npm run preview
 ```
 
-## Deploy (GitHub Pages)
+## النشر (GitHub Pages)
 
 ```bash
 npm run deploy
 ```
 
-For automated deploys, see [deploy-gh-pages.yml](file:///workspace/.github/workflows/deploy-gh-pages.yml).
-
+للنشر الآلي راجع [deploy-gh-pages.yml](file:///workspace/.github/workflows/deploy-gh-pages.yml).
