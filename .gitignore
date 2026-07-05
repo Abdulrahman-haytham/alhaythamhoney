@@ -29,3 +29,6 @@ PROJECT_ANALYSIS.md
 RECOMMENDATIONS.md
 TASKS_DONE.md
 GITHUB_GUIDE.md
+
+# Generated QR images (npm run qr)
+*-qr.png

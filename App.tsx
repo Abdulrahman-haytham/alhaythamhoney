@@ -48,6 +48,9 @@ const CartPage = React.lazy(() =>
 const WishlistPage = React.lazy(() =>
   import('./pages/WishlistPage').then((m) => ({ default: m.WishlistPage }))
 );
+const ContactCardPage = React.lazy(() =>
+  import('./pages/ContactCardPage').then((m) => ({ default: m.ContactCardPage }))
+);
 
 const PageLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <div className="min-h-screen selection:bg-amber-500/30 overflow-x-hidden bg-zinc-950 text-zinc-100">
@@ -113,6 +116,9 @@ const App: React.FC = () => {
                   {/* Cart & Wishlist */}
                   <Route path="/cart" element={<PageLayout><CartPage /></PageLayout>} />
                   <Route path="/wishlist" element={<PageLayout><WishlistPage /></PageLayout>} />
+
+                  {/* بطاقة تواصل QR — صفحة مستقلة بدون ترويسة وتذييل الموقع */}
+                  <Route path="/q/:slug" element={<ContactCardPage />} />
                 </Routes>
               </React.Suspense>
             </Router>
