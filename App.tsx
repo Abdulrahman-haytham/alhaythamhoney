@@ -5,6 +5,7 @@ import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { ScrollToTop } from './components/ScrollToTop';
 import { FloatingWhatsApp } from './components/FloatingWhatsApp';
+import { Analytics } from './components/Analytics';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { CartProvider } from './context/CartContext';
 import { WishlistProvider } from './context/WishlistContext';
@@ -88,6 +89,7 @@ const App: React.FC = () => {
         <WishlistProvider>
           <HelmetProvider>
             <Router>
+              <Analytics measurementId={import.meta.env.VITE_GA_ID} />
               <CartSidebar />
               <WishlistSidebar />
               <ScrollToTop />
