@@ -1,7 +1,7 @@
 import React, { memo } from 'react';
 import { motion } from 'framer-motion';
 import { ShoppingCart, Eye, Heart } from 'lucide-react';
-import { groups, ProductGroup } from '../data/products';
+import { groups, ProductGroup, formatProductPrice } from '../data/products';
 import { Link } from 'react-router-dom';
 import { useCart } from '../hooks/useCart';
 import { useWishlist } from '../hooks/useWishlist';
@@ -64,7 +64,8 @@ const ProductGroupSection = memo(({ group }: { group: ProductGroup }) => {
               <span className="text-[9px] sm:text-[10px] bg-amber-500/10 text-amber-500 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md font-bold uppercase tracking-wider whitespace-nowrap">{item.benefit}</span>
             </div>
             <p className="text-zinc-400 text-xs sm:text-sm mb-4 sm:mb-6 leading-relaxed line-clamp-2 flex-grow">{item.desc}</p>
-            
+            <p className="text-amber-500 text-xs sm:text-sm font-bold mb-4 -mt-2 sm:-mt-4">{formatProductPrice(item.price)}</p>
+
             {/* Action Buttons */}
             <div className="flex gap-2 mt-auto pt-4 border-t border-white/5">
               <Link

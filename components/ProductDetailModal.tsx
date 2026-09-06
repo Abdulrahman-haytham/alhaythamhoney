@@ -2,6 +2,7 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ShoppingCart, CheckCircle2, Leaf, Heart, Zap } from 'lucide-react';
 import { getWhatsAppLink } from '../config/site';
+import { formatProductPrice, ProductPrice } from '../data/products';
 import { Image } from './Image';
 
 interface ProductItem {
@@ -10,6 +11,7 @@ interface ProductItem {
   image: string;
   badge?: string;
   benefit?: string;
+  price?: ProductPrice;
   detailedInfo?: {
     uses?: string[];
     benefits?: string[];
@@ -93,6 +95,11 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                   {/* Description */}
                   <p className="text-zinc-300 text-sm sm:text-base md:text-lg leading-relaxed">
                     {product.desc}
+                  </p>
+
+                  {/* Price */}
+                  <p className="text-amber-500 font-bold text-base sm:text-lg">
+                    {formatProductPrice(product.price)}
                   </p>
 
                   {/* Detailed Information */}

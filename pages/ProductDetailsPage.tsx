@@ -3,7 +3,7 @@ import React, { useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { CheckCircle2, Heart, Zap, Award, ShieldCheck, Truck, ShoppingCart } from 'lucide-react';
-import { groups } from '../data/products';
+import { groups, formatProductPrice } from '../data/products';
 
 import { Breadcrumbs } from '../components/Breadcrumbs';
 import { getWhatsAppLink } from '../config/site';
@@ -132,6 +132,8 @@ export const ProductDetailsPage: React.FC = () => {
             <p className="text-lg text-zinc-300 leading-relaxed border-l-2 border-amber-500/30 pl-6">
               {product.desc}
             </p>
+
+            <p className="text-amber-500 font-bold text-lg">{formatProductPrice(product.price)}</p>
 
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-4">

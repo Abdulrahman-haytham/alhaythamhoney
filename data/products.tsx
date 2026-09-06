@@ -1,6 +1,12 @@
 import React from 'react';
 import { Droplets, Sparkles } from 'lucide-react';
 
+export interface ProductPrice {
+  amount: number;
+  unit: 'كغ' | 'غرام' | 'قطعة';
+  note?: string;
+}
+
 export interface ProductItem {
   id: string;
   name: string;
@@ -8,12 +14,25 @@ export interface ProductItem {
   image: string;
   badge?: string;
   benefit?: string;
+  // TODO: set per-product prices as they're confirmed; left unset for now,
+  // so the UI falls back to PRICE_UNAVAILABLE_TEXT everywhere it's shown.
+  price?: ProductPrice;
   detailedInfo?: {
     uses?: string[];
     benefits?: string[];
     properties?: string[];
     howToUse?: string;
   };
+}
+
+export const PRICE_UNAVAILABLE_TEXT = 'السعر حسب الموسم — اسأل عبر واتساب';
+
+export function formatProductPrice(price?: ProductPrice): string {
+  if (!price) {
+    return PRICE_UNAVAILABLE_TEXT;
+  }
+  const base = `${price.amount} / ${price.unit}`;
+  return price.note ? `${base} — ${price.note}` : base;
 }
 
 export interface ProductGroup {
