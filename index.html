@@ -166,6 +166,44 @@
   </script>
   <script>
   (function() {
+    // Safety net: on a slow connection or a failed bundle load, React never
+    // mounts and #root (visibility:hidden) + #splash-loader (z-index:9999)
+    // would otherwise stay stuck forever. After 8s, force the page visible
+    // and offer a direct WhatsApp fallback instead of a blank/stuck screen.
+    var SAFETY_TIMEOUT_MS = 8000;
+    var WHATSAPP_NUMBER = '963947931959';
+    var FALLBACK_MESSAGE = 'مرحباً الهيثم نحل و عسل، حاولت زيارة الموقع لكن الصفحة لم تُحمّل، هل يمكن مساعدتي؟';
+
+    setTimeout(function() {
+      try {
+        var root = document.getElementById('root');
+        if (root && root.classList.contains('ready')) {
+          return; // App mounted successfully — nothing to do.
+        }
+
+        var splash = document.getElementById('splash-loader');
+        if (splash) {
+          splash.remove();
+        }
+        if (root) {
+          root.classList.add('ready');
+        }
+
+        var waLink = 'https://wa.me/' + WHATSAPP_NUMBER + '?text=' + encodeURIComponent(FALLBACK_MESSAGE);
+        var fallback = document.createElement('div');
+        fallback.setAttribute('dir', 'rtl');
+        fallback.style.cssText = 'position:fixed;inset:0;z-index:9998;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem;background:#09090b;color:#f5f5f5;font-family:Cairo,sans-serif;';
+        fallback.innerHTML =
+          '<p style="font-size:1.125rem;margin-bottom:1.5rem;max-width:28rem;line-height:1.7;">تعذّر تحميل الموقع، غالباً بسبب بطء الاتصال بالإنترنت.<br>يمكنك التواصل معنا مباشرة عبر واتساب أو إعادة تحميل الصفحة.</p>' +
+          '<a href="' + waLink + '" target="_blank" rel="noopener noreferrer" style="background:#25D366;color:#fff;padding:0.9rem 2rem;border-radius:9999px;text-decoration:none;font-weight:bold;margin-bottom:1rem;">تواصل عبر واتساب</a>' +
+          '<button onclick="location.reload()" style="background:transparent;border:1px solid #52525b;color:#d4d4d8;padding:0.6rem 1.5rem;border-radius:9999px;cursor:pointer;font-family:inherit;">إعادة تحميل الصفحة</button>';
+        document.body.appendChild(fallback);
+      } catch (e) { /* noop */ }
+    }, SAFETY_TIMEOUT_MS);
+  })();
+  </script>
+  <script>
+  (function() {
     try {
       var params = new URLSearchParams(window.location.search);
       var p = params.get('p');
