@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check, ChevronLeft, ChevronRight, ShieldAlert, Sparkles, Activity, Heart, User, AlertCircle, Send } from 'lucide-react';
-import { GOAL_LABELS, AGE_LABELS, buildMixtureLink } from '../utils/mixture';
+import { GOAL_LABELS, AGE_LABELS, buildMixtureLink, getRecommendation } from '../utils/mixture';
 import type { Goal, Age, Allergy, StepData, Recommendation } from '../utils/mixture';
 
 // Re-exported so existing imports (e.g. pages/CustomMixturesPage.tsx) keep working.
@@ -21,6 +21,7 @@ const goals: { id: Goal; label: string; icon: React.ReactNode; desc: string }[] 
 
 const ages: { id: Age; label: string; desc: string }[] = [
   { id: 'Child', label: AGE_LABELS.Child, desc: 'تركيبات خفيفة ومناسبة للنمو' },
+  { id: 'Teen', label: AGE_LABELS.Teen, desc: 'تركيبات معتدلة تناسب مرحلة المراهقة' },
   { id: 'Adult', label: AGE_LABELS.Adult, desc: 'تركيبات بتركيز قياسي' },
   { id: 'Senior', label: AGE_LABELS.Senior, desc: 'تركيبات داعمة ومقوية' },
 ];
@@ -34,62 +35,6 @@ export const SmartMixtureAssistant: React.FC<SmartMixtureAssistantProps> = ({ on
   const [currentStep, setCurrentStep] = useState(1);
   const [data, setData] = useState<StepData>({});
   const [showResult, setShowResult] = useState(false);
-
-  // Logic Engine
-  const getRecommendation = (currentData: StepData): Recommendation => {
-    if (currentData.allergy === 'Yes') {
-      return {
-        name: 'خلطة خاصة آمنة',
-        ingredients: 'عسل طبيعي صافي 100% (بدون حبوب لقاح أو عكبر)',
-        desc: 'نظراً لوجود حساسية، ننصح بخلطة مخصصة خالية من منتجات النحل التي قد تسبب تحسساً.',
-        safe: true,
-      };
-    }
-
-    if (currentData.goal === 'Fertility') {
-      return {
-        name: 'إكسير الحياة (Elixir of Life)',
-        ingredients: 'عسل + غذاء ملكي + حبوب لقاح + أعشاب خاصة',
-        desc: 'تركيبة قوية مصممة خصيصاً لدعم الصحة الإنجابية والنشاط الهرموني.',
-        safe: false,
-      };
-    }
-
-    if (currentData.goal === 'Energy') {
-      return {
-        name: 'الخلطة السوداء (Black Power)',
-        ingredients: 'عسل + حبوب لقاح + غذاء ملكي',
-        desc: 'مصدر طاقة فوري ومستدام للرياضيين وأصحاب المجهود العالي.',
-        safe: false,
-      };
-    }
-
-    if (currentData.goal === 'Immunity') {
-      if (currentData.age === 'Child') {
-        return {
-          name: 'خلطة البطل الصغير',
-          ingredients: 'عسل + عكبر مخفف (Propolis)',
-          desc: 'حماية لطيفة وفعالة لمناعة الأطفال في طور النمو.',
-          safe: false,
-        };
-      } else {
-        return {
-          name: 'درع المناعة (Immunity Shield)',
-          ingredients: 'عسل + عكبر + غذاء ملكي',
-          desc: 'حصن منيع ضد العدوى الموسمية وتعزيز للصحة العامة.',
-          safe: false,
-        };
-      }
-    }
-
-    // Default / General Health
-    return {
-      name: 'خلطة الحيوية اليومية',
-      ingredients: 'عسل + حبوب لقاح',
-      desc: 'دعم يومي متوازن للفيتامينات والمعادن والنشاط العام.',
-      safe: false,
-    };
-  };
 
   const recommendation = getRecommendation(data);
 

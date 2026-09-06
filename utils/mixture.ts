@@ -1,7 +1,7 @@
 import { getWhatsAppLink } from '../config/site';
 
 export type Goal = 'Immunity' | 'Energy' | 'Fertility' | 'General Health';
-export type Age = 'Child' | 'Adult' | 'Senior';
+export type Age = 'Child' | 'Teen' | 'Adult' | 'Senior';
 export type Allergy = 'Yes' | 'No';
 
 export interface StepData {
@@ -26,6 +26,7 @@ export const GOAL_LABELS: Record<Goal, string> = {
 
 export const AGE_LABELS: Record<Age, string> = {
   Child: 'طفل (3-12)',
+  Teen: 'يافع (13-17)',
   Adult: 'بالغ (18-60)',
   Senior: 'كبير السن (60+)',
 };
@@ -39,6 +40,7 @@ const GOAL_REF_CODES: Record<Goal, string> = {
 
 const AGE_REF_CODES: Record<Age, string> = {
   Child: 'CHD',
+  Teen: 'TEN',
   Adult: 'ADT',
   Senior: 'SEN',
 };
@@ -105,4 +107,89 @@ export function buildMixtureMessage(data: StepData, rec?: Recommendation): strin
 
 export function buildMixtureLink(data: StepData, rec?: Recommendation): string {
   return getWhatsAppLink(buildMixtureMessage(data, rec));
+}
+
+const ALLERGY_SAFE_RECOMMENDATION: Recommendation = {
+  name: 'خلطة خاصة آمنة',
+  ingredients: 'عسل طبيعي صافي 100% (بدون حبوب لقاح أو عكبر)',
+  desc: 'نظراً لوجود حساسية، ننصح بخلطة مخصصة خالية من منتجات النحل التي قد تسبب تحسساً.',
+  safe: true,
+};
+
+const CHILD_SAFE_RECOMMENDATION: Recommendation = {
+  name: 'خلطة البطل الصغير',
+  ingredients: 'عسل + عكبر مخفف (Propolis)',
+  desc: 'حماية لطيفة وفعالة تناسب الأطفال في طور النمو، وتُستخدم بإشراف الأهل.',
+  safe: false,
+};
+
+const TEEN_SAFE_RECOMMENDATION: Recommendation = {
+  name: 'خلطة اليافعين المتوازنة',
+  ingredients: 'عسل + غبار طلع خفيف',
+  desc: 'تركيبة معتدلة تدعم النشاط اليومي والتركيز لدى اليافعين دون مكونات مركزة.',
+  safe: false,
+};
+
+const FERTILITY_RECOMMENDATION: Recommendation = {
+  name: 'إكسير الحياة (Elixir of Life)',
+  ingredients: 'عسل + غذاء ملكي + حبوب لقاح + أعشاب خاصة',
+  desc: 'تركيبة قوية مصممة خصيصاً لدعم الصحة الإنجابية والنشاط الهرموني.',
+  safe: false,
+};
+
+const ENERGY_RECOMMENDATION: Recommendation = {
+  name: 'الخلطة السوداء (Black Power)',
+  ingredients: 'عسل + حبوب لقاح + غذاء ملكي',
+  desc: 'مصدر طاقة فوري ومستدام للرياضيين وأصحاب المجهود العالي.',
+  safe: false,
+};
+
+const IMMUNITY_RECOMMENDATION: Recommendation = {
+  name: 'درع المناعة (Immunity Shield)',
+  ingredients: 'عسل + عكبر + غذاء ملكي',
+  desc: 'حصن منيع ضد العدوى الموسمية وتعزيز للصحة العامة.',
+  safe: false,
+};
+
+const GENERAL_HEALTH_RECOMMENDATION: Recommendation = {
+  name: 'خلطة الحيوية اليومية',
+  ingredients: 'عسل + حبوب لقاح',
+  desc: 'دعم يومي متوازن للفيتامينات والمعادن والنشاط العام.',
+  safe: false,
+};
+
+/**
+ * Minors (Child/Teen) are routed to a fixed age-appropriate mixture before any
+ * goal is considered. This guarantees Fertility/Energy (royal jelly, "special
+ * herbs") can never reach a minor, regardless of which goal they picked —
+ * previously the goal check ran before the age check, so a child selecting
+ * "Fertility" would get the royal-jelly/herbs mixture meant for adults.
+ */
+export function getRecommendation(currentData: StepData): Recommendation {
+  if (currentData.allergy === 'Yes') {
+    return ALLERGY_SAFE_RECOMMENDATION;
+  }
+
+  if (currentData.age === 'Child') {
+    return CHILD_SAFE_RECOMMENDATION;
+  }
+
+  if (currentData.age === 'Teen') {
+    return TEEN_SAFE_RECOMMENDATION;
+  }
+
+  if (currentData.goal === 'Fertility') {
+    return FERTILITY_RECOMMENDATION;
+  }
+
+  if (currentData.goal === 'Energy') {
+    return ENERGY_RECOMMENDATION;
+  }
+
+  if (currentData.goal === 'Immunity') {
+    return IMMUNITY_RECOMMENDATION;
+  }
+
+  // Default / General Health
+  return GENERAL_HEALTH_RECOMMENDATION;
 }
