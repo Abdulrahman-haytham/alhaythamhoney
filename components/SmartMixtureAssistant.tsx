@@ -1,25 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check, ChevronLeft, ChevronRight, ShieldAlert, Sparkles, Activity, Heart, User, AlertCircle, Send } from 'lucide-react';
-import { getWhatsAppLink } from '../config/site';
+import { GOAL_LABELS, AGE_LABELS, buildMixtureLink } from '../utils/mixture';
+import type { Goal, Age, Allergy, StepData, Recommendation } from '../utils/mixture';
 
-// Types
-export type Goal = 'Immunity' | 'Energy' | 'Fertility' | 'General Health';
-export type Age = 'Child' | 'Adult' | 'Senior';
-export type Allergy = 'Yes' | 'No';
-
-export interface StepData {
-  goal?: Goal;
-  age?: Age;
-  allergy?: Allergy;
-}
-
-export interface Recommendation {
-  name: string;
-  ingredients: string;
-  desc: string;
-  safe: boolean;
-}
+// Re-exported so existing imports (e.g. pages/CustomMixturesPage.tsx) keep working.
+export type { Goal, Age, Allergy, StepData, Recommendation };
 
 interface SmartMixtureAssistantProps {
   onDataUpdate?: (data: StepData, recommendation: Recommendation) => void;
@@ -27,16 +13,16 @@ interface SmartMixtureAssistantProps {
 
 // Data Options
 const goals: { id: Goal; label: string; icon: React.ReactNode; desc: string }[] = [
-  { id: 'Immunity', label: 'رفع المناعة', icon: <ShieldAlert className="w-6 h-6" />, desc: 'تعزيز دفاعات الجسم الطبيعية' },
-  { id: 'Energy', label: 'طاقة ونشاط', icon: <Activity className="w-6 h-6" />, desc: 'محاربة التعب وزيادة الحيوية' },
-  { id: 'Fertility', label: 'دعم الخصوبة', icon: <Sparkles className="w-6 h-6" />, desc: 'تحسين الصحة الإنجابية' },
-  { id: 'General Health', label: 'صحة عامة', icon: <Heart className="w-6 h-6" />, desc: 'حفاظ على توازن الجسم اليومي' },
+  { id: 'Immunity', label: GOAL_LABELS.Immunity, icon: <ShieldAlert className="w-6 h-6" />, desc: 'تعزيز دفاعات الجسم الطبيعية' },
+  { id: 'Energy', label: GOAL_LABELS.Energy, icon: <Activity className="w-6 h-6" />, desc: 'محاربة التعب وزيادة الحيوية' },
+  { id: 'Fertility', label: GOAL_LABELS.Fertility, icon: <Sparkles className="w-6 h-6" />, desc: 'تحسين الصحة الإنجابية' },
+  { id: 'General Health', label: GOAL_LABELS['General Health'], icon: <Heart className="w-6 h-6" />, desc: 'حفاظ على توازن الجسم اليومي' },
 ];
 
 const ages: { id: Age; label: string; desc: string }[] = [
-  { id: 'Child', label: 'طفل (3-12)', desc: 'تركيبات خفيفة ومناسبة للنمو' },
-  { id: 'Adult', label: 'بالغ (18-60)', desc: 'تركيبات بتركيز قياسي' },
-  { id: 'Senior', label: 'كبير السن (60+)', desc: 'تركيبات داعمة ومقوية' },
+  { id: 'Child', label: AGE_LABELS.Child, desc: 'تركيبات خفيفة ومناسبة للنمو' },
+  { id: 'Adult', label: AGE_LABELS.Adult, desc: 'تركيبات بتركيز قياسي' },
+  { id: 'Senior', label: AGE_LABELS.Senior, desc: 'تركيبات داعمة ومقوية' },
 ];
 
 const allergies: { id: Allergy; label: string }[] = [
@@ -132,16 +118,7 @@ export const SmartMixtureAssistant: React.FC<SmartMixtureAssistantProps> = ({ on
     }
   };
 
-
-  // WhatsApp Link Generator
-  const whatsappMessage = `مرحباً الهيثم نحل و عسل، لقد استخدمت المساعد الذكي وأرغب في استشارة النحال:
-- الهدف: ${goals.find(g => g.id === data.goal)?.label || data.goal}
-- العمر: ${ages.find(a => a.id === data.age)?.label || data.age}
-- حساسية: ${data.allergy === 'Yes' ? 'نعم' : 'لا'}
-- التوصية: ${recommendation.name}
-هل يمكن تأكيد المكونات والطلب؟`;
-
-  const whatsappLink = getWhatsAppLink(whatsappMessage);
+  const whatsappLink = buildMixtureLink(data, recommendation);
 
   return (
     <section className="py-16 px-4 bg-zinc-900/50 my-12 rounded-3xl border border-zinc-800 relative overflow-hidden">
@@ -168,7 +145,7 @@ export const SmartMixtureAssistant: React.FC<SmartMixtureAssistantProps> = ({ on
 
         {/* Progress Bar */}
         <div className="mb-12 relative h-1 bg-zinc-800 rounded-full overflow-hidden">
-          <motion.div 
+          <motion.div
             className="absolute top-0 right-0 h-full bg-gradient-to-l from-amber-600 to-yellow-400"
             initial={{ width: '33%' }}
             animate={{ width: showResult ? '100%' : `${(currentStep / 3) * 100}%` }}
@@ -199,8 +176,8 @@ export const SmartMixtureAssistant: React.FC<SmartMixtureAssistantProps> = ({ on
                           key={goal.id}
                           onClick={() => { setData({ ...data, goal: goal.id }); nextStep(); }}
                           className={`p-6 rounded-2xl border transition-all duration-300 flex items-start gap-4 text-right group hover:scale-[1.02] ${
-                            data.goal === goal.id 
-                              ? 'bg-amber-500/20 border-amber-500 ring-1 ring-amber-500/50' 
+                            data.goal === goal.id
+                              ? 'bg-amber-500/20 border-amber-500 ring-1 ring-amber-500/50'
                               : 'bg-zinc-900 border-zinc-800 hover:border-amber-500/30 hover:bg-zinc-800'
                           }`}
                         >
@@ -229,8 +206,8 @@ export const SmartMixtureAssistant: React.FC<SmartMixtureAssistantProps> = ({ on
                           key={age.id}
                           onClick={() => { setData({ ...data, age: age.id }); nextStep(); }}
                           className={`p-6 rounded-2xl border transition-all duration-300 flex items-center justify-between group hover:scale-[1.02] ${
-                            data.age === age.id 
-                              ? 'bg-amber-500/20 border-amber-500 ring-1 ring-amber-500/50' 
+                            data.age === age.id
+                              ? 'bg-amber-500/20 border-amber-500 ring-1 ring-amber-500/50'
                               : 'bg-zinc-900 border-zinc-800 hover:border-amber-500/30 hover:bg-zinc-800'
                           }`}
                         >
@@ -265,8 +242,8 @@ export const SmartMixtureAssistant: React.FC<SmartMixtureAssistantProps> = ({ on
                           key={allergy.id}
                           onClick={() => { setData({ ...data, allergy: allergy.id }); nextStep(); }}
                           className={`p-8 rounded-2xl border transition-all duration-300 text-center group hover:scale-[1.02] ${
-                            data.allergy === allergy.id 
-                              ? 'bg-amber-500/20 border-amber-500 ring-1 ring-amber-500/50' 
+                            data.allergy === allergy.id
+                              ? 'bg-amber-500/20 border-amber-500 ring-1 ring-amber-500/50'
                               : 'bg-zinc-900 border-zinc-800 hover:border-amber-500/30 hover:bg-zinc-800'
                           }`}
                         >
@@ -285,7 +262,7 @@ export const SmartMixtureAssistant: React.FC<SmartMixtureAssistantProps> = ({ on
                 {/* Navigation Buttons (Back) */}
                 <div className="flex justify-between mt-12 pt-6 border-t border-zinc-800/50">
                   {currentStep > 1 && (
-                    <button 
+                    <button
                       onClick={prevStep}
                       className="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors"
                     >
@@ -306,17 +283,17 @@ export const SmartMixtureAssistant: React.FC<SmartMixtureAssistantProps> = ({ on
                 className="bg-zinc-900 border border-amber-500/30 rounded-2xl p-8 relative overflow-hidden"
               >
                 <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-bl-full -mr-10 -mt-10"></div>
-                
+
                 <div className="relative z-10 text-center">
                   <div className="w-20 h-20 bg-gradient-to-br from-amber-400 to-amber-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-amber-500/20">
                     <Sparkles className="w-10 h-10 text-white" />
                   </div>
-                  
+
                   <h3 className="text-sm font-bold text-amber-500 uppercase tracking-widest mb-2">توصية الخبير</h3>
                   <h2 className="text-3xl md:text-4xl font-amiri font-bold text-white mb-6">
                     {recommendation.name}
                   </h2>
-                  
+
                   <div className="bg-zinc-950/50 rounded-xl p-6 mb-8 border border-zinc-800 inline-block w-full max-w-xl">
                     <p className="text-lg text-zinc-300 mb-2 font-bold">المكونات:</p>
                     <p className="text-amber-400 text-xl font-amiri mb-4">{recommendation.ingredients}</p>
@@ -341,7 +318,7 @@ export const SmartMixtureAssistant: React.FC<SmartMixtureAssistantProps> = ({ on
                       إعادة البدء
                     </button>
                   </div>
-                  
+
                   <p className="mt-8 text-xs text-zinc-500 flex items-center justify-center gap-2">
                     <ShieldAlert className="w-3 h-3" />
                     هذه توصية أولية؛ استشارة النحال ضرورية لتأكيد الملاءمة الصحية.
