@@ -1,13 +1,13 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { Lock } from "lucide-react";
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Lock } from 'lucide-react';
 
 export default function AdminLoginPage() {
   const router = useRouter();
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -16,21 +16,21 @@ export default function AdminLoginPage() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch("/api/admin/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const res = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError(data.error ?? "تعذّر تسجيل الدخول.");
+        setError(data.error ?? 'تعذّر تسجيل الدخول.');
         setLoading(false);
         return;
       }
-      router.replace("/admin/reviews");
+      router.replace('/admin/products');
       router.refresh();
     } catch {
-      setError("تعذّر الاتصال. تحقق من الإنترنت.");
+      setError('تعذّر الاتصال. تحقق من الإنترنت.');
       setLoading(false);
     }
   }
@@ -46,7 +46,7 @@ export default function AdminLoginPage() {
             <Lock className="h-6 w-6 text-amber-500" strokeWidth={1.5} />
           </div>
           <h1 className="font-amiri text-2xl font-bold text-white">لوحة التحكم</h1>
-          <p className="mt-1 text-sm text-zinc-500">سجّل دخولك لمتابعة الطلبات والتقييمات</p>
+          <p className="mt-1 text-sm text-zinc-500">إدارة المنتجات والخلطات والتقييمات والاستديو</p>
         </div>
 
         <div className="mb-4">
@@ -78,7 +78,7 @@ export default function AdminLoginPage() {
           disabled={loading}
           className="h-12 w-full rounded-xl bg-amber-500 font-bold text-zinc-950 transition-colors hover:bg-amber-400 disabled:opacity-60"
         >
-          {loading ? "جارٍ الدخول…" : "دخول"}
+          {loading ? 'جارٍ الدخول…' : 'دخول'}
         </button>
       </form>
     </div>

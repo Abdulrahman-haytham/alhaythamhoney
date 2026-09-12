@@ -3,7 +3,8 @@ import { Camera } from 'lucide-react';
 import { db } from '@/lib/db';
 import { SITE } from '@/lib/config';
 
-export const revalidate = 60;
+// Query at request time: production builds do not need a live database.
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: 'استديو الهيثم',
@@ -56,7 +57,6 @@ export default async function StudioPage() {
                     className="aspect-square w-full bg-black object-cover"
                   />
                 ) : (
-                  /* eslint-disable-next-line @next/next/no-img-element */
                   <img
                     src={item.url}
                     alt={item.caption ?? 'لقطة من استديو الهيثم'}

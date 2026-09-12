@@ -1,0 +1,82 @@
+name: alhaytham
+
+x-app-env: &app-env
+  DATABASE_URL: postgresql://${POSTGRES_USER:-alhaytham}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-alhaytham}?schema=public
+  NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:?Set NEXT_PUBLIC_SITE_URL}
+  ADMIN_SESSION_SECRET: ${ADMIN_SESSION_SECRET:?Set ADMIN_SESSION_SECRET}
+  NODE_ENV: production
+
+services:
+  db:
+    image: postgres:16-bookworm
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-alhaytham}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-alhaytham}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    logging: &logging
+      driver: json-file
+      options: { max-size: 10m, max-file: '3' }
+
+  migrate:
+    build: { context: ., target: tooling }
+    environment: *app-env
+    command: [npm, run, db:deploy]
+    depends_on:
+      db: { condition: service_healthy }
+    restart: 'no'
+    logging: *logging
+
+  seed:
+    build: { context: ., target: tooling }
+    profiles: [tools]
+    environment:
+      <<: *app-env
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+      ADMIN_NAME: ${ADMIN_NAME:-عبدالرحمن}
+    command: [npm, run, db:seed]
+    depends_on:
+      db: { condition: service_healthy }
+    restart: 'no'
+
+  app:
+    build:
+      context: .
+      target: runner
+      args: { NEXT_PUBLIC_SITE_URL: '${NEXT_PUBLIC_SITE_URL:?Set NEXT_PUBLIC_SITE_URL}' }
+    restart: unless-stopped
+    init: true
+    environment:
+      <<: *app-env
+      TRUST_PROXY: '1'
+      UPLOAD_DIR: /app/data/uploads
+    # Only the host Nginx can reach this port; never expose it to the Internet.
+    ports: ['127.0.0.1:3005:3005']
+    volumes: [uploads:/app/data/uploads]
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+    healthcheck:
+      test:
+        [
+          CMD,
+          node,
+          -e,
+          "fetch('http://127.0.0.1:3005/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    logging: *logging
+
+volumes:
+  postgres_data:
+  uploads:

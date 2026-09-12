@@ -8,6 +8,7 @@ import type { Product } from '@prisma/client';
 import { useCart } from '@/store/cartStore';
 import { useWishlist } from '@/store/wishlistStore';
 import { trackAddToCart } from '@/lib/analytics';
+import { useHydrated } from '@/lib/useHydrated';
 
 function formatPrice(price: number) {
   return new Intl.NumberFormat('en-US').format(price);
@@ -21,7 +22,9 @@ function formatPrice(price: number) {
 export default function ProductCard({ product }: { product: Product }) {
   const { addItem } = useCart();
   const { addItem: addWishlist, removeItem: removeWishlist, isWishlisted } = useWishlist();
-  const wishlisted = isWishlisted(product.id);
+  const hydrated = useHydrated();
+  const wishlisted = hydrated && isWishlisted(product.id);
+  const canOrder = product.inStock && product.price !== null;
   const [added, setAdded] = useState(false);
 
   const cartProduct = {
@@ -37,6 +40,7 @@ export default function ProductCard({ product }: { product: Product }) {
   };
 
   function handleAdd() {
+    if (!canOrder) return;
     addItem(cartProduct);
     trackAddToCart({ id: product.id, name: product.name, price: product.price ?? undefined });
     setAdded(true);
@@ -54,7 +58,7 @@ export default function ProductCard({ product }: { product: Product }) {
         <Link href={`/product/${product.slug}`} className="block">
           <img
             src={product.image}
-            alt={`${product.name} - عسل طبيعي 100% من الهيثم نحل و عسل في سوريا`}
+            alt={`${product.name} - عسل طبيعي 100% من الهيثم — نحل وعسل في سوريا`}
             className="aspect-[4/5] w-full object-cover transition-transform duration-700 group-hover:scale-105 sm:aspect-[4/3]"
             loading="lazy"
           />
@@ -70,9 +74,13 @@ export default function ProductCard({ product }: { product: Product }) {
           type="button"
           onClick={() => (wishlisted ? removeWishlist(product.id) : addWishlist(cartProduct))}
           aria-pressed={wishlisted}
-          aria-label={wishlisted ? `إزالة ${product.name} من المفضلة` : `أضف ${product.name} إلى المفضلة`}
+          aria-label={
+            wishlisted ? `إزالة ${product.name} من المفضلة` : `أضف ${product.name} إلى المفضلة`
+          }
           className={`absolute top-2.5 left-2.5 z-10 flex h-8 w-8 items-center justify-center rounded-full backdrop-blur-sm transition-colors sm:top-4 sm:left-4 sm:h-9 sm:w-9 ${
-            wishlisted ? 'bg-red-500/90 text-white' : 'bg-zinc-950/60 text-zinc-200 hover:bg-zinc-950/80 hover:text-red-400'
+            wishlisted
+              ? 'bg-red-500/90 text-white'
+              : 'bg-zinc-950/60 text-zinc-200 hover:bg-zinc-950/80 hover:text-red-400'
           }`}
         >
           <Heart className={`h-4 w-4 ${wishlisted ? 'fill-current' : ''}`} />
@@ -99,7 +107,9 @@ export default function ProductCard({ product }: { product: Product }) {
         {product.price != null && (
           <div className="mt-2.5 sm:mt-0 sm:mb-4 sm:flex sm:items-center sm:justify-between">
             <p className="leading-none">
-              <span className="gold-text text-lg font-bold tabular-nums sm:text-2xl">{formatPrice(product.price)}</span>
+              <span className="gold-text text-lg font-bold tabular-nums sm:text-2xl">
+                {formatPrice(product.price)}
+              </span>
               <span className="mr-1 text-[11px] text-zinc-500 sm:text-sm">ل.س</span>
             </p>
             {product.weight && (
@@ -120,6 +130,7 @@ export default function ProductCard({ product }: { product: Product }) {
           <button
             type="button"
             onClick={handleAdd}
+            disabled={!canOrder}
             aria-label={`أضف ${product.name} إلى السلة`}
             className={`flex h-10 flex-1 items-center justify-center gap-1.5 rounded-xl text-[13px] font-bold transition-all duration-300 sm:h-auto sm:py-2.5 sm:text-sm ${
               added
@@ -128,7 +139,13 @@ export default function ProductCard({ product }: { product: Product }) {
             }`}
           >
             {added ? <Check className="h-4 w-4" /> : <ShoppingCart className="h-4 w-4" />}
-            {added ? 'أُضيف' : 'أضف للسلة'}
+            {!product.inStock
+              ? 'غير متوفر'
+              : product.price === null
+                ? 'استفسر عن السعر'
+                : added
+                  ? 'أُضيف'
+                  : 'أضف للسلة'}
           </button>
         </div>
       </div>

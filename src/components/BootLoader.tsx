@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
+import { useHydrated } from '@/lib/useHydrated';
 
 /**
  * شاشة افتتاح بشعار الهيثم المتحرك — تظهر مرة واحدة عند التحميل الأول للصفحة
@@ -11,11 +11,7 @@ import { useEffect, useState } from "react";
  * سريع، أطول على اتصال بطيء، دون فرض مدة ثابتة.
  */
 export default function BootLoader() {
-  const [visible, setVisible] = useState(true);
-
-  useEffect(() => {
-    setVisible(false);
-  }, []);
+  const visible = !useHydrated();
 
   if (!visible) return null;
 
@@ -25,7 +21,12 @@ export default function BootLoader() {
       overlay
       theme="dark"
       label="جارٍ التحميل…"
-      style={{ "--haytham-size": "190px", "--haytham-overlay-background": "#09090b" } as React.CSSProperties}
+      style={
+        {
+          '--haytham-size': '190px',
+          '--haytham-overlay-background': '#09090b',
+        } as React.CSSProperties
+      }
     />
   );
 }

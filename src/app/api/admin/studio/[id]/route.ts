@@ -1,28 +1,26 @@
 import { NextResponse } from 'next/server';
-import { unlink } from 'node:fs/promises';
-import path from 'node:path';
 import { db } from '@/lib/db';
-import { requireAdmin } from '@/lib/auth';
+import { guardAdmin } from '@/lib/admin-request';
+import { removeMedia } from '@/lib/uploads';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
-  const admin = await requireAdmin();
-  if (!admin) return NextResponse.json({ error: 'غير مصرّح.' }, { status: 401 });
-
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const denied = await guardAdmin(request);
+  if (denied) return denied;
   const { id } = await params;
-
-  let photo;
-  try {
-    photo = await db.studioPhoto.delete({ where: { id } });
-  } catch {
-    return NextResponse.json({ error: 'الصورة غير موجودة.' }, { status: 404 });
-  }
-
-  // امسح الملف من القرص أيضاً — لا يفشل الطلب إن تعذّر ذلك (الملف قد يكون غير موجود أصلاً)
-  const filename = path.basename(photo.url);
-  await unlink(path.join(process.cwd(), 'public', 'uploads', 'studio', filename)).catch(() => {});
-
+  const photo = await db.studioPhoto.findUnique({ where: { id } });
+  if (!photo) return NextResponse.json({ error: 'الصورة غير موجودة.' }, { status: 404 });
+  const used =
+    (await db.product.count({ where: { image: photo.url } })) +
+    (await db.mixture.count({ where: { image: photo.url } }));
+  if (used)
+    return NextResponse.json(
+      { error: 'هذه الصورة مستخدمة في منتج أو خلطة. غيّر صورتها أولاً.' },
+      { status: 409 },
+    );
+  await removeMedia(photo.url);
+  await db.studioPhoto.delete({ where: { id } });
   return NextResponse.json({ ok: true });
 }

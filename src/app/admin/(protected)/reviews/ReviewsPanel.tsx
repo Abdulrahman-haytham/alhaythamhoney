@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Star, Check, X, Trash2, BadgeCheck } from 'lucide-react';
+import { Star, Check, X, Trash2 } from 'lucide-react';
 
 export interface AdminReview {
   id: string;
@@ -31,25 +31,38 @@ const STATUS_STYLE: Record<AdminReview['status'], string> = {
 export function ReviewsPanel({ reviews }: { reviews: AdminReview[] }) {
   const router = useRouter();
   const [busy, setBusy] = useState<string | null>(null);
+  const [error, setError] = useState('');
   const [filter, setFilter] = useState<'ALL' | AdminReview['status']>('PENDING');
 
-  async function setStatus(id: string, status: AdminReview['status']) {
+  async function updateReview(
+    id: string,
+    method: 'PATCH' | 'DELETE',
+    status?: AdminReview['status'],
+  ) {
     setBusy(id);
-    await fetch(`/api/admin/reviews/${id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status }),
-    });
-    setBusy(null);
-    router.refresh();
+    setError('');
+    try {
+      const response = await fetch(`/api/admin/reviews/${id}`, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: status ? JSON.stringify({ status }) : undefined,
+      });
+      if (!response.ok) throw new Error('تعذر حفظ التغيير. تحقق من الاتصال وصلاحية جلسة الدخول.');
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'تعذر الاتصال بالخادم. حاول مرة أخرى.');
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function setStatus(id: string, status: AdminReview['status']) {
+    await updateReview(id, 'PATCH', status);
   }
 
   async function remove(id: string) {
     if (!confirm('حذف هذا التقييم نهائياً؟')) return;
-    setBusy(id);
-    await fetch(`/api/admin/reviews/${id}`, { method: 'DELETE' });
-    setBusy(null);
-    router.refresh();
+    await updateReview(id, 'DELETE');
   }
 
   const shown = filter === 'ALL' ? reviews : reviews.filter((r) => r.status === filter);
@@ -57,6 +70,11 @@ export function ReviewsPanel({ reviews }: { reviews: AdminReview[] }) {
 
   return (
     <div>
+      {error && (
+        <p role="alert" className="mb-4 text-red-400">
+          {error}
+        </p>
+      )}
       <div className="mb-6 flex flex-wrap gap-2">
         {(['PENDING', 'APPROVED', 'REJECTED', 'ALL'] as const).map((f) => (
           <button
@@ -92,15 +110,7 @@ export function ReviewsPanel({ reviews }: { reviews: AdminReview[] }) {
                 >
                   {STATUS_LABEL[r.status]}
                 </span>
-                {r.orderRef && (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-green-600/15 px-2 py-0.5 text-[11px] text-green-400">
-                    <BadgeCheck className="h-3.5 w-3.5" />
-                    شراء موثّق
-                  </span>
-                )}
-                <span className="text-xs text-zinc-600">
-                  {r.productName ?? 'تقييم عام للمتجر'}
-                </span>
+                <span className="text-xs text-zinc-600">{r.productName ?? 'تقييم عام للمتجر'}</span>
               </div>
 
               <div className="mb-2 flex items-center gap-0.5">

@@ -28,7 +28,6 @@ export function SearchDialog({
 
   useEffect(() => {
     if (open) {
-      setQuery('');
       // نؤخر التركيز إطاراً حتى يُركّب الحقل فعلياً
       const id = requestAnimationFrame(() => inputRef.current?.focus());
       return () => cancelAnimationFrame(id);
@@ -110,14 +109,24 @@ export function SearchDialog({
                     {products.length > 0 && (
                       <Section title="المنتجات" icon={<Package className="w-3.5 h-3.5" />}>
                         {products.map((r) => (
-                          <ResultRow key={`p-${r.slug}`} doc={r} href={`/product/${r.slug}`} onNavigate={onClose} />
+                          <ResultRow
+                            key={`p-${r.slug}`}
+                            doc={r}
+                            href={`/product/${r.slug}`}
+                            onNavigate={onClose}
+                          />
                         ))}
                       </Section>
                     )}
                     {articles.length > 0 && (
                       <Section title="المقالات" icon={<FileText className="w-3.5 h-3.5" />}>
                         {articles.map((r) => (
-                          <ResultRow key={`a-${r.slug}`} doc={r} href={`/articles/${r.slug}`} onNavigate={onClose} />
+                          <ResultRow
+                            key={`a-${r.slug}`}
+                            doc={r}
+                            href={`/articles/${r.slug}`}
+                            onNavigate={onClose}
+                          />
                         ))}
                       </Section>
                     )}
@@ -168,7 +177,12 @@ function ResultRow({
       className="flex items-center gap-3 px-5 py-3 hover:bg-zinc-800/60 transition-colors"
     >
       {doc.image ? (
-        <img src={doc.image} alt="" className="w-12 h-12 rounded-lg object-cover shrink-0" loading="lazy" />
+        <img
+          src={doc.image}
+          alt=""
+          className="w-12 h-12 rounded-lg object-cover shrink-0"
+          loading="lazy"
+        />
       ) : (
         <div className="w-12 h-12 rounded-lg bg-zinc-800 shrink-0" />
       )}

@@ -32,7 +32,9 @@ function Answer({ item }: { item: FAQItem }) {
     <>
       {item.answer && <p>{renderInline(item.answer)}</p>}
       {item.bullets && (
-        <ul className={`list-disc list-inside space-y-2 text-zinc-400 marker:text-amber-500 ${item.answer ? 'mt-3' : ''}`}>
+        <ul
+          className={`list-disc list-inside space-y-2 text-zinc-400 marker:text-amber-500 ${item.answer ? 'mt-3' : ''}`}
+        >
           {item.bullets.map((b) => (
             <li key={b}>{b}</li>
           ))}
@@ -62,16 +64,22 @@ export default function FAQ({ limit, headingLevel = 'h2' }: FAQProps) {
     <section className="py-16 px-4 bg-zinc-950">
       <div className="container mx-auto max-w-3xl">
         <div className="text-center mb-12">
-          <Heading className="text-3xl md:text-4xl font-amiri font-bold text-white mb-4">الأسئلة الشائعة</Heading>
+          <Heading className="text-3xl md:text-4xl font-amiri font-bold text-white mb-4">
+            الأسئلة الشائعة
+          </Heading>
           <div className="w-16 h-1 bg-amber-500 mx-auto rounded-full mb-6"></div>
           <p className="text-zinc-400 max-w-2xl mx-auto leading-relaxed text-lg">
-            كل ما تحتاج معرفته عن العسل الطبيعي ومنتجات النحل — <span className="text-amber-500">بثقة، ووعي، ومسؤولية.</span>
+            كل ما تحتاج معرفته عن العسل الطبيعي ومنتجات النحل —{' '}
+            <span className="text-amber-500">بثقة، ووعي، ومسؤولية.</span>
           </p>
         </div>
 
         <div className="space-y-4 mb-8">
           {displayedFAQ.map((item, index) => (
-            <div key={index} className="border border-zinc-800 rounded-xl overflow-hidden bg-zinc-900/30">
+            <div
+              key={index}
+              className="border border-zinc-800 rounded-xl overflow-hidden bg-zinc-900/30"
+            >
               <button
                 onClick={() => toggleIndex(index)}
                 className="w-full flex items-center justify-between p-5 text-right hover:bg-zinc-900/50 transition-colors focus:outline-none min-h-[60px]"

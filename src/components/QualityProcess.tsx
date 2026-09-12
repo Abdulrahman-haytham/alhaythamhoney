@@ -37,7 +37,9 @@ export default function QualityProcess() {
         >
           <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-amber-500/25 bg-amber-500/[0.07] px-4 py-1.5">
             <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
-            <span className="text-xs font-semibold tracking-wide text-amber-300">من الخلية إلى العبوة</span>
+            <span className="text-xs font-semibold tracking-wide text-amber-300">
+              من الخلية إلى العبوة
+            </span>
           </div>
           <h2 className="mb-4 font-amiri text-3xl font-bold leading-tight text-white sm:text-4xl md:text-5xl">
             شهادة عملائنا هي فخرنا <span className="gold-text">وإرثنا هو الضمان</span>
@@ -58,7 +60,10 @@ export default function QualityProcess() {
               className="group relative overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6 transition-colors duration-300 hover:border-amber-500/40 hover:bg-zinc-900/70 sm:p-8"
             >
               <span className="absolute inset-x-0 top-0 mx-auto h-px w-0 bg-gradient-to-l from-transparent via-amber-400 to-transparent transition-all duration-500 group-hover:w-full" />
-              <span className="absolute top-5 left-5 font-amiri text-3xl font-bold text-amber-500/15 select-none" dir="ltr">
+              <span
+                className="absolute top-5 left-5 font-amiri text-3xl font-bold text-amber-500/15 select-none"
+                dir="ltr"
+              >
                 {String(index + 1).padStart(2, '0')}
               </span>
 

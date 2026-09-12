@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { MessageCircle, Camera, Globe, Phone, Heart, MapPin } from 'lucide-react';
+import { MessageCircle, Globe, Phone, Heart, MapPin } from 'lucide-react';
 import { SITE, getTelLink, getWhatsAppLink } from '@/lib/config';
 
 /** تذييل الموقع — مكوّن خادم بلا تفاعلية، يعتمد فقط على ثوابت SITE. */
@@ -36,9 +36,6 @@ export default function Footer() {
                 اطلب الآن عبر واتساب
               </a>
               <div className="flex items-center justify-center gap-4 sm:gap-6 px-5 sm:px-8 py-3.5 sm:py-4 bg-zinc-900/50 rounded-full border border-white/5">
-                <a href="#" className="text-zinc-400 hover:text-amber-500 transition-colors" aria-label="إنستغرام">
-                  <Camera className="w-5 h-5 sm:w-6 sm:h-6" />
-                </a>
                 <a
                   href={facebookLink}
                   target="_blank"
@@ -48,7 +45,10 @@ export default function Footer() {
                 >
                   <Globe className="w-5 h-5 sm:w-6 sm:h-6" />
                 </a>
-                <a href={getTelLink()} className="text-zinc-400 hover:text-amber-500 transition-colors">
+                <a
+                  href={getTelLink()}
+                  className="text-zinc-400 hover:text-amber-500 transition-colors"
+                >
                   <Phone className="w-5 h-5 sm:w-6 sm:h-6" />
                 </a>
               </div>
@@ -76,27 +76,39 @@ export default function Footer() {
               className="h-12 sm:h-14 md:h-16 mb-3 sm:mb-4 brightness-110 rounded-lg"
             />
             <h3 className="text-xl sm:text-2xl font-amiri font-bold text-amber-500 mb-3 sm:mb-4">
-              الهيثم نحل و عسل
+              الهيثم — نحل وعسل
             </h3>
             <p className="leading-relaxed text-xs sm:text-sm">
-              منذ {SITE.foundedYear} ونحن نضع اسمنا ضماناً لكل قطرة عسل. إرث الوالد المؤسس يحيى في كل خلية.
+              منذ {SITE.foundedYear} ونحن نضع اسمنا ضماناً لكل قطرة عسل. إرث الوالد المؤسس يحيى في
+              كل خلية.
             </p>
           </div>
           <div>
-            <h4 className="text-white font-bold mb-4 sm:mb-6 text-sm sm:text-base">المحاصيل والمنتجات</h4>
+            <h4 className="text-white font-bold mb-4 sm:mb-6 text-sm sm:text-base">
+              المحاصيل والمنتجات
+            </h4>
             <ul className="space-y-2 sm:space-y-3 md:space-y-4 text-xs sm:text-sm">
               <li>
-                <Link href="/product/black-seed-honey" className="hover:text-amber-500 transition-colors">
+                <Link
+                  href="/product/black-seed-honey"
+                  className="hover:text-amber-500 transition-colors"
+                >
                   عسل حبة البركة
                 </Link>
               </li>
               <li>
-                <Link href="/product/dardar-honey" className="hover:text-amber-500 transition-colors">
+                <Link
+                  href="/product/dardar-honey"
+                  className="hover:text-amber-500 transition-colors"
+                >
                   عسل الدردار
                 </Link>
               </li>
               <li>
-                <Link href="/product/jejan-honey" className="hover:text-amber-500 transition-colors">
+                <Link
+                  href="/product/jejan-honey"
+                  className="hover:text-amber-500 transition-colors"
+                >
                   عسل الجيجان
                 </Link>
               </li>
@@ -111,10 +123,14 @@ export default function Footer() {
             <h4 className="text-white font-bold mb-4 sm:mb-6 text-sm sm:text-base">روابط سريعة</h4>
             <ul className="space-y-2 sm:space-y-3 md:space-y-4 text-xs sm:text-sm">
               <li>
-                <Link href="/shop" className="hover:text-amber-500 transition-colors">المتجر</Link>
+                <Link href="/shop" className="hover:text-amber-500 transition-colors">
+                  المتجر
+                </Link>
               </li>
               <li>
-                <Link href="/about-us" className="hover:text-amber-500 transition-colors">قصتنا</Link>
+                <Link href="/about-us" className="hover:text-amber-500 transition-colors">
+                  قصتنا
+                </Link>
               </li>
               <li>
                 <Link href="/quality-standards" className="hover:text-amber-500 transition-colors">
@@ -122,13 +138,19 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/studio" className="hover:text-amber-500 transition-colors">استديو الهيثم</Link>
+                <Link href="/studio" className="hover:text-amber-500 transition-colors">
+                  استديو الهيثم
+                </Link>
               </li>
               <li>
-                <Link href="/articles" className="hover:text-amber-500 transition-colors">المدونة</Link>
+                <Link href="/articles" className="hover:text-amber-500 transition-colors">
+                  المدونة
+                </Link>
               </li>
               <li>
-                <Link href="/faq" className="hover:text-amber-500 transition-colors">الأسئلة الشائعة</Link>
+                <Link href="/faq" className="hover:text-amber-500 transition-colors">
+                  الأسئلة الشائعة
+                </Link>
               </li>
             </ul>
           </div>
@@ -161,7 +183,7 @@ export default function Footer() {
         </div>
 
         <div className="mt-12 sm:mt-16 md:mt-20 pt-8 sm:pt-10 md:pt-12 border-t border-zinc-900 flex flex-col md:flex-row justify-between items-center gap-4 sm:gap-6 text-zinc-600 text-[9px] sm:text-[10px] uppercase tracking-wider sm:tracking-widest font-bold">
-          <p>© 2026 الهيثم نحل و عسل. جميع الحقوق محفوظة.</p>
+          <p>© 2026 الهيثم — نحل وعسل. جميع الحقوق محفوظة.</p>
           <p className="flex items-center gap-2">
             صُنع بكل حب في <span className="text-zinc-400">سوريا</span>
             <Heart className="w-3 h-3 text-red-900 fill-red-900" />

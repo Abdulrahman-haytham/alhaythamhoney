@@ -3,7 +3,7 @@ import { WishlistClient } from './WishlistClient';
 
 export const metadata: Metadata = {
   title: 'المفضلة',
-  description: 'المنتجات التي حفظتها من متجر الهيثم لنحل وعسل للعودة إليها لاحقاً.',
+  description: 'المنتجات التي حفظتها من متجر الهيثم — نحل وعسل للعودة إليها لاحقاً.',
   robots: { index: false, follow: true },
 };
 

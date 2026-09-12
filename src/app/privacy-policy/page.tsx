@@ -5,8 +5,7 @@ import { LegalPage, LegalSection } from '@/components/LegalPage';
 
 export const metadata: Metadata = {
   title: 'سياسة الخصوصية',
-  description:
-    'كيف يجمع موقع الهيثم لنحل وعسل بياناتك ويستخدمها ويحميها، وما هي حقوقك تجاهها.',
+  description: 'كيف يجمع موقع الهيثم — نحل وعسل بياناتك ويستخدمها ويحميها، وما هي حقوقك تجاهها.',
   alternates: { canonical: '/privacy-policy' },
 };
 
@@ -34,8 +33,8 @@ export default function PrivacyPolicyPage() {
 
       <LegalSection title="ما يُحفظ داخل متصفحك">
         <p>
-          سلة المشتريات وقائمة المفضلة تُحفظان محلياً في متصفحك فقط
-          (<span dir="ltr">localStorage</span>)، ولا تُرسَل إلينا ما لم تُكمل طلباً. يمكنك مسحها في
+          سلة المشتريات وقائمة المفضلة تُحفظان محلياً في متصفحك فقط (
+          <span dir="ltr">localStorage</span>)، ولا تُرسَل إلينا ما لم تُكمل طلباً. يمكنك مسحها في
           أي وقت بإفراغ السلة والمفضلة أو بحذف بيانات الموقع من إعدادات المتصفح.
         </p>
       </LegalSection>
@@ -67,7 +66,11 @@ export default function PrivacyPolicyPage() {
         <p>
           يحق لك طلب الاطلاع على بياناتك أو تصحيحها أو حذفها. راسلنا على{' '}
           <a href={`mailto:${SITE.email}`}>{SITE.email}</a> أو عبر{' '}
-          <a href={getWhatsAppLink('مرحباً، لدي طلب بخصوص بياناتي الشخصية.')} target="_blank" rel="noopener noreferrer">
+          <a
+            href={getWhatsAppLink('مرحباً، لدي طلب بخصوص بياناتي الشخصية.')}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             واتساب
           </a>{' '}
           وسنستجيب في أقرب وقت.

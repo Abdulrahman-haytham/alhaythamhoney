@@ -2,7 +2,15 @@
 
 import { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, ChevronDown, MessageCircle, RotateCcw, ShoppingCart, SlidersHorizontal, AlertTriangle } from 'lucide-react';
+import {
+  Check,
+  ChevronDown,
+  MessageCircle,
+  RotateCcw,
+  ShoppingCart,
+  SlidersHorizontal,
+  AlertTriangle,
+} from 'lucide-react';
 import { useCart } from '@/store/cartStore';
 import { getWhatsAppLink } from '@/lib/config';
 import { trackAddToCart, trackWhatsAppClick } from '@/lib/analytics';
@@ -29,7 +37,13 @@ export interface MixtureData {
   ingredients: IngredientSpec[];
 }
 
-export function MixtureBuilder({ mixture, honeys }: { mixture: MixtureData; honeys: HoneyOption[] }) {
+export function MixtureBuilder({
+  mixture,
+  honeys,
+}: {
+  mixture: MixtureData;
+  honeys: HoneyOption[];
+}) {
   const { addItem } = useCart();
   const [honeySlug, setHoneySlug] = useState(honeys[0]?.slug ?? '');
   const [size, setSize] = useState<JarSize>(mixture.baseSize as JarSize);
@@ -41,17 +55,18 @@ export function MixtureBuilder({ mixture, honeys }: { mixture: MixtureData; hone
   const honey = honeys.find((h) => h.slug === honeySlug) ?? honeys[0];
   const specs = useMemo(
     () => mixture.ingredients.map((s) => scaleSpec(s, size, mixture.baseSize)),
-    [mixture.ingredients, size, mixture.baseSize]
+    [mixture.ingredients, size, mixture.baseSize],
   );
   const grams = useMemo(() => {
     const g: Record<string, number> = {};
-    for (const s of specs) g[s.id] = overrides[s.id] !== undefined ? clampToStep(overrides[s.id], s) : s.recommended;
+    for (const s of specs)
+      g[s.id] = overrides[s.id] !== undefined ? clampToStep(overrides[s.id], s) : s.recommended;
     return g;
   }, [specs, overrides]);
 
   const price = useMemo(
     () => (honey ? computePrice({ size, honey, specs, grams, prepFee: mixture.prepFee }) : null),
-    [size, honey, specs, grams, mixture.prepFee]
+    [size, honey, specs, grams, mixture.prepFee],
   );
 
   const isCustomized = specs.some((s) => grams[s.id] !== s.recommended);
@@ -71,7 +86,16 @@ export function MixtureBuilder({ mixture, honeys }: { mixture: MixtureData; hone
   const displayName = `خلطة ${mixture.name}`;
 
   function addToCart() {
-    addItem({ id: cartId, slug: mixture.slug, name: displayName, image: honey!.image, price: price!.total, weight: `${size} غرام`, recipe });
+    if (!price?.valid) return;
+    addItem({
+      id: cartId,
+      slug: mixture.slug,
+      name: displayName,
+      image: honey!.image,
+      price: price!.total,
+      weight: `${size} غرام`,
+      recipe,
+    });
     trackAddToCart({ id: cartId, name: displayName, price: price!.total });
     setAdded(true);
     setTimeout(() => setAdded(false), 2200);
@@ -102,11 +126,18 @@ export function MixtureBuilder({ mixture, honeys }: { mixture: MixtureData; hone
                 onClick={() => setHoneySlug(h.slug)}
                 aria-pressed={active}
                 className={`group relative overflow-hidden rounded-xl border text-right transition-all ${
-                  active ? 'border-amber-500 ring-2 ring-amber-500/30' : 'border-zinc-800 hover:border-zinc-600'
+                  active
+                    ? 'border-amber-500 ring-2 ring-amber-500/30'
+                    : 'border-zinc-800 hover:border-zinc-600'
                 }`}
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={h.image} alt="" className="aspect-square w-full object-cover" loading="lazy" />
+                {}
+                <img
+                  src={h.image}
+                  alt=""
+                  className="aspect-square w-full object-cover"
+                  loading="lazy"
+                />
                 <span className="block bg-zinc-900/90 px-2 py-1.5 text-[11px] font-bold leading-tight text-zinc-100 sm:text-xs">
                   {h.name}
                 </span>
@@ -157,12 +188,16 @@ export function MixtureBuilder({ mixture, honeys }: { mixture: MixtureData; hone
             <SlidersHorizontal className="h-4 w-4 text-amber-500" />
             {advanced ? 'المكوّنات — عدّل ما تشاء' : 'الوصفة الموصى بها'}
             {isCustomized && (
-              <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-bold text-amber-300">معدّلة</span>
+              <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-bold text-amber-300">
+                معدّلة
+              </span>
             )}
           </span>
           <span className="flex items-center gap-1 text-xs text-zinc-500">
             {advanced ? 'إخفاء' : 'تعديل المكوّنات'}
-            <ChevronDown className={`h-4 w-4 transition-transform ${advanced ? 'rotate-180' : ''}`} />
+            <ChevronDown
+              className={`h-4 w-4 transition-transform ${advanced ? 'rotate-180' : ''}`}
+            />
           </span>
         </button>
 
@@ -171,11 +206,16 @@ export function MixtureBuilder({ mixture, honeys }: { mixture: MixtureData; hone
           <li className="rounded-lg bg-zinc-800/80 px-2.5 py-1 text-xs text-zinc-300">
             {honey.name} <span className="text-zinc-500">{price.honeyGrams}غ</span>
           </li>
-          {price.ingredients.filter((i) => i.grams > 0).map((i) => (
-            <li key={i.name} className="rounded-lg bg-zinc-800/80 px-2.5 py-1 text-xs text-zinc-300">
-              {i.name} <span className="text-zinc-500">{i.grams}غ</span>
-            </li>
-          ))}
+          {price.ingredients
+            .filter((i) => i.grams > 0)
+            .map((i) => (
+              <li
+                key={i.name}
+                className="rounded-lg bg-zinc-800/80 px-2.5 py-1 text-xs text-zinc-300"
+              >
+                {i.name} <span className="text-zinc-500">{i.grams}غ</span>
+              </li>
+            ))}
         </ul>
 
         <AnimatePresence initial={false}>
@@ -199,8 +239,14 @@ export function MixtureBuilder({ mixture, honeys }: { mixture: MixtureData; hone
                           {s.name}
                         </label>
                         <span className="text-sm tabular-nums">
-                          <span className={value !== s.recommended ? 'text-amber-300' : 'text-zinc-300'}>{value}غ</span>
-                          <span className="mr-2 text-xs text-zinc-600">{fmt(value * s.pricePerGram)} ل.س</span>
+                          <span
+                            className={value !== s.recommended ? 'text-amber-300' : 'text-zinc-300'}
+                          >
+                            {value}غ
+                          </span>
+                          <span className="mr-2 text-xs text-zinc-600">
+                            {fmt(value * s.pricePerGram)} ل.س
+                          </span>
                         </span>
                       </div>
                       <div className="relative">
@@ -218,14 +264,20 @@ export function MixtureBuilder({ mixture, honeys }: { mixture: MixtureData; hone
                           max={s.maxGrams}
                           step={s.step}
                           value={value}
-                          onChange={(e) => setOverrides((o) => ({ ...o, [s.id]: Number(e.target.value) }))}
+                          onChange={(e) =>
+                            setOverrides((o) => ({ ...o, [s.id]: Number(e.target.value) }))
+                          }
                           className="h-2 w-full cursor-pointer appearance-none rounded-full bg-zinc-800 accent-amber-500"
-                          style={{ background: `linear-gradient(to left, #f59e0b ${pct}%, #27272a ${pct}%)` }}
+                          style={{
+                            background: `linear-gradient(to left, #f59e0b ${pct}%, #27272a ${pct}%)`,
+                          }}
                         />
                       </div>
                       <div className="mt-1 flex justify-between text-[10px] text-zinc-600">
                         <span>{s.maxGrams}غ</span>
-                        <span className="text-amber-500/80">الموصى به {s.recommended}غ{s.note ? ` — ${s.note}` : ''}</span>
+                        <span className="text-amber-500/80">
+                          الموصى به {s.recommended}غ{s.note ? ` — ${s.note}` : ''}
+                        </span>
                         <span>{s.minGrams}غ</span>
                       </div>
                     </div>
@@ -236,8 +288,8 @@ export function MixtureBuilder({ mixture, honeys }: { mixture: MixtureData; hone
                   <p className="flex items-start gap-2 rounded-xl border border-amber-500/20 bg-amber-500/5 px-3 py-2.5 text-xs leading-relaxed text-amber-200/90">
                     <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
                     <span>
-                      {aboveRecommended.map((s) => s.name).join('، ')} أعلى من الجرعة المعتادة — لا بأس بذلك، لكن استشر طبيبك
-                      إن كنت تتناول أدوية أو لديك حساسية.
+                      {aboveRecommended.map((s) => s.name).join('، ')} أعلى من المقدار المقترح —
+                      استشر مختصاً قبل تعديل المكونات، خصوصاً إن كنت تتناول أدوية أو لديك حساسية.
                     </span>
                   </p>
                 )}
@@ -274,19 +326,26 @@ export function MixtureBuilder({ mixture, honeys }: { mixture: MixtureData; hone
         </div>
         <details className="group text-xs text-zinc-500">
           <summary className="cursor-pointer select-none list-none text-zinc-400 hover:text-zinc-200">
-            تفصيل السعر <ChevronDown className="inline h-3 w-3 transition-transform group-open:rotate-180" />
+            تفصيل السعر{' '}
+            <ChevronDown className="inline h-3 w-3 transition-transform group-open:rotate-180" />
           </summary>
           <ul className="mt-3 space-y-1.5 border-t border-zinc-800 pt-3 tabular-nums">
             <li className="flex justify-between">
-              <span>{honey.name} × {price.honeyGrams}غ</span>
+              <span>
+                {honey.name} × {price.honeyGrams}غ
+              </span>
               <span>{fmt(price.honeyCost)}</span>
             </li>
-            {price.ingredients.filter((i) => i.grams > 0).map((i) => (
-              <li key={i.name} className="flex justify-between">
-                <span>{i.name} × {i.grams}غ</span>
-                <span>{fmt(i.cost)}</span>
-              </li>
-            ))}
+            {price.ingredients
+              .filter((i) => i.grams > 0)
+              .map((i) => (
+                <li key={i.name} className="flex justify-between">
+                  <span>
+                    {i.name} × {i.grams}غ
+                  </span>
+                  <span>{fmt(i.cost)}</span>
+                </li>
+              ))}
             {price.prepFee > 0 && (
               <li className="flex justify-between">
                 <span>تحضير وتعبئة</span>
@@ -298,10 +357,16 @@ export function MixtureBuilder({ mixture, honeys }: { mixture: MixtureData; hone
       </section>
 
       {/* الإجراءات */}
+      {!price.valid && (
+        <p role="alert" className="text-red-400">
+          المكونات تملأ المرطبان أو تتجاوز حدوده. خفّض الكميات لتبقى مساحة للعسل.
+        </p>
+      )}
       <div className="flex flex-col gap-3 sm:flex-row">
         <button
           type="button"
           onClick={addToCart}
+          disabled={!price.valid}
           className={`inline-flex h-13 flex-1 items-center justify-center gap-2.5 rounded-xl py-4 font-bold transition-colors ${
             added ? 'bg-green-600 text-white' : 'bg-amber-500 text-zinc-950 hover:bg-amber-400'
           }`}
@@ -310,10 +375,14 @@ export function MixtureBuilder({ mixture, honeys }: { mixture: MixtureData; hone
           {added ? 'أُضيفت إلى السلة' : 'أضف إلى السلة'}
         </button>
         <a
-          href={getWhatsAppLink(waMessage)}
+          href={price.valid ? getWhatsAppLink(waMessage) : undefined}
+          aria-disabled={!price.valid}
           target="_blank"
           rel="noopener noreferrer"
-          onClick={() => trackWhatsAppClick('mixture-builder')}
+          onClick={(e) => {
+            if (!price.valid) e.preventDefault();
+            else trackWhatsAppClick('mixture-builder');
+          }}
           className="inline-flex h-13 flex-1 items-center justify-center gap-2.5 rounded-xl border border-green-600/50 bg-green-600/10 py-4 font-bold text-green-300 transition-colors hover:bg-green-600/20"
         >
           <MessageCircle className="h-5 w-5" />

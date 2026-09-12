@@ -1,41 +1,34 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { requireAdmin } from '@/lib/auth';
+import { guardAdmin } from '@/lib/admin-request';
+import { isRecord, readJson } from '@/lib/request-security';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-const ALLOWED = ['PENDING', 'APPROVED', 'REJECTED'] as const;
-type Status = (typeof ALLOWED)[number];
-
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
-  const admin = await requireAdmin();
-  if (!admin) return NextResponse.json({ error: 'غير مصرّح.' }, { status: 401 });
-
-  const { id } = await params;
-  const body = (await request.json().catch(() => ({}))) as { status?: string };
-
-  if (!body.status || !ALLOWED.includes(body.status as Status)) {
+  const denied = await guardAdmin(request);
+  if (denied) return denied;
+  const body = await readJson(request);
+  if (
+    !isRecord(body) ||
+    (body.status !== 'PENDING' && body.status !== 'APPROVED' && body.status !== 'REJECTED')
+  ) {
     return NextResponse.json({ error: 'حالة غير صالحة.' }, { status: 400 });
   }
-
-  try {
-    await db.review.update({ where: { id }, data: { status: body.status as Status } });
-  } catch {
-    return NextResponse.json({ error: 'التقييم غير موجود.' }, { status: 404 });
-  }
-  return NextResponse.json({ ok: true });
+  const { id } = await params;
+  const result = await db.review.updateMany({ where: { id }, data: { status: body.status } });
+  return result.count
+    ? NextResponse.json({ ok: true })
+    : NextResponse.json({ error: 'التقييم غير موجود.' }, { status: 404 });
 }
 
-export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
-  const admin = await requireAdmin();
-  if (!admin) return NextResponse.json({ error: 'غير مصرّح.' }, { status: 401 });
-
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const denied = await guardAdmin(request);
+  if (denied) return denied;
   const { id } = await params;
-  try {
-    await db.review.delete({ where: { id } });
-  } catch {
-    return NextResponse.json({ error: 'التقييم غير موجود.' }, { status: 404 });
-  }
-  return NextResponse.json({ ok: true });
+  const result = await db.review.deleteMany({ where: { id } });
+  return result.count
+    ? NextResponse.json({ ok: true })
+    : NextResponse.json({ error: 'التقييم غير موجود.' }, { status: 404 });
 }

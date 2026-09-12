@@ -40,7 +40,9 @@ export default function Mission() {
             <HeartHandshake className="h-4 w-4 text-amber-400" strokeWidth={1.5} />
             <span className="text-xs font-semibold tracking-wide text-amber-300">رسالتنا</span>
           </div>
-          <h2 className="font-amiri text-3xl font-bold text-white sm:text-4xl md:text-5xl">رسالتنا في الهيثم</h2>
+          <h2 className="font-amiri text-3xl font-bold text-white sm:text-4xl md:text-5xl">
+            رسالتنا في الهيثم
+          </h2>
         </motion.div>
 
         <div className="mx-auto max-w-5xl">
@@ -77,11 +79,16 @@ export default function Mission() {
                     >
                       <div className="flex gap-3">
                         <div className="mt-1 h-fit rounded-lg border border-amber-500/20 bg-amber-500/[0.08] p-1.5 transition-colors group-hover:bg-amber-500/15">
-                          <v.icon className="h-4 w-4 text-amber-400 sm:h-5 sm:w-5" strokeWidth={1.5} />
+                          <v.icon
+                            className="h-4 w-4 text-amber-400 sm:h-5 sm:w-5"
+                            strokeWidth={1.5}
+                          />
                         </div>
                         <div>
                           <h3 className="mb-1 text-sm font-bold text-white">{v.title}</h3>
-                          <p className="text-xs leading-relaxed text-zinc-400 sm:text-sm">{v.body}</p>
+                          <p className="text-xs leading-relaxed text-zinc-400 sm:text-sm">
+                            {v.body}
+                          </p>
                         </div>
                       </div>
                     </div>

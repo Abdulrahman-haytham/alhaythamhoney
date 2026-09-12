@@ -21,9 +21,7 @@ export default async function AdminReviewsPage() {
   return (
     <div>
       <h1 className="mb-2 text-2xl font-amiri font-bold text-white">التقييمات</h1>
-      <p className="mb-8 text-sm text-zinc-500">
-        لا يظهر أي تقييم على الموقع قبل اعتماده هنا.
-      </p>
+      <p className="mb-8 text-sm text-zinc-500">لا يظهر أي تقييم على الموقع قبل اعتماده هنا.</p>
       <ReviewsPanel reviews={reviews} />
     </div>
   );

@@ -4,7 +4,8 @@ import { ArrowLeft, FlaskConical } from 'lucide-react';
 import { getMixtures } from '@/lib/mixtures.server';
 import { SITE } from '@/lib/config';
 
-export const revalidate = 60;
+// Query at request time: production builds do not need a live database.
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: 'الخلطات الخاصة',
@@ -49,7 +50,6 @@ export default async function MixturesPage() {
                 className="group flex flex-col overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900/40 transition-colors hover:border-amber-500/40"
               >
                 {m.image && (
-                  /* eslint-disable-next-line @next/next/no-img-element */
                   <img
                     src={m.image}
                     alt={`خلطة ${m.name}`}
@@ -64,9 +64,14 @@ export default async function MixturesPage() {
                   </h2>
                   <p className="mb-5 flex-1 text-sm leading-relaxed text-zinc-400">{m.desc}</p>
                   <ul className="mb-5 flex flex-wrap gap-1.5">
-                    <li className="rounded-md bg-zinc-800/80 px-2 py-0.5 text-[11px] text-zinc-300">عسل من اختيارك</li>
+                    <li className="rounded-md bg-zinc-800/80 px-2 py-0.5 text-[11px] text-zinc-300">
+                      عسل من اختيارك
+                    </li>
                     {m.ingredients.map((i) => (
-                      <li key={i.id} className="rounded-md bg-zinc-800/80 px-2 py-0.5 text-[11px] text-zinc-300">
+                      <li
+                        key={i.id}
+                        className="rounded-md bg-zinc-800/80 px-2 py-0.5 text-[11px] text-zinc-300"
+                      >
                         {i.name}
                       </li>
                     ))}

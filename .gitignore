@@ -14,6 +14,12 @@ tsconfig.tsbuildinfo
 
 # ملفات يرفعها الأدمن من لوحة التحكم (استديو الهيثم)
 public/uploads/
+data/
+backups/
+coverage/
+playwright-report/
+test-results/
+.env.production
 
 # مؤقت وتشخيص
 tmp/

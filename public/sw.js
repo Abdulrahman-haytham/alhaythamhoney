@@ -1,95 +1,40 @@
-/* Service Worker — الهيثم لنحل وعسل
- * الاستراتيجية:
- *  - التنقلات: الشبكة أولاً، ثم الكاش، ثم صفحة عدم الاتصال.
- *  - أصول Next الثابتة والصور: الكاش أولاً مع تحديث في الخلفية.
- *  - لا يُخزَّن شيء من /api أو /admin إطلاقاً.
- */
-const VERSION = 'v1';
-const STATIC_CACHE = `alhaytham-static-${VERSION}`;
-const PAGE_CACHE = `alhaytham-pages-${VERSION}`;
-const OFFLINE_URL = '/offline';
-
-const PRECACHE = [OFFLINE_URL, '/favicon.ico', '/apple-touch-icon.png'];
+/* Offline support caches only versioned static assets, never admin/API/cart HTML or prices. */
+const CACHE = 'alhaytham-static-v2';
+const OFFLINE = '/offline.html';
+const PRECACHE = [OFFLINE, '/favicon.ico', '/apple-touch-icon.png', '/android-chrome-192x192.png', '/android-chrome-512x512.png'];
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches
-      .open(STATIC_CACHE)
-      .then((cache) => cache.addAll(PRECACHE))
-      .then(() => self.skipWaiting())
-      .catch(() => self.skipWaiting())
-  );
+  event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(PRECACHE)));
 });
-
 self.addEventListener('activate', (event) => {
-  event.waitUntil(
-    caches
-      .keys()
-      .then((keys) =>
-        Promise.all(
-          keys
-            .filter((key) => key !== STATIC_CACHE && key !== PAGE_CACHE)
-            .map((key) => caches.delete(key))
-        )
-      )
-      .then(() => self.clients.claim())
-  );
+  event.waitUntil(caches.keys().then((keys) => Promise.all(
+    keys.filter((key) => key !== CACHE && (key.startsWith('alhaytham-') || key.startsWith('workbox-')))
+      .map((key) => caches.delete(key))
+  )).then(() => self.clients.claim()));
 });
-
-function isCacheable(url) {
-  if (url.origin !== self.location.origin) return false;
-  if (url.pathname.startsWith('/api/')) return false;
-  if (url.pathname.startsWith('/admin')) return false;
-  return true;
-}
-
 self.addEventListener('fetch', (event) => {
-  const { request } = event;
-  if (request.method !== 'GET') return;
-
-  const url = new URL(request.url);
-  if (!isCacheable(url)) return;
-
-  // التنقلات: الشبكة أولاً حتى يبقى المحتوى طازجاً
-  if (request.mode === 'navigate') {
-    event.respondWith(
-      fetch(request)
-        .then((response) => {
-          const copy = response.clone();
-          caches.open(PAGE_CACHE).then((cache) => cache.put(request, copy));
-          return response;
-        })
-        .catch(() =>
-          caches
-            .match(request)
-            .then((cached) => cached || caches.match(OFFLINE_URL))
-        )
-    );
-    return;
-  }
-
-  // أصول ثابتة: الكاش أولاً
-  const isStatic =
-    url.pathname.startsWith('/_next/static/') ||
-    /\.(?:css|js|woff2?|png|jpe?g|svg|webp|avif|ico)$/i.test(url.pathname);
-
-  if (isStatic) {
-    event.respondWith(
-      caches.match(request).then((cached) => {
-        if (cached) return cached;
-        return fetch(request).then((response) => {
-          if (response.ok) {
-            const copy = response.clone();
-            caches.open(STATIC_CACHE).then((cache) => cache.put(request, copy));
-          }
-          return response;
-        });
-      })
-    );
+  const req = event.request;
+  const url = new URL(req.url);
+  if (req.method !== 'GET' || url.origin !== self.location.origin ||
+      /^\/(api|admin|uploads|q)(\/|$)/.test(url.pathname) || req.headers.has('range')) return;
+  if (req.mode === 'navigate') {
+    event.respondWith(fetch(req).catch(async () => (await caches.match(OFFLINE)) || new Response('Offline', { status: 503 })));
+  } else if (url.pathname.startsWith('/_next/static/')) {
+    event.respondWith((async () => {
+      const cached = await caches.match(req);
+      if (cached) return cached;
+      const response = await fetch(req);
+      if (response.ok) {
+        const cache = await caches.open(CACHE);
+        await cache.put(req, response.clone());
+        const keys = await cache.keys();
+        const assets = keys.filter((key) => new URL(key.url).pathname.startsWith('/_next/static/'));
+        if (assets.length > 200) await cache.delete(assets[0]);
+      }
+      return response;
+    })());
   }
 });
-
-// يسمح للصفحة بطلب تفعيل نسخة جديدة فوراً
 self.addEventListener('message', (event) => {
   if (event.data === 'SKIP_WAITING') self.skipWaiting();
 });

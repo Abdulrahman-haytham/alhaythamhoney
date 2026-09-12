@@ -6,7 +6,7 @@ import { LegalPage, LegalSection } from '@/components/LegalPage';
 export const metadata: Metadata = {
   title: 'سياسة الاسترجاع',
   description:
-    'نضمن لك جودة منتجاتنا 100%. تعرف على ضمان الجودة وسياسة الاسترجاع والاستبدال في الهيثم لنحل وعسل.',
+    'نضمن لك جودة منتجاتنا 100%. تعرف على ضمان الجودة وسياسة الاسترجاع والاستبدال في الهيثم — نحل وعسل.',
   alternates: { canonical: '/return-policy' },
 };
 
@@ -84,8 +84,8 @@ export default function ReturnPolicyPage() {
           ]}
         />
         <p className="text-zinc-500 text-sm">
-          تذكير: اختلاف لون العسل أو قوامه أو تبلوره باختلاف الموسم والمرعى من طبيعة المنتج ولا يُعدّ
-          عيباً.
+          تذكير: اختلاف لون العسل أو قوامه أو تبلوره باختلاف الموسم والمرعى من طبيعة المنتج ولا
+          يُعدّ عيباً.
         </p>
       </LegalSection>
 

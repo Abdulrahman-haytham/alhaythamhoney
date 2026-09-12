@@ -1,7 +1,15 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { ArrowLeft, ArrowRight, BookOpen, Calendar, Clock, FileText, MessageCircle } from 'lucide-react';
+import {
+  ArrowLeft,
+  ArrowRight,
+  BookOpen,
+  Calendar,
+  Clock,
+  FileText,
+  MessageCircle,
+} from 'lucide-react';
 import {
   getAllArticles,
   getArticleBySlug,
@@ -102,7 +110,7 @@ export default async function ArticlePage({ params }: { params: Params }) {
 
           {article.image && (
             <div className="mt-8 overflow-hidden rounded-3xl border border-amber-500/20 bg-zinc-900/40">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
+              {}
               <img
                 src={article.image}
                 alt={article.title}
@@ -120,10 +128,12 @@ export default async function ArticlePage({ params }: { params: Params }) {
           <h2 className="mb-4 font-amiri text-2xl font-bold text-white sm:text-3xl">
             جاهز لتجربة عسلنا الطبيعي؟
           </h2>
-          <p className="mb-8 text-lg text-zinc-400">اطلب الآن واحصل على عسل طبيعي 100% مفحوص مخبرياً</p>
+          <p className="mb-8 text-lg text-zinc-400">
+            اطلب الآن واحصل على عسل طبيعي 100% مفحوص مخبرياً
+          </p>
           <a
             href={getWhatsAppLink(
-              `مرحباً عسل الهيثم، قرأت مقال «${article.title}» في الموقع وأود الاستفسار عن منتجاتكم.`
+              `مرحباً عسل الهيثم، قرأت مقال «${article.title}» في الموقع وأود الاستفسار عن منتجاتكم.`,
             )}
             target="_blank"
             rel="noopener noreferrer"
@@ -159,7 +169,9 @@ export default async function ArticlePage({ params }: { params: Params }) {
                   <h3 className="mb-2 font-amiri text-lg font-bold leading-snug text-white transition-colors group-hover:text-amber-400">
                     {item.title}
                   </h3>
-                  <p className="line-clamp-2 text-sm leading-relaxed text-zinc-500">{item.description}</p>
+                  <p className="line-clamp-2 text-sm leading-relaxed text-zinc-500">
+                    {item.description}
+                  </p>
                   <time dateTime={item.publishedAt} className="mt-auto pt-4 text-xs text-zinc-600">
                     {formatArticleDate(item.publishedAt)}
                   </time>

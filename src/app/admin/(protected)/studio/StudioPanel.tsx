@@ -12,8 +12,6 @@ export interface StudioPhoto {
   createdAt: string;
 }
 
-const MAX_SIZE = 8 * 1024 * 1024;
-
 export function StudioPanel({ initialPhotos }: { initialPhotos: StudioPhoto[] }) {
   const router = useRouter();
   const fileRef = useRef<HTMLInputElement>(null);
@@ -25,8 +23,8 @@ export function StudioPanel({ initialPhotos }: { initialPhotos: StudioPhoto[] })
 
   async function upload(file: File) {
     setError(null);
-    if (file.size > MAX_SIZE) {
-      setError('حجم الملف أكبر من الحد المسموح (8 ميغابايت).');
+    if (file.size > (file.type.startsWith('video/') ? 60 : 8) * 1024 * 1024) {
+      setError('الحد الأقصى 8 ميغابايت للصورة و60 ميغابايت للفيديو.');
       return;
     }
     setUploading(true);
@@ -34,8 +32,12 @@ export function StudioPanel({ initialPhotos }: { initialPhotos: StudioPhoto[] })
     form.append('file', file);
     if (caption.trim()) form.append('caption', caption.trim());
 
-    const res = await fetch('/api/admin/studio', { method: 'POST', body: form });
+    const res = await fetch('/api/admin/studio', { method: 'POST', body: form }).catch(() => null);
     setUploading(false);
+    if (!res) {
+      setError('تعذّر الاتصال. حاول مجدداً.');
+      return;
+    }
 
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
@@ -53,11 +55,18 @@ export function StudioPanel({ initialPhotos }: { initialPhotos: StudioPhoto[] })
   async function remove(id: string) {
     if (!confirm('حذف هذه الصورة نهائياً؟')) return;
     setBusyId(id);
-    const res = await fetch(`/api/admin/studio/${id}`, { method: 'DELETE' });
+    const res = await fetch(`/api/admin/studio/${id}`, { method: 'DELETE' }).catch(() => null);
     setBusyId(null);
+    if (!res) {
+      setError('تعذّر الاتصال. حاول مجدداً.');
+      return;
+    }
     if (res.ok) {
       setPhotos((prev) => prev.filter((p) => p.id !== id));
       router.refresh();
+    } else {
+      const data = await res.json().catch(() => ({}));
+      setError(data.error ?? 'تعذّر الحذف.');
     }
   }
 
@@ -107,15 +116,37 @@ export function StudioPanel({ initialPhotos }: { initialPhotos: StudioPhoto[] })
       ) : (
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
           {photos.map((p) => (
-            <div key={p.id} className="group relative overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900/50">
+            <div
+              key={p.id}
+              className="group relative overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900/50"
+            >
               {p.type === 'VIDEO' ? (
-                <video src={p.url} controls preload="metadata" playsInline className="aspect-square w-full bg-black object-cover" />
+                <video
+                  src={p.url}
+                  controls
+                  preload="metadata"
+                  playsInline
+                  className="aspect-square w-full bg-black object-cover"
+                />
               ) : (
-                /* eslint-disable-next-line @next/next/no-img-element */
-                <img src={p.url} alt={p.caption ?? ''} className="aspect-square w-full object-cover" />
+                <img
+                  src={p.url}
+                  alt={p.caption ?? ''}
+                  className="aspect-square w-full object-cover"
+                />
               )}
-              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-3 opacity-0 transition-opacity group-hover:opacity-100">
+              <div className="bg-zinc-900 p-3">
                 {p.caption && <p className="mb-2 truncate text-xs text-zinc-200">{p.caption}</p>}
+                <label className="mb-2 block text-xs text-zinc-400">
+                  رابط الملف (للنسخ)
+                  <input
+                    readOnly
+                    value={p.url}
+                    onFocus={(e) => e.target.select()}
+                    className="mt-1 w-full rounded bg-zinc-950 p-2 text-xs"
+                    dir="ltr"
+                  />
+                </label>
                 <button
                   onClick={() => remove(p.id)}
                   disabled={busyId === p.id}

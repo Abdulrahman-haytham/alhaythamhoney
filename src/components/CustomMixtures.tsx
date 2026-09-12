@@ -51,7 +51,9 @@ export function CustomMixtures({ isTeaser }: CustomMixturesProps) {
           >
             <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-amber-500/25 bg-amber-500/[0.07] px-4 py-1.5">
               <SlidersHorizontal className="h-3.5 w-3.5 text-amber-400" />
-              <span className="text-xs font-semibold tracking-wide text-amber-300">الخلطات الخاصة</span>
+              <span className="text-xs font-semibold tracking-wide text-amber-300">
+                الخلطات الخاصة
+              </span>
             </div>
 
             <h2 className="mb-6 font-amiri text-3xl font-bold leading-tight text-white sm:text-4xl md:text-5xl">
@@ -61,8 +63,8 @@ export function CustomMixtures({ isTeaser }: CustomMixturesProps) {
 
             <div className="space-y-5 text-lg font-light leading-relaxed text-zinc-300">
               <p>
-                ثلاث خلطات ضبط جرعاتها نحّال بخبرة 25 عاماً. تختار أنت عسلك الأساسي وحجم المرطبان — وإن
-                أردت، تعدّل أي مكوّن ضمن حدوده الآمنة.
+                ثلاث خلطات ضبط جرعاتها نحّال بخبرة 25 عاماً. تختار أنت عسلك الأساسي وحجم المرطبان —
+                وإن أردت، تعدّل أي مكوّن ضمن حدوده الآمنة.
               </p>
               <p className="text-zinc-400">والسعر يظهر أمامك فوراً مع تفصيله، قبل أن تطلب.</p>
             </div>
@@ -97,7 +99,9 @@ export function CustomMixtures({ isTeaser }: CustomMixturesProps) {
                   <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-zinc-900 transition-colors group-hover:bg-amber-500/10">
                     <item.icon className="h-6 w-6 text-amber-500" strokeWidth={1.5} />
                   </div>
-                  <p className="mb-1 text-[11px] font-bold tracking-wide text-amber-500">{item.tagline}</p>
+                  <p className="mb-1 text-[11px] font-bold tracking-wide text-amber-500">
+                    {item.tagline}
+                  </p>
                   <h3 className="mb-2 font-amiri text-xl font-bold text-white group-hover:text-amber-300">
                     {item.name}
                   </h3>

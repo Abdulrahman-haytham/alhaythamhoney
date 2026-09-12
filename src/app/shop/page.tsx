@@ -3,12 +3,13 @@ import { ShoppingCart } from 'lucide-react';
 import { getProducts } from '@/lib/products.server';
 import Products from '@/components/Products';
 
-export const revalidate = 60;
+// Query at request time: production builds do not need a live database.
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: 'المتجر',
   description:
-    'تسوق أفضل أنواع العسل الطبيعي والمكملات الحيوية من الهيثم لنحل وعسل — منتجات طبيعية 100% من قلب حماة.',
+    'تسوق أفضل أنواع العسل الطبيعي والمكملات الحيوية من الهيثم — نحل وعسل — منتجات طبيعية 100% من قلب حماة.',
   alternates: { canonical: '/shop' },
 };
 

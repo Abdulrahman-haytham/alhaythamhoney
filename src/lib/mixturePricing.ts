@@ -25,8 +25,11 @@ export const JAR_SIZES = [250, 500, 1000] as const;
 export type JarSize = (typeof JAR_SIZES)[number];
 
 /** يقرّب إلى أقرب خطوة ويبقى ضمن الحدود. */
-export function clampToStep(value: number, spec: { minGrams: number; maxGrams: number; step: number }) {
-  const stepped = Math.round(value / spec.step) * spec.step;
+export function clampToStep(
+  value: number,
+  spec: { minGrams: number; maxGrams: number; step: number },
+) {
+  const stepped = spec.minGrams + Math.round((value - spec.minGrams) / spec.step) * spec.step;
   return Math.min(spec.maxGrams, Math.max(spec.minGrams, stepped));
 }
 
@@ -41,11 +44,12 @@ export function scaleSpec(spec: IngredientSpec, size: number, baseSize: number):
     ...spec,
     minGrams: spec.minGrams === 0 ? 0 : scale(spec.minGrams),
     maxGrams: scale(spec.maxGrams),
-    recommended: scale(spec.recommended),
+    recommended: spec.recommended === 0 ? 0 : scale(spec.recommended),
   };
 }
 
 export interface PriceBreakdown {
+  valid: boolean;
   honeyGrams: number;
   honeyCost: number;
   ingredients: { name: string; grams: number; cost: number }[];
@@ -70,12 +74,27 @@ export function computePrice(params: {
   const subtotal = honeyCost + ingredients.reduce((sum, i) => sum + i.cost, 0) + params.prepFee;
   // تقريب لأقرب 500 ل.س حتى يبدو السعر مألوفاً لا حسابياً
   const total = Math.round(subtotal / 500) * 500;
-  return { honeyGrams, honeyCost, ingredients, prepFee: params.prepFee, total };
+  const valid =
+    additiveGrams < params.size &&
+    params.specs.every((s) => {
+      const g = params.grams[s.id] ?? s.recommended;
+      return Number.isFinite(g) && g >= s.minGrams && g <= s.maxGrams;
+    });
+  return { valid, honeyGrams, honeyCost, ingredients, prepFee: params.prepFee, total };
 }
 
 /** يستخرج الغرامات من نص الوزن المخزّن مثل "500 غرام". */
 export function parseGrams(weight: string | null | undefined): number | null {
-  const n = weight ? parseInt(weight, 10) : NaN;
+  const normalized = weight
+    ?.trim()
+    .replace(/[٠-٩]/g, (n) => String('٠١٢٣٤٥٦٧٨٩'.indexOf(n)))
+    .replace('٫', '.');
+  const match = normalized?.match(
+    /^(\d+(?:\.\d+)?)\s*(غرام|جرام|غ|جم|g|كغ|كجم|كيلو(?:غرام)?|kg)?$/i,
+  );
+  if (!match) return null;
+  const kg = /^(كغ|كجم|كيلو(?:غرام)?|kg)$/i.test(match[2] ?? '');
+  const n = Number(match[1]) * (kg ? 1000 : 1);
   return Number.isFinite(n) && n > 0 ? n : null;
 }
 

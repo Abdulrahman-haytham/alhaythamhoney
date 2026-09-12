@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useEffect, useRef, useState } from "react";
-import { motion, useInView, useReducedMotion, animate } from "framer-motion";
-import { Award, Users, Hexagon } from "lucide-react";
+import { useEffect, useRef, useState } from 'react';
+import { motion, useInView, useReducedMotion, animate } from 'framer-motion';
+import { Award, Users, Hexagon } from 'lucide-react';
 
 interface StatItem {
   icon: React.ElementType;
@@ -16,51 +16,43 @@ const STATS: StatItem[] = [
     icon: Award,
     value: 25,
     // التنوين على الألف لا على الميم — على الميم يلتبس بحرف القاف في خط Cairo
-    label: "عاماً من الخبرة",
-    hint: "منذ 1997",
+    label: 'عاماً من الخبرة',
+    hint: 'منذ 1997',
   },
   {
     icon: Users,
     value: 1000,
-    label: "عميل راضٍ",
-    hint: "في كل المحافظات",
+    label: 'عميل راضٍ',
+    hint: 'في كل المحافظات',
   },
   {
     icon: Hexagon,
     value: 400,
-    label: "خلية نحل",
-    hint: "في مراعٍ سورية",
+    label: 'خلية نحل',
+    hint: 'في مراعٍ سورية',
   },
 ];
 
 function AnimatedCounter({ target }: { target: number }) {
   const nodeRef = useRef<HTMLSpanElement>(null);
-  const isInView = useInView(nodeRef, { once: true, margin: "-80px" });
+  const isInView = useInView(nodeRef, { once: true, margin: '-80px' });
   const reduceMotion = useReducedMotion();
   // القيمة النهائية هي الحالة الأولى، فيظهر الرقم صحيحاً في HTML الخادم وبدون JS
   const [displayValue, setDisplayValue] = useState(target);
-  const [ready, setReady] = useState(false);
-
   useEffect(() => {
-    if (reduceMotion) return;
-    setDisplayValue(0);
-    setReady(true);
-  }, [reduceMotion]);
-
-  useEffect(() => {
-    if (!ready || !isInView || reduceMotion) return;
+    if (!isInView || reduceMotion) return;
     const controls = animate(0, target, {
       duration: 2,
       ease: [0.16, 1, 0.3, 1],
       onUpdate: (v) => setDisplayValue(Math.round(v)),
     });
     return () => controls.stop();
-  }, [ready, isInView, target, reduceMotion]);
+  }, [isInView, target, reduceMotion]);
 
   return (
     <span ref={nodeRef} className="tabular-nums">
       {/* عزل ثنائي الاتجاه: يبقي الرقم وعلامة + بترتيب «400+» بدل «+400» */}
-      <bdi dir="ltr">{displayValue.toLocaleString("en-US")}+</bdi>
+      <bdi dir="ltr">{displayValue.toLocaleString('en-US')}+</bdi>
     </span>
   );
 }
@@ -76,7 +68,7 @@ export default function Stats() {
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
+          viewport={{ once: true, margin: '-100px' }}
           transition={{ duration: 0.6 }}
           className="mb-14 text-center"
         >
@@ -99,7 +91,7 @@ export default function Stats() {
               key={stat.label}
               initial={{ opacity: 0, y: 24 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-50px" }}
+              viewport={{ once: true, margin: '-50px' }}
               transition={{ duration: 0.55, delay: index * 0.1, ease: [0.16, 1, 0.3, 1] }}
               className="group relative overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900/40 px-2 py-5 text-center transition-colors duration-300 hover:border-amber-500/40 hover:bg-zinc-900/70 sm:rounded-2xl sm:px-6 sm:py-8"
             >
@@ -116,7 +108,9 @@ export default function Stats() {
                 </span>
               </div>
 
-              <p className="text-[11px] font-semibold leading-snug text-zinc-100 sm:text-base">{stat.label}</p>
+              <p className="text-[11px] font-semibold leading-snug text-zinc-100 sm:text-base">
+                {stat.label}
+              </p>
               <p className="mt-1 text-[9px] text-zinc-500 sm:text-xs">{stat.hint}</p>
             </motion.div>
           ))}

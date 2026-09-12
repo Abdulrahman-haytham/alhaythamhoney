@@ -1,72 +1,43 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { requireAdmin } from '@/lib/auth';
+import { guardAdmin } from '@/lib/admin-request';
+import { readJson } from '@/lib/request-security';
+import { mixtureInput } from '@/lib/validation';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-interface IngredientPatch {
-  id: string;
-  pricePerGram: number;
-  minGrams: number;
-  maxGrams: number;
-  recommended: number;
-  step: number;
-  note?: string | null;
-}
-
-interface Payload {
-  prepFee?: number;
-  published?: boolean;
-  ingredients?: IngredientPatch[];
-}
-
-const int = (v: unknown) => (Number.isInteger(v) && (v as number) >= 0 ? (v as number) : null);
-
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
-  const admin = await requireAdmin();
-  if (!admin) return NextResponse.json({ error: 'غير مصرّح.' }, { status: 401 });
-
+  const denied = await guardAdmin(request);
+  if (denied) return denied;
+  const parsed = mixtureInput.safeParse(await readJson(request));
+  if (!parsed.success)
+    return NextResponse.json(
+      { error: 'تحقق من الأسعار والحدود ومقادير المكونات.' },
+      { status: 400 },
+    );
   const { id } = await params;
-  const body = (await request.json().catch(() => ({}))) as Payload;
-
   const mixture = await db.mixture.findUnique({ where: { id }, include: { ingredients: true } });
   if (!mixture) return NextResponse.json({ error: 'الخلطة غير موجودة.' }, { status: 404 });
-
+  const body = parsed.data;
   const known = new Set(mixture.ingredients.map((i) => i.id));
-  for (const ing of body.ingredients ?? []) {
-    if (!known.has(ing.id)) return NextResponse.json({ error: 'مكوّن غير معروف.' }, { status: 400 });
-    const [price, min, max, rec, step] = [ing.pricePerGram, ing.minGrams, ing.maxGrams, ing.recommended, ing.step].map(int);
-    if ([price, min, max, rec, step].some((v) => v === null) || step === 0) {
-      return NextResponse.json({ error: 'القيم يجب أن تكون أعداداً صحيحة موجبة.' }, { status: 400 });
-    }
-    if (min! > max! || rec! < min! || rec! > max!) {
-      return NextResponse.json({ error: 'الموصى به يجب أن يقع بين الحد الأدنى والأقصى.' }, { status: 400 });
-    }
+  if (body.ingredients.length !== known.size || body.ingredients.some((i) => !known.has(i.id))) {
+    return NextResponse.json({ error: 'مكوّن مفقود أو غير معروف.' }, { status: 400 });
   }
-
+  if (body.ingredients.reduce((sum, i) => sum + i.recommended, 0) >= mixture.baseSize) {
+    return NextResponse.json(
+      { error: 'يجب أن تبقى مساحة للعسل في الوصفة الموصى بها.' },
+      { status: 400 },
+    );
+  }
   await db.$transaction([
     db.mixture.update({
       where: { id },
-      data: {
-        ...(int(body.prepFee) !== null ? { prepFee: body.prepFee } : {}),
-        ...(typeof body.published === 'boolean' ? { published: body.published } : {}),
-      },
+      data: { prepFee: body.prepFee, published: body.published },
     }),
-    ...(body.ingredients ?? []).map((ing) =>
-      db.mixtureIngredient.update({
-        where: { id: ing.id },
-        data: {
-          pricePerGram: ing.pricePerGram,
-          minGrams: ing.minGrams,
-          maxGrams: ing.maxGrams,
-          recommended: ing.recommended,
-          step: ing.step,
-          note: ing.note?.trim() || null,
-        },
-      })
+    ...body.ingredients.map(({ id: ingredientId, name: _name, ...data }) =>
+      db.mixtureIngredient.update({ where: { id: ingredientId }, data }),
     ),
   ]);
-
   return NextResponse.json({ ok: true });
 }

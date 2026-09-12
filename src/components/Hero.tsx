@@ -23,7 +23,7 @@ export default function Hero() {
       >
         <img
           src="https://res.cloudinary.com/dkbvnupge/image/upload/f_auto,q_auto/v1767958674/my-app-uploads/kromozksoa3vpcwrnvtw.jpg"
-          alt="عسل طبيعي 100% من مراعي سوريا - الهيثم نحل و عسل"
+          alt="عسل طبيعي 100% من مراعي سوريا - الهيثم — نحل وعسل"
           fetchPriority="high"
           loading="eager"
           width={1920}
@@ -53,7 +53,7 @@ export default function Hero() {
           className="text-3xl sm:text-4xl md:text-6xl lg:text-8xl font-amiri font-bold text-white mb-4 md:mb-6 leading-tight px-2"
         >
           عسل طبيعي 100% من مراعي سوريا <br />
-          <span className="gold-text">الهيثم نحل و عسل – منذ 1997</span>
+          <span className="gold-text">الهيثم — نحل وعسل – منذ 1997</span>
         </motion.h1>
 
         <motion.p
@@ -73,7 +73,10 @@ export default function Hero() {
           className="flex flex-wrap justify-center gap-6 md:gap-10 mb-14"
         >
           {trustIcons.map((item, idx) => (
-            <div key={idx} className="flex items-center gap-2 text-amber-200/70 text-xs sm:text-sm md:text-base font-medium">
+            <div
+              key={idx}
+              className="flex items-center gap-2 text-amber-200/70 text-xs sm:text-sm md:text-base font-medium"
+            >
               <span className="text-amber-500">{item.icon}</span>
               <span>{item.text}</span>
             </div>

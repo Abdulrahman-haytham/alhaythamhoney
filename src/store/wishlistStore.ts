@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { create } from "zustand";
-import { persist } from "zustand/middleware";
-import type { CartProduct } from "@/store/cartStore";
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+import type { CartProduct } from '@/store/cartStore';
 
 interface WishlistState {
   items: CartProduct[];
@@ -20,12 +20,12 @@ export const useWishlist = create<WishlistState>()(
         set((state) =>
           state.items.some((item) => item.id === product.id)
             ? state
-            : { items: [...state.items, product] }
+            : { items: [...state.items, product] },
         ),
       removeItem: (id) => set((state) => ({ items: state.items.filter((item) => item.id !== id) })),
       clearWishlist: () => set({ items: [] }),
       isWishlisted: (id) => get().items.some((item) => item.id === id),
     }),
-    { name: "alhaytham-wishlist" }
-  )
+    { name: 'alhaytham-wishlist' },
+  ),
 );

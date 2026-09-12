@@ -1,9 +1,20 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useHydrated } from '@/lib/useHydrated';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { ShieldCheck, Award, Truck, Store, Menu, X, ShoppingCart, Heart, Camera } from 'lucide-react';
+import {
+  ShieldCheck,
+  Award,
+  Truck,
+  Store,
+  Menu,
+  X,
+  ShoppingCart,
+  Heart,
+  Camera,
+} from 'lucide-react';
 import { SITE, getWhatsAppLink } from '@/lib/config';
 import { useCart } from '@/store/cartStore';
 import { useWishlist } from '@/store/wishlistStore';
@@ -23,15 +34,11 @@ function SkipLink() {
 /** رأس الموقع — ثابت (fixed) لأن صفحات مثل /contact تحسب مساحته عبر pt-32. */
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
+  const mounted = useHydrated();
   const pathname = usePathname();
   const router = useRouter();
   const { getTotalItems } = useCart();
   const wishlistCount = useWishlist((s) => s.items.length);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   // العدّادات من localStorage — تُصفَّر قبل الترطيب لتفادي عدم التطابق
   const cartCount = mounted ? getTotalItems() : 0;
@@ -112,11 +119,11 @@ export default function Header() {
         >
           <div className="container mx-auto flex justify-between items-center">
             {/* الشعار */}
-            <a
+            <Link
               href="/"
               onClick={handleLogoClick}
               className="flex items-center gap-2 sm:gap-3 md:gap-4 hover:opacity-80 transition-opacity cursor-pointer"
-              aria-label="الهيثم نحل و عسل - الصفحة الرئيسية"
+              aria-label="الهيثم — نحل وعسل - الصفحة الرئيسية"
             >
               <img
                 src="https://res.cloudinary.com/dkbvnupge/image/upload/f_auto,q_auto/v1767958674/my-app-uploads/kromozksoa3vpcwrnvtw.jpg"
@@ -132,23 +139,38 @@ export default function Header() {
                   الهيثم
                 </span>
                 <span className="text-[8px] sm:text-[9px] md:text-[10px] text-zinc-500 tracking-[0.15em] sm:tracking-[0.2em] uppercase font-bold">
-                  لنحل وعسل
+                  نحل وعسل
                 </span>
               </div>
-            </a>
+            </Link>
 
             {/* روابط سطح المكتب */}
             <div className="hidden md:flex gap-6 xl:gap-8 text-sm font-medium text-zinc-400">
-              <Link href="/shop" className="flex items-center gap-2 hover:text-amber-500 transition-colors">
+              <Link
+                href="/shop"
+                className="flex items-center gap-2 hover:text-amber-500 transition-colors"
+              >
                 <Store className="w-4 h-4" />
                 المتجر
               </Link>
-              <Link href="/studio" className="hover:text-amber-500 transition-colors">الاستديو</Link>
-              <Link href="/articles" className="hover:text-amber-500 transition-colors">المدونة</Link>
-              <Link href="/custom-mixtures" className="hover:text-amber-500 transition-colors">الخلطات الخاصة</Link>
-              <Link href="/about-us" className="hover:text-amber-500 transition-colors">قصتنا</Link>
-              <Link href="/quality-standards" className="hover:text-amber-500 transition-colors">الجودة</Link>
-              <Link href="/faq" className="hover:text-amber-500 transition-colors">الأسئلة الشائعة</Link>
+              <Link href="/studio" className="hover:text-amber-500 transition-colors">
+                الاستديو
+              </Link>
+              <Link href="/articles" className="hover:text-amber-500 transition-colors">
+                المدونة
+              </Link>
+              <Link href="/custom-mixtures" className="hover:text-amber-500 transition-colors">
+                الخلطات الخاصة
+              </Link>
+              <Link href="/about-us" className="hover:text-amber-500 transition-colors">
+                قصتنا
+              </Link>
+              <Link href="/quality-standards" className="hover:text-amber-500 transition-colors">
+                الجودة
+              </Link>
+              <Link href="/faq" className="hover:text-amber-500 transition-colors">
+                الأسئلة الشائعة
+              </Link>
             </div>
 
             {/* أيقونات الإجراءات + الدعوة لاتخاذ إجراء */}

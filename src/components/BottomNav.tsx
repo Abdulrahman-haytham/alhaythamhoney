@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useHydrated } from '@/lib/useHydrated';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Home, Store, ShoppingCart, Heart, MessageCircle } from 'lucide-react';
@@ -17,13 +17,9 @@ import { trackWhatsAppClick } from '@/lib/analytics';
  */
 export default function BottomNav() {
   const pathname = usePathname();
-  const [mounted, setMounted] = useState(false);
+  const mounted = useHydrated();
   const { getTotalItems } = useCart();
   const wishlistCount = useWishlist((s) => s.items.length);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   // العدّادات من localStorage — تُصفَّر قبل الترطيب لتفادي عدم التطابق
   const cartCount = mounted ? getTotalItems() : 0;

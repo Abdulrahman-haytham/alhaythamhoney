@@ -1,16 +1,16 @@
-import type { DetailedHTMLProps, HTMLAttributes } from "react";
+import type { DetailedHTMLProps, HTMLAttributes } from 'react';
 
 type HaythamLoaderElement = DetailedHTMLProps<HTMLAttributes<HTMLElement>, HTMLElement> & {
-  active?: boolean | "";
-  overlay?: boolean | "";
-  theme?: "light" | "dark";
+  active?: boolean | '';
+  overlay?: boolean | '';
+  theme?: 'light' | 'dark';
   label?: string;
 };
 
-declare module "react" {
+declare module 'react' {
   namespace JSX {
     interface IntrinsicElements {
-      "haytham-loader": HaythamLoaderElement;
+      'haytham-loader': HaythamLoaderElement;
     }
   }
 }

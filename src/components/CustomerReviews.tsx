@@ -31,7 +31,9 @@ export default async function CustomerReviews() {
               Customer Reviews
             </span>
           </div>
-          <h2 className="text-3xl md:text-4xl font-amiri font-bold mb-4 text-white">ماذا يقول عملاؤنا؟</h2>
+          <h2 className="text-3xl md:text-4xl font-amiri font-bold mb-4 text-white">
+            ماذا يقول عملاؤنا؟
+          </h2>
           <p className="text-zinc-400 text-base font-light max-w-2xl mx-auto">
             ثقة عملائنا هي شهادتنا الحقيقية على جودة منتجاتنا
           </p>
@@ -62,7 +64,9 @@ export default async function CustomerReviews() {
 
                 <div className="pt-4 border-t border-white/5 text-right">
                   <h4 className="text-white font-bold text-sm mb-0.5">{review.authorName}</h4>
-                  {review.authorCity && <p className="text-zinc-500 text-xs">{review.authorCity}</p>}
+                  {review.authorCity && (
+                    <p className="text-zinc-500 text-xs">{review.authorCity}</p>
+                  )}
                 </div>
 
                 <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-xl pointer-events-none" />

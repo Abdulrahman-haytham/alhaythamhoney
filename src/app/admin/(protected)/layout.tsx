@@ -1,16 +1,18 @@
-import { redirect } from "next/navigation";
-import Link from "next/link";
-import { requireAdmin } from "@/lib/auth";
+import { redirect } from 'next/navigation';
+import Link from 'next/link';
+import { requireAdmin } from '@/lib/auth';
+import AdminLogout from '@/components/AdminLogout';
 
 const TABS = [
-  { href: "/admin/reviews", label: "التقييمات" },
-  { href: "/admin/mixtures", label: "الخلطات" },
-  { href: "/admin/studio", label: "استديو الهيثم" },
+  { href: '/admin/products', label: 'المنتجات' },
+  { href: '/admin/reviews', label: 'التقييمات' },
+  { href: '/admin/mixtures', label: 'الخلطات' },
+  { href: '/admin/studio', label: 'استديو الهيثم' },
 ];
 
 export default async function ProtectedAdminLayout({ children }: { children: React.ReactNode }) {
   const admin = await requireAdmin();
-  if (!admin) redirect("/admin/login");
+  if (!admin) redirect('/admin/login');
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100">
@@ -20,8 +22,9 @@ export default async function ProtectedAdminLayout({ children }: { children: Rea
             الهيثم <span className="text-amber-500">— لوحة التحكم</span>
           </Link>
           <span className="text-sm text-zinc-500">{admin.name}</span>
+          <AdminLogout />
         </div>
-        <nav className="mx-auto flex max-w-5xl gap-1 px-4 sm:px-6">
+        <nav className="mx-auto flex max-w-5xl gap-1 overflow-x-auto px-4 sm:px-6">
           {TABS.map((tab) => (
             <Link
               key={tab.href}
@@ -33,7 +36,7 @@ export default async function ProtectedAdminLayout({ children }: { children: Rea
           ))}
         </nav>
       </header>
-      <main className="mx-auto max-w-5xl px-4 py-10 sm:px-6">{children}</main>
+      <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6">{children}</div>
     </div>
   );
 }

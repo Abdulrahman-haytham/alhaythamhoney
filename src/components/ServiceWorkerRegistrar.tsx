@@ -1,41 +1,52 @@
 'use client';
+import { useEffect, useState } from 'react';
 
-import { useEffect } from 'react';
-
-/** يسجّل Service Worker في الإنتاج فقط، ويفعّل أي نسخة جديدة فور جهوزها. */
 export default function ServiceWorkerRegistrar() {
+  const [waiting, setWaiting] = useState<ServiceWorker | null>(null);
   useEffect(() => {
-    if (process.env.NODE_ENV !== 'production') return;
-    if (!('serviceWorker' in navigator)) return;
-
-    let refreshing = false;
-    const onControllerChange = () => {
-      if (refreshing) return;
-      refreshing = true;
-      window.location.reload();
+    if (process.env.NODE_ENV !== 'production' || !('serviceWorker' in navigator)) return;
+    let disposed = false;
+    let requestedUpdate = false;
+    const change = () => {
+      if (requestedUpdate) window.location.reload();
     };
-    navigator.serviceWorker.addEventListener('controllerchange', onControllerChange);
-
+    navigator.serviceWorker.addEventListener('controllerchange', change);
+    const update = (worker: ServiceWorker) => {
+      if (!disposed) setWaiting(worker);
+    };
     navigator.serviceWorker
       .register('/sw.js', { scope: '/' })
       .then((registration) => {
+        if (registration.waiting) update(registration.waiting);
         registration.addEventListener('updatefound', () => {
-          const installing = registration.installing;
-          if (!installing) return;
-          installing.addEventListener('statechange', () => {
-            // نسخة جديدة جاهزة بينما القديمة ما تزال تتحكم — نطلب التبديل
-            if (installing.state === 'installed' && navigator.serviceWorker.controller) {
-              installing.postMessage('SKIP_WAITING');
-            }
+          const worker = registration.installing;
+          if (!worker) return;
+          worker.addEventListener('statechange', () => {
+            if (worker.state === 'installed' && navigator.serviceWorker.controller) update(worker);
           });
         });
       })
-      .catch((err) => console.error('SW registration failed:', err));
-
+      .catch((error) => console.error('SW registration failed:', error));
+    const request = () => {
+      requestedUpdate = true;
+    };
+    window.addEventListener('haytham-sw-update', request);
     return () => {
-      navigator.serviceWorker.removeEventListener('controllerchange', onControllerChange);
+      disposed = true;
+      navigator.serviceWorker.removeEventListener('controllerchange', change);
+      window.removeEventListener('haytham-sw-update', request);
     };
   }, []);
-
-  return null;
+  if (!waiting) return null;
+  return (
+    <button
+      className="fixed bottom-24 left-4 z-[100] rounded-xl bg-amber-500 px-4 py-3 text-sm font-bold text-zinc-950"
+      onClick={() => {
+        window.dispatchEvent(new Event('haytham-sw-update'));
+        waiting.postMessage('SKIP_WAITING');
+      }}
+    >
+      تحديث الموقع متاح — اضغط لإعادة التحميل
+    </button>
+  );
 }

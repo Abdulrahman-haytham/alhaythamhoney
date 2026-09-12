@@ -9,7 +9,10 @@ export default function Loading() {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {[0, 1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className="rounded-2xl border border-zinc-800 bg-zinc-900/50 overflow-hidden">
+            <div
+              key={i}
+              className="rounded-2xl border border-zinc-800 bg-zinc-900/50 overflow-hidden"
+            >
               <div className="h-64 bg-zinc-800/60 animate-pulse" />
               <div className="p-5 space-y-3">
                 <div className="h-6 w-2/3 rounded-lg bg-zinc-800 animate-pulse" />

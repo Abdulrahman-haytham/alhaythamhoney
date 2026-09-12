@@ -26,32 +26,44 @@ function send(gaEvent: string, metaEvent: string | null, params: Params = {}) {
 
 const SYP = 'SYP';
 
-export function trackAddToCart(item: { id: string; name: string; price?: number; quantity?: number }) {
+export function trackAddToCart(item: {
+  id: string;
+  name: string;
+  price?: number;
+  quantity?: number;
+}) {
   const value = (item.price ?? 0) * (item.quantity ?? 1);
   send('add_to_cart', 'AddToCart', {
     currency: SYP,
     value,
     content_ids: [item.id],
     content_name: item.name,
-    items: [{ item_id: item.id, item_name: item.name, price: item.price ?? 0, quantity: item.quantity ?? 1 }],
+    items: [
+      {
+        item_id: item.id,
+        item_name: item.name,
+        price: item.price ?? 0,
+        quantity: item.quantity ?? 1,
+      },
+    ],
   });
 }
 
-export function trackBeginCheckout(value: number, items: { id: string; name: string; price?: number; quantity: number }[]) {
+export function trackBeginCheckout(
+  value: number,
+  items: { id: string; name: string; price?: number; quantity: number }[],
+) {
   send('begin_checkout', 'InitiateCheckout', {
     currency: SYP,
     value,
     num_items: items.reduce((s, i) => s + i.quantity, 0),
     content_ids: items.map((i) => i.id),
-    items: items.map((i) => ({ item_id: i.id, item_name: i.name, price: i.price ?? 0, quantity: i.quantity })),
-  });
-}
-
-export function trackPurchase(reference: string, value: number) {
-  send('purchase', 'Purchase', {
-    transaction_id: reference,
-    currency: SYP,
-    value,
+    items: items.map((i) => ({
+      item_id: i.id,
+      item_name: i.name,
+      price: i.price ?? 0,
+      quantity: i.quantity,
+    })),
   });
 }
 

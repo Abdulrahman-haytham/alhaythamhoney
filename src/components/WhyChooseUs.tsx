@@ -2,7 +2,16 @@
 
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { FlaskConical, Hexagon, Award, Ban, HandCoins, Truck, MessageCircle, Store } from 'lucide-react';
+import {
+  FlaskConical,
+  Hexagon,
+  Award,
+  Ban,
+  HandCoins,
+  Truck,
+  MessageCircle,
+  Store,
+} from 'lucide-react';
 import { SHIPPING, getWhatsAppLink } from '@/lib/config';
 import { trackWhatsAppClick } from '@/lib/analytics';
 

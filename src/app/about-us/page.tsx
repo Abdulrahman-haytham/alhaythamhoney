@@ -20,9 +20,12 @@ export default function AboutPage() {
           <div className="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-2xl border border-amber-500/20 bg-amber-500/10">
             <BookOpen className="h-7 w-7 text-amber-500" strokeWidth={1.5} />
           </div>
-          <h1 className="mb-4 font-amiri text-3xl font-bold text-white sm:text-4xl md:text-5xl">قصتنا</h1>
+          <h1 className="mb-4 font-amiri text-3xl font-bold text-white sm:text-4xl md:text-5xl">
+            قصتنا
+          </h1>
           <p className="mx-auto max-w-2xl text-lg text-zinc-400">
-            إرث عائلي في تربية النحل منذ {SITE.foundedYear} — حين يكون العسل مسؤولية قبل أن يكون تجارة.
+            إرث عائلي في تربية النحل منذ {SITE.foundedYear} — حين يكون العسل مسؤولية قبل أن يكون
+            تجارة.
           </p>
         </div>
       </section>

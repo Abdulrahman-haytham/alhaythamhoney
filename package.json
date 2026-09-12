@@ -5,15 +5,21 @@
   "scripts": {
     "dev": "node scripts/check-port.mjs",
     "dev:raw": "next dev -p 3005",
-    "build": "prisma generate && next build",
-    "start": "next start -p 3005",
+    "build": "prisma generate && next build && node scripts/prepare-standalone.mjs",
+    "start": "node --env-file-if-exists=.env scripts/start.mjs",
     "start:check": "node scripts/check-port.mjs start",
-    "lint": "eslint",
+    "lint": "eslint . --max-warnings=0",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:e2e": "playwright test",
     "postinstall": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
     "db:push": "prisma db push",
-    "db:seed": "tsx prisma/seed.ts",
+    "db:seed": "node --env-file-if-exists=.env --import tsx prisma/seed.ts",
     "db:studio": "prisma studio"
   },
   "dependencies": {
@@ -21,25 +27,36 @@
     "clsx": "^2.1.1",
     "framer-motion": "^12.38.0",
     "lucide-react": "^1.7.0",
-    "next": "16.2.2",
+    "next": "16.3.5",
+    "qrcode": "^1.5.4",
     "react": "19.2.4",
     "react-dom": "19.2.4",
-    "react-helmet-async": "^3.0.0",
     "server-only": "^0.0.1",
     "tailwind-merge": "^3.5.0",
+    "zod": "^3.25.76",
     "zustand": "^5.0.12"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.5.8",
+    "@playwright/test": "^1.63.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
+    "@types/qrcode": "^1.5.6",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "16.2.2",
+    "eslint-config-next": "16.3.5",
+    "prettier": "^3.9.6",
     "prisma": "^6.19.3",
     "tailwindcss": "^4",
     "tsx": "^4.20.0",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^3.2.7"
+  },
+  "overrides": {
+    "@prisma/config": {
+      "deepmerge-ts": "8.0.0"
+    }
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

@@ -1,7 +1,11 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ArrowLeft, BookOpen, Calendar, Clock, FileText, MessageCircle } from 'lucide-react';
-import { getAllArticlesWithReadingTime, formatArticleDate, formatReadingTime } from '@/lib/articles';
+import {
+  getAllArticlesWithReadingTime,
+  formatArticleDate,
+  formatReadingTime,
+} from '@/lib/articles';
 import { SITE, getWhatsAppLink } from '@/lib/config';
 
 export const metadata: Metadata = {
@@ -48,7 +52,6 @@ export default async function ArticlesPage() {
                 aria-label={article.title}
               >
                 {article.image ? (
-                  /* eslint-disable-next-line @next/next/no-img-element */
                   <img
                     src={article.image}
                     alt={article.title}
@@ -70,7 +73,9 @@ export default async function ArticlesPage() {
                 <div className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-zinc-500">
                   <span className="inline-flex items-center gap-1.5">
                     <Calendar className="h-3.5 w-3.5 text-amber-500/70" />
-                    <time dateTime={article.publishedAt}>{formatArticleDate(article.publishedAt)}</time>
+                    <time dateTime={article.publishedAt}>
+                      {formatArticleDate(article.publishedAt)}
+                    </time>
                   </span>
                   <span className="inline-flex items-center gap-1.5">
                     <Clock className="h-3.5 w-3.5 text-amber-500/70" />
@@ -81,7 +86,9 @@ export default async function ArticlesPage() {
                 <h2 className="mb-3 font-amiri text-xl font-bold leading-snug text-white transition-colors group-hover:text-amber-400">
                   <Link href={`/articles/${article.slug}`}>{article.title}</Link>
                 </h2>
-                <p className="mb-6 line-clamp-3 leading-relaxed text-zinc-400">{article.description}</p>
+                <p className="mb-6 line-clamp-3 leading-relaxed text-zinc-400">
+                  {article.description}
+                </p>
 
                 <Link
                   href={`/articles/${article.slug}`}
@@ -99,7 +106,9 @@ export default async function ArticlesPage() {
           <h2 className="mb-4 font-amiri text-2xl font-bold text-white sm:text-3xl">
             جاهز لتجربة عسلنا الطبيعي؟
           </h2>
-          <p className="mb-8 text-lg text-zinc-400">اطلب الآن واحصل على عسل طبيعي 100% مفحوص مخبرياً</p>
+          <p className="mb-8 text-lg text-zinc-400">
+            اطلب الآن واحصل على عسل طبيعي 100% مفحوص مخبرياً
+          </p>
           <a
             href={getWhatsAppLink(SITE.whatsappDefaultMessage)}
             target="_blank"

@@ -4,7 +4,10 @@ import { motion } from 'framer-motion';
 
 export default function Story() {
   return (
-    <section id="story" className="py-16 sm:py-24 md:py-32 px-4 sm:px-6 bg-zinc-950 relative overflow-hidden">
+    <section
+      id="story"
+      className="py-16 sm:py-24 md:py-32 px-4 sm:px-6 bg-zinc-950 relative overflow-hidden"
+    >
       <div className="absolute -right-40 top-40 w-[500px] h-[500px] bg-amber-600/5 blur-[120px] rounded-full"></div>
 
       <div className="container mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 sm:gap-16 md:gap-20 lg:gap-24 items-center">
@@ -18,7 +21,7 @@ export default function Story() {
           <div className="relative z-10 rounded-2xl sm:rounded-[2.5rem] md:rounded-[3rem] overflow-hidden luxury-shadow border border-amber-500/10 aspect-square">
             <img
               src="https://res.cloudinary.com/dkbvnupge/image/upload/f_auto,q_auto/v1768231269/my-app-uploads/jo3ljfxuqemiwep7wjkc.jpg"
-              alt="الهيثم نحل و عسل - إرث عائلي منذ 1997 في سوريا"
+              alt="الهيثم — نحل وعسل - إرث عائلي منذ 1997 في سوريا"
               loading="lazy"
               className="w-full h-full object-cover grayscale-[30%] hover:grayscale-0 transition-all duration-700"
             />
@@ -45,8 +48,8 @@ export default function Story() {
           <div className="space-y-4 sm:space-y-6 text-zinc-300 text-base sm:text-lg md:text-xl leading-relaxed font-light">
             <p>بدأت رحلتنا عام 1997 بشغف الوالد المؤسس، وباحترام عميق لعالم خلية النحل.</p>
             <p className="text-zinc-400">
-              اليوم نتابع نحن <strong className="text-white">عبد الرحمن وتركي</strong> هذه الرسالة بنفس
-              الأمانة، وبخبرة أعمق، محافظين على جودة لا نساوم عليها.
+              اليوم نتابع نحن <strong className="text-white">عبد الرحمن وتركي</strong> هذه الرسالة
+              بنفس الأمانة، وبخبرة أعمق، محافظين على جودة لا نساوم عليها.
             </p>
           </div>
 
@@ -73,8 +76,12 @@ export default function Story() {
               </div>
             </div>
             <div>
-              <p className="text-white font-bold text-sm sm:text-base">بإدارة أبناء الوالد المؤسس</p>
-              <p className="text-zinc-500 text-[10px] sm:text-xs italic">نضع اسمنا ضماناً لكل قطرة عسل</p>
+              <p className="text-white font-bold text-sm sm:text-base">
+                بإدارة أبناء الوالد المؤسس
+              </p>
+              <p className="text-zinc-500 text-[10px] sm:text-xs italic">
+                نضع اسمنا ضماناً لكل قطرة عسل
+              </p>
             </div>
           </div>
         </motion.div>

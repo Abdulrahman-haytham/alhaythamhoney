@@ -6,9 +6,14 @@ import { getMixtureBySlug, getHoneyOptions } from '@/lib/mixtures.server';
 import { MixtureBuilder } from '@/components/MixtureBuilder';
 import { SITE } from '@/lib/config';
 
-export const revalidate = 60;
+// Query at request time: production builds do not need a live database.
+export const dynamic = 'force-dynamic';
 
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
   const { slug } = await params;
   const mixture = await getMixtureBySlug(slug);
   if (!mixture || !mixture.published) notFound();
@@ -57,14 +62,16 @@ export default async function MixturePage({ params }: { params: Promise<{ slug: 
               </h2>
               <ol className="space-y-2 text-sm leading-relaxed text-zinc-400">
                 <li>
-                  <span className="text-amber-500">١.</span> اختر نوع العسل الذي يعجبك — هو قاعدة الخلطة.
+                  <span className="text-amber-500">١.</span> اختر نوع العسل الذي يعجبك — هو قاعدة
+                  الخلطة.
                 </li>
                 <li>
-                  <span className="text-amber-500">٢.</span> اختر الحجم؛ النِسب تبقى كما ضبطها الخبير.
+                  <span className="text-amber-500">٢.</span> اختر الحجم؛ النِسب تبقى كما ضبطها
+                  الخبير.
                 </li>
                 <li>
-                  <span className="text-amber-500">٣.</span> إن أردت، عدّل أي مكوّن ضمن حدوده — والسعر
-                  يتحدّث فوراً.
+                  <span className="text-amber-500">٣.</span> إن أردت، عدّل أي مكوّن ضمن حدوده —
+                  والسعر يتحدّث فوراً.
                 </li>
               </ol>
               <p className="mt-4 border-t border-zinc-800 pt-3 text-xs leading-relaxed text-zinc-500">

@@ -40,13 +40,7 @@ export function LegalPage({
   );
 }
 
-export function LegalSection({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
+export function LegalSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-6 sm:p-8">
       <h2 className="text-xl font-amiri font-bold text-amber-500 mb-4">{title}</h2>

@@ -26,7 +26,13 @@ export interface AdminMixture {
   ingredients: AdminIngredient[];
 }
 
-const FIELDS: { key: keyof Pick<AdminIngredient, 'pricePerGram' | 'minGrams' | 'maxGrams' | 'recommended' | 'step'>; label: string }[] = [
+const FIELDS: {
+  key: keyof Pick<
+    AdminIngredient,
+    'pricePerGram' | 'minGrams' | 'maxGrams' | 'recommended' | 'step'
+  >;
+  label: string;
+}[] = [
   { key: 'pricePerGram', label: 'ل.س/غرام' },
   { key: 'minGrams', label: 'الأدنى' },
   { key: 'recommended', label: 'الموصى به' },
@@ -41,7 +47,10 @@ function MixtureEditor({ initial }: { initial: AdminMixture }) {
   const [error, setError] = useState<string | null>(null);
 
   function setIng(id: string, patch: Partial<AdminIngredient>) {
-    setM((cur) => ({ ...cur, ingredients: cur.ingredients.map((i) => (i.id === id ? { ...i, ...patch } : i)) }));
+    setM((cur) => ({
+      ...cur,
+      ingredients: cur.ingredients.map((i) => (i.id === id ? { ...i, ...patch } : i)),
+    }));
   }
 
   async function save() {
@@ -50,8 +59,17 @@ function MixtureEditor({ initial }: { initial: AdminMixture }) {
     const res = await fetch(`/api/admin/mixtures/${m.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prepFee: m.prepFee, published: m.published, ingredients: m.ingredients }),
-    });
+      body: JSON.stringify({
+        prepFee: m.prepFee,
+        published: m.published,
+        ingredients: m.ingredients,
+      }),
+    }).catch(() => null);
+    if (!res) {
+      setError('تعذّر الاتصال. حاول مجدداً.');
+      setState('idle');
+      return;
+    }
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
       setError(data.error ?? 'تعذّر الحفظ.');
@@ -70,7 +88,11 @@ function MixtureEditor({ initial }: { initial: AdminMixture }) {
           <h2 className="font-amiri text-xl font-bold text-white">{m.name}</h2>
           <p className="text-xs text-zinc-500">
             {m.tagline} · المرطبان المرجعي {m.baseSize}غ ·{' '}
-            <a href={`/custom-mixtures/${m.slug}`} target="_blank" className="text-amber-500 hover:text-amber-400">
+            <a
+              href={`/custom-mixtures/${m.slug}`}
+              target="_blank"
+              className="text-amber-500 hover:text-amber-400"
+            >
               معاينة
             </a>
           </p>
@@ -92,7 +114,9 @@ function MixtureEditor({ initial }: { initial: AdminMixture }) {
             <tr className="text-right text-xs text-zinc-500">
               <th className="pb-2 font-medium">المكوّن</th>
               {FIELDS.map((f) => (
-                <th key={f.key} className="pb-2 font-medium">{f.label}</th>
+                <th key={f.key} className="pb-2 font-medium">
+                  {f.label}
+                </th>
               ))}
               <th className="pb-2 font-medium">ملاحظة للزبون</th>
             </tr>
@@ -148,7 +172,9 @@ function MixtureEditor({ initial }: { initial: AdminMixture }) {
             onClick={save}
             disabled={state === 'saving'}
             className={`inline-flex h-10 items-center gap-2 rounded-xl px-5 text-sm font-bold transition-colors disabled:opacity-60 ${
-              state === 'saved' ? 'bg-green-600 text-white' : 'bg-amber-500 text-zinc-950 hover:bg-amber-400'
+              state === 'saved'
+                ? 'bg-green-600 text-white'
+                : 'bg-amber-500 text-zinc-950 hover:bg-amber-400'
             }`}
           >
             {state === 'saved' ? <Check className="h-4 w-4" /> : <Save className="h-4 w-4" />}

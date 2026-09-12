@@ -17,8 +17,13 @@ export interface RatingSummary {
 }
 
 function toPublic(r: {
-  id: string; authorName: string; authorCity: string | null;
-  rating: number; body: string; orderRef: string | null; createdAt: Date;
+  id: string;
+  authorName: string;
+  authorCity: string | null;
+  rating: number;
+  body: string;
+  orderRef: string | null;
+  createdAt: Date;
 }): PublicReview {
   return {
     id: r.id,
@@ -26,13 +31,16 @@ function toPublic(r: {
     authorCity: r.authorCity,
     rating: r.rating,
     body: r.body,
-    verified: Boolean(r.orderRef),
+    verified: false, // WhatsApp-only orders cannot be verified by this application.
     createdAt: r.createdAt.toISOString(),
   };
 }
 
 /** تقييمات معتمدة — للموقع كله أو لمنتج بعينه. */
-export async function getApprovedReviews(productSlug?: string, limit = 12): Promise<PublicReview[]> {
+export async function getApprovedReviews(
+  productSlug?: string,
+  limit = 12,
+): Promise<PublicReview[]> {
   try {
     const rows = await db.review.findMany({
       where: {

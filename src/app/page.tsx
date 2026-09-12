@@ -1,16 +1,20 @@
-import Hero from "@/components/Hero";
-import Stats from "@/components/Stats";
-import Story from "@/components/Story";
-import Products from "@/components/Products";
-import { CustomMixtures } from "@/components/CustomMixtures";
-import { SpecialOffers } from "@/components/SpecialOffers";
-import CustomerReviews from "@/components/CustomerReviews";
-import WhyChooseUs from "@/components/WhyChooseUs";
-import FAQ from "@/components/FAQ";
-import { Location } from "@/components/Location";
-import { getProducts } from "@/lib/products.server";
+import Hero from '@/components/Hero';
+import Stats from '@/components/Stats';
+import Story from '@/components/Story';
+import Products from '@/components/Products';
+import { CustomMixtures } from '@/components/CustomMixtures';
+import { SpecialOffers } from '@/components/SpecialOffers';
+import CustomerReviews from '@/components/CustomerReviews';
+import WhyChooseUs from '@/components/WhyChooseUs';
+import FAQ from '@/components/FAQ';
+import { Location } from '@/components/Location';
+import { getProducts } from '@/lib/products.server';
+import type { Metadata } from 'next';
 
-export const revalidate = 60;
+export const metadata: Metadata = { alternates: { canonical: '/' } };
+
+// Query at request time: production builds do not need a live database.
+export const dynamic = 'force-dynamic';
 
 /**
  * ترتيب الأقسام مبنيّ على قمع الشراء لا على السرد:

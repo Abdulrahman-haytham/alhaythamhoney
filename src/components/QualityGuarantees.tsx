@@ -30,12 +30,16 @@ export default function QualityGuarantees() {
         >
           <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-amber-500/25 bg-amber-500/[0.07] px-4 py-1.5">
             <Award className="h-4 w-4 text-amber-400" strokeWidth={1.5} />
-            <span className="text-xs font-semibold tracking-wide text-amber-300">الشهادات والضمانات</span>
+            <span className="text-xs font-semibold tracking-wide text-amber-300">
+              الشهادات والضمانات
+            </span>
           </div>
           <h2 className="mb-4 font-amiri text-3xl font-bold text-white sm:text-4xl md:text-5xl">
             شهادات الجودة والضمانات
           </h2>
-          <p className="mx-auto max-w-2xl text-lg text-zinc-400">ثقتكم هي أمانتنا — نضع اسمنا ضماناً لكل قطرة عسل</p>
+          <p className="mx-auto max-w-2xl text-lg text-zinc-400">
+            ثقتكم هي أمانتنا — نضع اسمنا ضماناً لكل قطرة عسل
+          </p>
         </motion.div>
 
         <div className="mx-auto grid max-w-5xl grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
@@ -74,7 +78,9 @@ export default function QualityGuarantees() {
           <p className="mb-6 text-base text-zinc-300 sm:text-lg">
             نضمن أن كل منتج من منتجاتنا هو 100% عسل طبيعي مفحوص مخبرياً.
             <br />
-            <span className="font-bold text-amber-400">إذا لم تكن راضياً عن الجودة، نعيد لك المال كاملاً.</span>
+            <span className="font-bold text-amber-400">
+              إذا لم تكن راضياً عن الجودة، نعيد لك المال كاملاً.
+            </span>
           </p>
           <div className="mb-6 flex flex-wrap justify-center gap-4 text-sm text-zinc-400">
             {BADGES.map((b) => (

@@ -5,7 +5,7 @@ import { SITE, getWhatsAppLink, getTelLink } from '@/lib/config';
 export const metadata: Metadata = {
   title: 'تواصل معنا',
   description:
-    'تواصل مع الهيثم لنحل وعسل عبر واتساب أو الهاتف أو البريد. الحي الشمالي، قمحانة، حماة، سوريا.',
+    'تواصل مع الهيثم — نحل وعسل عبر واتساب أو الهاتف أو البريد. الحي الشمالي، قمحانة، حماة، سوريا.',
   alternates: { canonical: '/contact' },
 };
 

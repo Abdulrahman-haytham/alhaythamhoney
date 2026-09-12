@@ -27,6 +27,8 @@ export async function getHoneyOptions(): Promise<HoneyOption[]> {
   return rows.flatMap((p) => {
     const grams = parseGrams(p.weight);
     if (!p.price || !grams) return [];
-    return [{ slug: p.slug, name: p.name, image: p.image, pricePerGram: Math.round(p.price / grams) }];
+    return [
+      { slug: p.slug, name: p.name, image: p.image, pricePerGram: Math.round(p.price / grams) },
+    ];
   });
 }

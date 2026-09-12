@@ -32,7 +32,6 @@ export function ProductReviews({
   const [city, setCity] = useState('');
   const [stars, setStars] = useState(5);
   const [body, setBody] = useState('');
-  const [orderRef, setOrderRef] = useState('');
   const [state, setState] = useState<'idle' | 'sending' | 'done'>('idle');
   const [error, setError] = useState<string | null>(null);
 
@@ -51,7 +50,6 @@ export function ProductReviews({
           authorCity: city || undefined,
           rating: stars,
           body,
-          orderRef: orderRef || undefined,
         }),
       });
       const data = await res.json().catch(() => ({}));
@@ -158,19 +156,6 @@ export function ProductReviews({
               rows={3}
               placeholder="كيف كانت تجربتك مع المنتج؟"
               className="w-full rounded-xl border border-zinc-700 bg-zinc-800 px-4 py-3 text-base text-zinc-100 placeholder-zinc-500 focus:border-amber-500 focus:outline-none"
-            />
-          </div>
-
-          <div>
-            <label className="mb-1.5 block text-sm text-zinc-400">
-              رقم طلبك (اختياري — يمنحك وسم «شراء موثّق»)
-            </label>
-            <input
-              value={orderRef}
-              onChange={(e) => setOrderRef(e.target.value)}
-              placeholder="ORD-XXXXX-XXXX"
-              dir="ltr"
-              className="w-full rounded-xl border border-zinc-700 bg-zinc-800 px-4 py-3 text-base text-zinc-100 placeholder-zinc-600 focus:border-amber-500 focus:outline-none"
             />
           </div>
 

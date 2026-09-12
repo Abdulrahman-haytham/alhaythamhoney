@@ -10,7 +10,10 @@ const mapsSearchUrl = `https://www.google.com/maps/search/${encodeURIComponent(a
 /** قسم الموقع — عنوان المنحل وأوقات الاستقبال، ببطاقة ثابتة بدل تضمين خريطة فعلية. */
 export function Location() {
   return (
-    <section id="location" className="py-12 sm:py-16 md:py-24 px-4 sm:px-6 bg-zinc-950 relative overflow-hidden">
+    <section
+      id="location"
+      className="py-12 sm:py-16 md:py-24 px-4 sm:px-6 bg-zinc-950 relative overflow-hidden"
+    >
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-px bg-gradient-to-r from-transparent via-amber-500/20 to-transparent"></div>
 
       <div className="container mx-auto">
@@ -43,7 +46,9 @@ export function Location() {
             className="lg:col-span-1 space-y-6 sm:space-y-8"
           >
             <div className="bg-zinc-900/50 p-5 sm:p-6 md:p-8 rounded-2xl sm:rounded-[2rem] md:rounded-[2.5rem] border border-white/5 luxury-shadow">
-              <h3 className="text-xl sm:text-2xl font-amiri font-bold text-white mb-3 sm:mb-4">العنوان الدقيق</h3>
+              <h3 className="text-xl sm:text-2xl font-amiri font-bold text-white mb-3 sm:mb-4">
+                العنوان الدقيق
+              </h3>
               <p className="text-zinc-400 text-sm sm:text-base md:text-lg leading-relaxed mb-6 sm:mb-8 italic">
                 {address}
               </p>
@@ -59,8 +64,12 @@ export function Location() {
             </div>
 
             <div className="bg-zinc-900/30 p-5 sm:p-6 md:p-8 rounded-2xl sm:rounded-[2rem] md:rounded-[2.5rem] border border-amber-500/5">
-              <h4 className="text-amber-500 font-bold mb-2 text-sm sm:text-base">أوقات الاستقبال</h4>
-              <p className="text-zinc-400 text-xs sm:text-sm md:text-base mb-4">{SITE.workingHours}</p>
+              <h4 className="text-amber-500 font-bold mb-2 text-sm sm:text-base">
+                أوقات الاستقبال
+              </h4>
+              <p className="text-zinc-400 text-xs sm:text-sm md:text-base mb-4">
+                {SITE.workingHours}
+              </p>
               <a
                 href={getTelLink()}
                 className="text-amber-500 hover:text-amber-400 font-bold text-lg transition-colors"

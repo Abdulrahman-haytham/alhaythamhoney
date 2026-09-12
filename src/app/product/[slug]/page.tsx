@@ -12,9 +12,10 @@ import {
 } from 'lucide-react';
 import { getProductBySlug } from '@/lib/products.server';
 import { getApprovedReviews, getRatingSummary } from '@/lib/reviews.server';
-import { getWhatsAppLink } from '@/lib/config';
+import { SITE, getWhatsAppLink } from '@/lib/config';
 import { ProductReviews } from '@/components/ProductReviews';
 import AddToCartButton from './AddToCartButton';
+export const dynamic = 'force-dynamic';
 
 interface DetailedInfo {
   uses?: string[];
@@ -65,9 +66,42 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   ]);
 
   const detailedInfo = parseDetailedInfo(product.detailedInfo);
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: product.name,
+    description: product.desc,
+    image: new URL(product.image, SITE.url).href,
+    sku: product.slug,
+    brand: { '@type': 'Brand', name: SITE.name },
+    ...(product.price != null
+      ? {
+          offers: {
+            '@type': 'Offer',
+            url: `${SITE.url}/product/${product.slug}`,
+            price: product.price,
+            priceCurrency: 'SYP',
+            availability: `https://schema.org/${product.inStock ? 'InStock' : 'OutOfStock'}`,
+          },
+        }
+      : {}),
+    ...(rating
+      ? {
+          aggregateRating: {
+            '@type': 'AggregateRating',
+            ratingValue: rating.average,
+            reviewCount: rating.count,
+          },
+        }
+      : {}),
+  };
 
   return (
     <div className="min-h-screen bg-zinc-950 pt-24 pb-16">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
+      />
       <div className="container mx-auto px-4 sm:px-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           {/* Image Section */}
@@ -90,7 +124,9 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           {/* Details Section */}
           <div className="space-y-8">
             <div>
-              <h1 className="text-4xl md:text-5xl font-amiri font-bold text-white mb-4">{product.name}</h1>
+              <h1 className="text-4xl md:text-5xl font-amiri font-bold text-white mb-4">
+                {product.name}
+              </h1>
               {product.benefit && (
                 <span className="inline-block text-sm bg-amber-500/10 text-amber-500 px-4 py-2 rounded-lg font-bold uppercase tracking-wider border border-amber-500/20">
                   {product.benefit}
@@ -106,13 +142,18 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               <div className="flex items-center gap-3">
                 <span className="text-3xl font-bold gold-text">{formatPrice(product.price)}</span>
                 <span className="text-zinc-500">ل.س</span>
-                {product.weight && <span className="text-zinc-500 border-r border-zinc-700 pr-3">{product.weight}</span>}
+                {product.weight && (
+                  <span className="text-zinc-500 border-r border-zinc-700 pr-3">
+                    {product.weight}
+                  </span>
+                )}
               </div>
             )}
 
             {/* Action Buttons */}
             <div className="space-y-3">
               <AddToCartButton
+                available={product.inStock}
                 product={{
                   id: product.id,
                   slug: product.slug,
@@ -127,7 +168,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               />
               <a
                 href={getWhatsAppLink(
-                  `مرحباً عسل الهيثم، أود الاستفسار عن المنتج المعروض في الموقع: ${product.name}`
+                  `مرحباً عسل الهيثم، أود الاستفسار عن المنتج المعروض في الموقع: ${product.name}`,
                 )}
                 target="_blank"
                 rel="noopener noreferrer"

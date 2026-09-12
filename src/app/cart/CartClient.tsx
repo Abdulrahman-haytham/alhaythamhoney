@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useHydrated } from '@/lib/useHydrated';
 import Link from 'next/link';
 import { ShoppingCart, Plus, Minus, Trash2, MessageCircle, Store, Truck } from 'lucide-react';
 import { useCart } from '@/store/cartStore';
@@ -10,18 +10,17 @@ import { trackBeginCheckout } from '@/lib/analytics';
 const fmt = (n: number) => new Intl.NumberFormat('en-US').format(n);
 
 export function CartClient() {
-  const [mounted, setMounted] = useState(false);
+  const mounted = useHydrated();
   const { items, removeItem, updateQuantity, clearCart, getTotalPrice, getTotalItems } = useCart();
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   if (!mounted) {
     return (
       <div className="space-y-4">
         {[0, 1].map((i) => (
-          <div key={i} className="h-28 animate-pulse rounded-2xl border border-zinc-800 bg-zinc-900/50" />
+          <div
+            key={i}
+            className="h-28 animate-pulse rounded-2xl border border-zinc-800 bg-zinc-900/50"
+          />
         ))}
       </div>
     );
@@ -62,7 +61,7 @@ export function CartClient() {
     `الشحن: ${freeShipping ? 'مجاني' : `${fmt(shipping)} ل.س`}`,
     `الإجمالي: ${fmt(total)} ل.س`,
     '',
-    'الدفع عند الاستلام. أرجو تأكيد التوفر ومدة التوصيل.',
+    'هذه الأسعار من السلة المحفوظة. أرجو تأكيد السعر النهائي والشحن والتوفر ومدة التوصيل.',
   ].join('\n');
 
   return (
@@ -85,7 +84,7 @@ export function CartClient() {
               key={item.id}
               className="flex gap-4 rounded-2xl border border-zinc-800 bg-zinc-900/40 p-3 sm:p-4"
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
+              {}
               <img
                 src={item.image}
                 alt={item.name}
@@ -94,9 +93,13 @@ export function CartClient() {
               <div className="flex min-w-0 flex-1 flex-col">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <h3 className="font-amiri text-lg font-bold leading-snug text-white">{item.name}</h3>
+                    <h3 className="font-amiri text-lg font-bold leading-snug text-white">
+                      {item.name}
+                    </h3>
                     {item.recipe ? (
-                      <p className="mt-1 text-xs leading-relaxed text-amber-500/90">{item.recipe}</p>
+                      <p className="mt-1 text-xs leading-relaxed text-amber-500/90">
+                        {item.recipe}
+                      </p>
                     ) : (
                       item.weight && <p className="mt-0.5 text-xs text-zinc-500">{item.weight}</p>
                     )}
@@ -121,7 +124,9 @@ export function CartClient() {
                     >
                       <Minus className="h-4 w-4" />
                     </button>
-                    <span className="w-8 text-center text-sm font-bold tabular-nums text-white">{item.quantity}</span>
+                    <span className="w-8 text-center text-sm font-bold tabular-nums text-white">
+                      {item.quantity}
+                    </span>
                     <button
                       type="button"
                       onClick={() => updateQuantity(item.id, item.quantity + 1)}
@@ -132,7 +137,9 @@ export function CartClient() {
                     </button>
                   </div>
                   <p className="text-left leading-none">
-                    <span className="gold-text text-lg font-bold tabular-nums">{fmt((item.price ?? 0) * item.quantity)}</span>
+                    <span className="gold-text text-lg font-bold tabular-nums">
+                      {fmt((item.price ?? 0) * item.quantity)}
+                    </span>
                     <span className="mr-1 text-xs text-zinc-500">ل.س</span>
                   </p>
                 </div>
@@ -155,7 +162,13 @@ export function CartClient() {
                 <Truck className="h-4 w-4 text-zinc-500" />
                 الشحن
               </dt>
-              <dd className="tabular-nums">{freeShipping ? <span className="text-green-400">مجاني</span> : `${fmt(shipping)} ل.س`}</dd>
+              <dd className="tabular-nums">
+                {freeShipping ? (
+                  <span className="text-green-400">مجاني</span>
+                ) : (
+                  `${fmt(shipping)} ل.س`
+                )}
+              </dd>
             </div>
             {!freeShipping && remaining > 0 && (
               <p className="rounded-lg bg-amber-500/10 px-3 py-2 text-xs leading-relaxed text-amber-200/90">
@@ -165,7 +178,8 @@ export function CartClient() {
             <div className="flex justify-between border-t border-zinc-800 pt-3 text-base font-bold text-white">
               <dt>الإجمالي</dt>
               <dd className="tabular-nums">
-                <span className="gold-text">{fmt(total)}</span> <span className="text-xs font-normal text-zinc-500">ل.س</span>
+                <span className="gold-text">{fmt(total)}</span>{' '}
+                <span className="text-xs font-normal text-zinc-500">ل.س</span>
               </dd>
             </div>
           </dl>
@@ -177,7 +191,12 @@ export function CartClient() {
             onClick={() =>
               trackBeginCheckout(
                 total,
-                items.map((i) => ({ id: i.id, name: i.name, price: i.price ?? 0, quantity: i.quantity }))
+                items.map((i) => ({
+                  id: i.id,
+                  name: i.name,
+                  price: i.price ?? 0,
+                  quantity: i.quantity,
+                })),
               )
             }
             className="mt-6 flex h-13 w-full items-center justify-center gap-2.5 rounded-xl bg-green-600 py-4 font-bold text-white shadow-lg shadow-green-600/20 transition-colors hover:bg-green-500"
@@ -186,7 +205,8 @@ export function CartClient() {
             أكمل الطلب عبر واتساب
           </a>
           <p className="mt-3 text-center text-xs leading-relaxed text-zinc-500">
-            الدفع عند الاستلام — نؤكد لك التوفر ومدة التوصيل على واتساب قبل الشحن.
+            الأسعار في السلة تقديرية وقد تتغير. نؤكد السعر النهائي والشحن والتوفر على واتساب قبل
+            إتمام الطلب، ولا يتم دفع إلكتروني هنا.
           </p>
         </div>
       </aside>

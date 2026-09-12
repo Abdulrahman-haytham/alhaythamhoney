@@ -1,4 +1,4 @@
-// الهيثم لنحل وعسل — مخطط قاعدة البيانات
+// الهيثم — نحل وعسل — مخطط قاعدة البيانات
 
 generator client {
   provider = "prisma-client-js"
@@ -112,7 +112,7 @@ model Review {
   rating      Int
   body        String
   status      ReviewStatus @default(PENDING)
-  /// مرجع طلب اختياري — يسمح بوسم «شراء موثّق»
+  /// حقل قديم محفوظ لتجنب فقد البيانات؛ لا يكفي لإثبات الشراء.
   orderRef    String?
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
@@ -182,4 +182,13 @@ model StudioPhoto {
 
   @@index([createdAt])
   @@map("studio_photos")
+}
+
+model RateLimit {
+  key       String   @id
+  count     Int      @default(0)
+  expiresAt DateTime
+
+  @@index([expiresAt])
+  @@map("rate_limits")
 }

@@ -2,9 +2,14 @@ import type { MetadataRoute } from 'next';
 import { db } from '@/lib/db';
 import { SITE } from '@/lib/config';
 
-export const revalidate = 3600;
+// Query at request time: production builds do not need a live database.
+export const dynamic = 'force-dynamic';
 
-const STATIC: { path: string; priority: number; changeFrequency: MetadataRoute.Sitemap[number]['changeFrequency'] }[] = [
+const STATIC: {
+  path: string;
+  priority: number;
+  changeFrequency: MetadataRoute.Sitemap[number]['changeFrequency'];
+}[] = [
   { path: '/', priority: 1, changeFrequency: 'weekly' },
   { path: '/shop', priority: 0.9, changeFrequency: 'weekly' },
   { path: '/custom-mixtures', priority: 0.9, changeFrequency: 'monthly' },
@@ -35,7 +40,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }
 
   return [
-    ...STATIC.map((s) => ({ url: `${SITE.url}${s.path}`, priority: s.priority, changeFrequency: s.changeFrequency })),
+    ...STATIC.map((s) => ({
+      url: `${SITE.url}${s.path}`,
+      priority: s.priority,
+      changeFrequency: s.changeFrequency,
+    })),
     ...products.map((p) => ({
       url: `${SITE.url}/product/${p.slug}`,
       lastModified: p.updatedAt,

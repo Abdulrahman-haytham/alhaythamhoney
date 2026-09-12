@@ -1,11 +1,11 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 /* مقالات المدونة تحمل وسوم HTML خاماً مع أصناف Tailwind (جداول مثلاً) — نضمّها للمسح. */
 @source "../../content/articles";
 
 @theme {
-  --font-cairo: "Cairo", ui-sans-serif, system-ui, sans-serif;
-  --font-amiri: "Amiri", ui-serif, Georgia, serif;
+  --font-cairo: 'Cairo', ui-sans-serif, system-ui, sans-serif;
+  --font-amiri: 'Amiri', ui-serif, Georgia, serif;
 
   --color-gold-50: #fff9e6;
   --color-gold-100: #ffefb3;
