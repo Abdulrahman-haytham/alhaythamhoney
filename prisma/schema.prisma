@@ -1,0 +1,185 @@
+// الهيثم لنحل وعسل — مخطط قاعدة البيانات
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  OWNER
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PREPARING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+enum ProductCategory {
+  HONEY
+  SUPPLEMENT
+}
+
+model Admin {
+  id           String   @id @default(cuid())
+  username     String   @unique
+  passwordHash String
+  name         String
+  role         Role     @default(ADMIN)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("admins")
+}
+
+model Product {
+  id           String          @id @default(cuid())
+  slug         String          @unique
+  name         String
+  desc         String
+  benefit      String?
+  image        String
+  badge        String?
+  price        Int?
+  weight       String?
+  category     ProductCategory @default(HONEY)
+  detailedInfo Json?
+  inStock      Boolean         @default(true)
+  published    Boolean         @default(true)
+  sortOrder    Int             @default(0)
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  orderItems   OrderItem[]
+  reviews      Review[]
+
+  @@index([published, sortOrder])
+  @@map("products")
+}
+
+model Order {
+  id              String      @id @default(cuid())
+  reference       String      @unique
+  customerName    String
+  customerPhone   String
+  customerAddress String
+  customerCity    String
+  notes           String?
+  status          OrderStatus @default(PENDING)
+  totalAmount     Int
+  discountAmount  Int         @default(0)
+  couponCode      String?
+  paymentMethod   String      @default("cash-on-delivery")
+  items           OrderItem[]
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  @@index([customerPhone])
+  @@index([status, createdAt])
+  @@map("orders")
+}
+
+model OrderItem {
+  id        String   @id @default(cuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String?
+  product   Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  name      String
+  price     Int
+  quantity  Int
+  weight    String?
+  image     String?
+
+  @@index([orderId])
+  @@map("order_items")
+}
+
+/// تقييم عميل. لا يُنشر إلا بعد موافقة الأدمن — حماية من السبام والمحتوى المسيء.
+model Review {
+  id          String       @id @default(cuid())
+  productId   String?
+  product     Product?     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  authorName  String
+  authorCity  String?
+  rating      Int
+  body        String
+  status      ReviewStatus @default(PENDING)
+  /// مرجع طلب اختياري — يسمح بوسم «شراء موثّق»
+  orderRef    String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([status, createdAt])
+  @@index([productId, status])
+  @@map("reviews")
+}
+
+enum ReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+/// خلطة مخصّصة: قاعدة من العسل (يختار الزبون نوعه) + إضافات بجرعات يضبطها الخبير
+/// ويستطيع الزبون تعديلها ضمن حدود. الكميات مُعرَّفة لمرطبان مرجعي وزنه baseSize.
+model Mixture {
+  id          String              @id @default(cuid())
+  slug        String              @unique
+  name        String
+  tagline     String
+  desc        String
+  image       String?
+  baseSize    Int                 @default(500)
+  prepFee     Int                 @default(0)
+  published   Boolean             @default(true)
+  sortOrder   Int                 @default(0)
+  ingredients MixtureIngredient[]
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+
+  @@index([published, sortOrder])
+  @@map("mixtures")
+}
+
+model MixtureIngredient {
+  id           String  @id @default(cuid())
+  mixtureId    String
+  mixture      Mixture @relation(fields: [mixtureId], references: [id], onDelete: Cascade)
+  name         String
+  /// سطر قصير يبرّر الجرعة الموصى بها للزبون
+  note         String?
+  pricePerGram Int
+  minGrams     Int
+  maxGrams     Int
+  recommended  Int
+  step         Int     @default(5)
+  sortOrder    Int     @default(0)
+
+  @@index([mixtureId])
+  @@map("mixture_ingredients")
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
+}
+
+/// لقطات استديو الهيثم — صور ومقاطع يرفعها الأدمن وتُعرض للزوار في /studio
+model StudioPhoto {
+  id        String    @id @default(cuid())
+  url       String
+  caption   String?
+  type      MediaType @default(IMAGE)
+  createdAt DateTime  @default(now())
+
+  @@index([createdAt])
+  @@map("studio_photos")
+}

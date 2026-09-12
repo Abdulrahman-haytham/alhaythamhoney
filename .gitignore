@@ -1,34 +1,30 @@
-# Logs
-logs
+# dependencies
+node_modules/
+
+# next.js
+.next/
+out/
+next-env.d.ts
+tsconfig.tsbuildinfo
+
+# env — يحوي كلمات مرور قاعدة البيانات والأدمن
+.env
+.env.local
+.env.*.local
+
+# ملفات يرفعها الأدمن من لوحة التحكم (استديو الهيثم)
+public/uploads/
+
+# مؤقت وتشخيص
+tmp/
 *.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
-
-node_modules
-dist
-dist-ssr
-*.local
-
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
-.qwen
 .DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
-
-# Project Management & Analysis Files
-PROJECT_ANALYSIS.md
-RECOMMENDATIONS.md
-TASKS_DONE.md
-GITHUB_GUIDE.md
-
-# Generated QR images (npm run qr)
-*-qr.png
+audit.mjs
+checkout.mjs
+diag.mjs
+hook.mjs
+iotest.mjs
+probe.mjs
+sections.mjs
+shot.mjs
+shot2.mjs
