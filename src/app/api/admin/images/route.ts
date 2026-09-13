@@ -7,12 +7,11 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 /**
- * رفع صورة لمقال (غلاف أو داخل النص). تُخزَّن في مجلد الاستديو نفسه
+ * رفع صورة عامة للوحة التحكم (غلاف مقال، صورة داخل النص، خلفية الهيرو…). تُخزَّن في مجلد الاستديو نفسه
  * وتُخدَم من /uploads/studio لكنها لا تُدرج في معرض الاستديو.
  */
 export async function POST(request: Request) {
-  const denied =
-    (await guardAdmin(request)) || (await rateLimit(request, 'article-image', 40, 3600));
+  const denied = (await guardAdmin(request)) || (await rateLimit(request, 'admin-image', 40, 3600));
   if (denied) return denied;
   try {
     const form = await readUploadForm(request);
@@ -21,7 +20,7 @@ export async function POST(request: Request) {
     const media = await saveMedia(file);
     if (media.type !== 'IMAGE') {
       await removeMedia(media.url).catch(() => {});
-      throw new Error('المقالات تقبل الصور فقط.');
+      throw new Error('هذا الرفع للصور فقط.');
     }
     return NextResponse.json({ url: media.url }, { status: 201 });
   } catch (error) {

@@ -19,14 +19,25 @@ const empty: Input = {
   weight: null,
   category: 'HONEY',
   inStock: true,
+  stockQty: null,
   published: false,
   sortOrder: 0,
+  relatedIds: [],
   detailedInfo: null,
 };
 const inputClass =
   'mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-base text-white disabled:text-zinc-500';
 
-function Editor({ product, onCreated }: { product?: ProductRow; onCreated?: () => void }) {
+function Editor({
+  product,
+  all,
+  onCreated,
+}: {
+  product?: ProductRow;
+  /** بقية المنتجات لاختيار «يُشترى معه عادةً» */
+  all: { id: string; name: string }[];
+  onCreated?: () => void;
+}) {
   const router = useRouter();
   const [form, setForm] = useState<Omit<Input, 'detailedInfo'>>(product ?? empty);
   const [details, setDetails] = useState(JSON.stringify(product?.detailedInfo ?? {}, null, 2));
@@ -137,6 +148,17 @@ function Editor({ product, onCreated }: { product?: ProductRow; onCreated?: () =
           />
         </label>
         <label>
+          الكمية المتبقية (اختياري — فارغ = بلا تتبّع)
+          <input
+            className={inputClass}
+            type="number"
+            min={0}
+            max={1000000}
+            value={form.stockQty ?? ''}
+            onChange={(e) => set('stockQty', e.target.value === '' ? null : Number(e.target.value))}
+          />
+        </label>
+        <label>
           شارة البطاقة
           <input
             className={inputClass}
@@ -175,6 +197,40 @@ function Editor({ product, onCreated }: { product?: ProductRow; onCreated?: () =
           required
         />
       </label>
+      <fieldset className="rounded-lg border border-zinc-800 p-3">
+        <legend className="px-1 text-sm text-amber-400">يُشترى معه عادةً</legend>
+        <p className="mb-2 text-xs text-zinc-500">
+          يظهر أسفل صفحة المنتج. إن لم تختر شيئاً يُكمل الموقع تلقائياً من الفئة نفسها (يمكن تعطيل
+          ذلك من الإعدادات).
+        </p>
+        <div className="flex flex-wrap gap-2">
+          {all
+            .filter((p) => p.id !== product?.id)
+            .map((p) => {
+              const on = form.relatedIds.includes(p.id);
+              return (
+                <button
+                  key={p.id}
+                  type="button"
+                  aria-pressed={on}
+                  onClick={() =>
+                    set(
+                      'relatedIds',
+                      on ? form.relatedIds.filter((id) => id !== p.id) : [...form.relatedIds, p.id],
+                    )
+                  }
+                  className={`rounded-full border px-3 py-1 text-xs transition ${
+                    on
+                      ? 'border-amber-500 bg-amber-500/15 text-amber-300'
+                      : 'border-zinc-700 text-zinc-400 hover:border-zinc-500'
+                  }`}
+                >
+                  {p.name}
+                </button>
+              );
+            })}
+        </div>
+      </fieldset>
       <details>
         <summary className="cursor-pointer text-amber-400">تفاصيل إضافية (JSON)</summary>
         <p className="my-2 text-xs text-zinc-400">
@@ -224,6 +280,7 @@ function Editor({ product, onCreated }: { product?: ProductRow; onCreated?: () =
 
 export function ProductsPanel({ products }: { products: ProductRow[] }) {
   const [creating, setCreating] = useState(false);
+  const all = products.map((p) => ({ id: p.id, name: p.name }));
   return (
     <div className="space-y-5">
       <button
@@ -232,16 +289,17 @@ export function ProductsPanel({ products }: { products: ProductRow[] }) {
       >
         {creating ? 'إلغاء الإضافة' : '+ منتج جديد'}
       </button>
-      {creating && <Editor onCreated={() => setCreating(false)} />}
+      {creating && <Editor all={all} onCreated={() => setCreating(false)} />}
       {products.map((product) => (
         <details key={product.id} className="rounded-xl border border-zinc-800 bg-zinc-900/40">
           <summary className="cursor-pointer p-4">
             {product.name}{' '}
             <span className="text-sm text-zinc-400">
               — {product.published ? 'منشور' : 'مخفي'} · {product.inStock ? 'متوفر' : 'غير متوفر'}
+              {product.stockQty != null && ` · الكمية ${product.stockQty}`}
             </span>
           </summary>
-          <Editor product={product} />
+          <Editor product={product} all={all} />
         </details>
       ))}
     </div>

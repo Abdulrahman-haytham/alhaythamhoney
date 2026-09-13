@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getContact, getWhatsAppLink } from '@/lib/contacts';
 import { SITE } from '@/lib/config';
+import { getSettings } from '@/lib/settings.server';
 
 type Params = { params: Promise<{ slug: string }> };
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
@@ -17,6 +18,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 }
 
 export default async function ContactCard({ params }: Params) {
+  await getSettings();
   const { slug } = await params;
   const c = getContact(slug);
   if (!c) notFound();

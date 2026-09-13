@@ -22,7 +22,10 @@ export const CONTACTS: Record<string, Contact> = {
     nameAr: SITE.name,
     nameLat: 'Al-Haytham Honey',
     org: SITE.name,
-    phone: SITE.phoneNumber,
+    // getter لأن الرقم يُحرَّر من لوحة التحكم وقت التشغيل
+    get phone() {
+      return SITE.phoneNumber;
+    },
     email: '',
     url: SITE.url,
     street: 'الحي الشمالي، جانب مسجد بلال الحبشي',

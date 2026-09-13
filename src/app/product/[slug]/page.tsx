@@ -10,11 +10,18 @@ import {
   Leaf,
   MessageCircle,
 } from 'lucide-react';
-import { getProductBySlug } from '@/lib/products.server';
+import Link from 'next/link';
+import { ArrowLeft, BookOpen, Sparkles } from 'lucide-react';
+import { getProductBySlug, getRelatedProducts, getProductArticles } from '@/lib/products.server';
 import { getApprovedReviews, getRatingSummary } from '@/lib/reviews.server';
 import { SITE, getWhatsAppLink } from '@/lib/config';
+import { getSettings } from '@/lib/settings.server';
+import { isAvailable, lowStockLabel } from '@/lib/settings';
 import { ProductReviews } from '@/components/ProductReviews';
+import ProductCard from '@/components/ProductCard';
+import RecentlyViewed, { RecentlyViewedTracker } from '@/components/RecentlyViewed';
 import AddToCartButton from './AddToCartButton';
+import StickyBuyBar from './StickyBuyBar';
 export const dynamic = 'force-dynamic';
 
 interface DetailedInfo {
@@ -60,11 +67,27 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const product = await getProductBySlug(slug);
   if (!product) notFound();
 
-  const [reviews, rating] = await Promise.all([
+  const settings = await getSettings();
+  const [reviews, rating, related, articles] = await Promise.all([
     getApprovedReviews(product.slug),
     getRatingSummary(product.slug),
+    getRelatedProducts(product.id, product.category, settings.autoRelatedProducts),
+    getProductArticles(product.id),
   ]);
 
+  const available = isAvailable(product);
+  const lowStock = lowStockLabel(product.stockQty, settings.lowStockThreshold);
+  const cartProduct = {
+    id: product.id,
+    slug: product.slug,
+    name: product.name,
+    desc: product.desc,
+    image: product.image,
+    price: product.price,
+    weight: product.weight,
+    badge: product.badge,
+    benefit: product.benefit,
+  };
   const detailedInfo = parseDetailedInfo(product.detailedInfo);
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -81,7 +104,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             url: `${SITE.url}/product/${product.slug}`,
             price: product.price,
             priceCurrency: 'SYP',
-            availability: `https://schema.org/${product.inStock ? 'InStock' : 'OutOfStock'}`,
+            availability: `https://schema.org/${available ? 'InStock' : 'OutOfStock'}`,
           },
         }
       : {}),
@@ -113,7 +136,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                   {product.badge}
                 </div>
               )}
-              {!product.inStock && (
+              {!available && (
                 <div className="absolute inset-0 bg-zinc-950/70 flex items-center justify-center">
                   <span className="text-zinc-300 font-bold text-lg">نفدت الكمية حالياً</span>
                 </div>
@@ -150,22 +173,16 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               </div>
             )}
 
+            {lowStock && (
+              <p className="inline-flex items-center gap-2 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-1.5 text-sm font-bold text-red-300">
+                <span className="h-2 w-2 animate-pulse rounded-full bg-red-400" />
+                {lowStock} — اطلبه قبل أن ينفد
+              </p>
+            )}
+
             {/* Action Buttons */}
-            <div className="space-y-3">
-              <AddToCartButton
-                available={product.inStock}
-                product={{
-                  id: product.id,
-                  slug: product.slug,
-                  name: product.name,
-                  desc: product.desc,
-                  image: product.image,
-                  price: product.price,
-                  weight: product.weight,
-                  badge: product.badge,
-                  benefit: product.benefit,
-                }}
-              />
+            <div className="space-y-3" id="buy-box">
+              <AddToCartButton available={available} product={cartProduct} />
               <a
                 href={getWhatsAppLink(
                   `مرحباً عسل الهيثم، أود الاستفسار عن المنتج المعروض في الموقع: ${product.name}`,
@@ -267,8 +284,82 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           </div>
         </div>
 
+        {related.length > 0 && (
+          <section aria-labelledby="related-heading" className="mt-16">
+            <div className="mb-6 flex items-center justify-between gap-4">
+              <h2
+                id="related-heading"
+                className="flex items-center gap-2 font-amiri text-2xl font-bold text-white sm:text-3xl"
+              >
+                <Sparkles className="h-6 w-6 text-amber-500" />
+                يُشترى معه عادةً
+              </h2>
+              <Link
+                href="/shop"
+                className="inline-flex items-center gap-1.5 text-sm font-bold text-amber-500 hover:text-amber-400"
+              >
+                كل المنتجات
+                <ArrowLeft className="h-4 w-4" />
+              </Link>
+            </div>
+            <div className="grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-4">
+              {related.map((p) => (
+                <ProductCard key={p.id} product={p} />
+              ))}
+            </div>
+          </section>
+        )}
+
+        {articles.length > 0 && (
+          <section aria-labelledby="articles-heading" className="mt-16">
+            <h2
+              id="articles-heading"
+              className="mb-6 flex items-center gap-2 font-amiri text-2xl font-bold text-white"
+            >
+              <BookOpen className="h-5 w-5 text-amber-500" />
+              اقرأ عن هذا المنتج
+            </h2>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+              {articles.map((a) => (
+                <Link
+                  key={a.slug}
+                  href={`/articles/${a.slug}`}
+                  className="group flex gap-3 rounded-2xl border border-zinc-800 bg-zinc-900/40 p-3 transition hover:border-amber-500/40"
+                >
+                  {a.image && (
+                    <img
+                      src={a.image}
+                      alt=""
+                      loading="lazy"
+                      className="h-20 w-20 shrink-0 rounded-xl object-cover"
+                    />
+                  )}
+                  <div className="min-w-0">
+                    <h3 className="line-clamp-2 font-amiri text-base font-bold leading-snug text-white group-hover:text-amber-400">
+                      {a.title}
+                    </h3>
+                    <p className="mt-1 line-clamp-2 text-xs text-zinc-500">{a.description}</p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
+
         <ProductReviews productSlug={product.slug} reviews={reviews} rating={rating} />
       </div>
+
+      <RecentlyViewed excludeId={product.id} />
+      <RecentlyViewedTracker
+        product={{
+          id: product.id,
+          slug: product.slug,
+          name: product.name,
+          image: product.image,
+          price: product.price,
+        }}
+      />
+      <StickyBuyBar product={cartProduct} available={available} anchorId="buy-box" />
     </div>
   );
 }

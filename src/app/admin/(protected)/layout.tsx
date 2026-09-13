@@ -8,6 +8,8 @@ const TABS = [
   { href: '/admin/reviews', label: 'التقييمات' },
   { href: '/admin/mixtures', label: 'الخلطات' },
   { href: '/admin/articles', label: 'المدونة' },
+  { href: '/admin/coupons', label: 'الكوبونات' },
+  { href: '/admin/settings', label: 'الإعدادات' },
   { href: '/admin/studio', label: 'استديو الهيثم' },
 ];
 

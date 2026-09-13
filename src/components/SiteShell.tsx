@@ -4,6 +4,8 @@ import Header from '@/components/Header';
 import BottomNav from '@/components/BottomNav';
 import BootLoader from '@/components/BootLoader';
 import ScrollProgressBar from '@/components/ScrollProgressBar';
+import CartToast from '@/components/CartToast';
+import CartReminder from '@/components/CartReminder';
 
 export default function SiteShell({
   children,
@@ -34,6 +36,8 @@ export default function SiteShell({
         <>
           {footer}
           <BottomNav />
+          <CartToast />
+          <CartReminder />
         </>
       )}
     </>

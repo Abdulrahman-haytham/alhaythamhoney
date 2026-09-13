@@ -1,5 +1,15 @@
 import { describe, it, expect } from 'vitest';
-import { reviewInput, productInput, mixtureInput, articleInput } from '@/lib/validation';
+import {
+  reviewInput,
+  productInput,
+  mixtureInput,
+  articleInput,
+  couponInput,
+  settingsInput,
+} from '@/lib/validation';
+import { applyCoupon } from '@/lib/coupons';
+import { DEFAULT_SETTINGS, lowStockLabel, isAvailable } from '@/lib/settings';
+import { applyRuntimeSettings, getWhatsAppLink, SHIPPING } from '@/lib/config';
 import { renderMarkdown } from '@/lib/markdown';
 import {
   computePrice,
@@ -80,8 +90,10 @@ describe('pricing and validation', () => {
       weight: '500 غرام',
       category: 'HONEY',
       inStock: true,
+      stockQty: null,
       published: false,
       sortOrder: 0,
+      relatedIds: [],
       detailedInfo: null,
     };
     expect(productInput.safeParse(product).success).toBe(true);
@@ -156,6 +168,7 @@ describe('blog articles', () => {
       body: '## عنوان\n\nفقرة تشرح فوائد العسل الطبيعي بالتفصيل.',
       published: true,
       publishedAt: '2026-09-13',
+      productIds: [],
     };
     expect(articleInput.safeParse(input).success).toBe(true);
     for (const bad of [
@@ -179,5 +192,61 @@ describe('blog articles', () => {
     expect(html).not.toContain('<script');
     expect(html).not.toContain('onclick');
     expect(html).not.toContain('alert(1)');
+  });
+});
+describe('coupons and store settings', () => {
+  const base = {
+    code: 'RAMADAN10',
+    type: 'PERCENT' as const,
+    value: 10,
+    minOrder: 100_000,
+    maxDiscount: 30_000,
+    active: true,
+    startsAt: null,
+    expiresAt: null,
+  };
+  it('applies percent and fixed coupons with limits and dates', () => {
+    expect(applyCoupon(base, 200_000)).toMatchObject({ ok: true, discount: 20_000 });
+    expect(applyCoupon(base, 900_000)).toMatchObject({ ok: true, discount: 30_000 });
+    expect(applyCoupon(base, 50_000).ok).toBe(false);
+    expect(applyCoupon({ ...base, active: false }, 200_000).ok).toBe(false);
+    expect(applyCoupon({ ...base, expiresAt: new Date('2000-01-01') }, 200_000).ok).toBe(false);
+    expect(applyCoupon({ ...base, startsAt: new Date('2999-01-01') }, 200_000).ok).toBe(false);
+    expect(applyCoupon(null, 200_000).ok).toBe(false);
+    expect(
+      applyCoupon({ ...base, type: 'FIXED', value: 500_000, maxDiscount: null }, 200_000),
+    ).toMatchObject({ ok: true, discount: 200_000 });
+  });
+  it('validates coupon and settings input', () => {
+    const coupon = { ...base, startsAt: null, expiresAt: null, note: null };
+    expect(couponInput.safeParse(coupon).success).toBe(true);
+    expect(couponInput.safeParse({ ...coupon, code: 'كود عربي' }).success).toBe(false);
+    expect(couponInput.safeParse({ ...coupon, value: 150 }).success).toBe(false);
+    expect(
+      couponInput.safeParse({ ...coupon, startsAt: '2026-05-01', expiresAt: '2026-04-01' }).success,
+    ).toBe(false);
+    expect(settingsInput.safeParse(DEFAULT_SETTINGS).success).toBe(true);
+    expect(settingsInput.safeParse({ ...DEFAULT_SETTINGS, whatsappNumber: '+963' }).success).toBe(
+      false,
+    );
+    expect(
+      settingsInput.safeParse({ ...DEFAULT_SETTINGS, announcementLink: 'javascript:x' }).success,
+    ).toBe(false);
+  });
+  it('shows the low-stock badge only inside the admin threshold', () => {
+    expect(lowStockLabel(null, 3)).toBeNull();
+    expect(lowStockLabel(0, 3)).toBeNull();
+    expect(lowStockLabel(5, 3)).toBeNull();
+    expect(lowStockLabel(2, 3)).toBe('بقيت قطعتان فقط');
+    expect(lowStockLabel(3, 0)).toBeNull();
+    expect(isAvailable({ inStock: true, stockQty: 0 })).toBe(false);
+    expect(isAvailable({ inStock: true, stockQty: null })).toBe(true);
+  });
+  it('lets admin settings override contact and shipping constants at runtime', () => {
+    applyRuntimeSettings({ ...DEFAULT_SETTINGS, whatsappNumber: '963900000000', shippingCost: 1 });
+    expect(getWhatsAppLink('hi')).toBe('https://wa.me/963900000000?text=hi');
+    expect(SHIPPING.cost).toBe(1);
+    applyRuntimeSettings(DEFAULT_SETTINGS);
+    expect(getContact('haytham')?.phone).toBe('+963947931959');
   });
 });

@@ -2,36 +2,64 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
-import { Search, X, FileText, Package } from 'lucide-react';
+import { Search, X, FileText, Package, SlidersHorizontal, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export interface SearchDoc {
-  kind: 'product' | 'article';
+  kind: 'product' | 'mixture' | 'article';
   slug: string;
   title: string;
   desc: string;
-  image?: string;
+  image: string | null;
+  price: number | null;
+  inStock: boolean;
   terms: string;
 }
 
-export function SearchDialog({
-  open,
-  onClose,
-  docs,
-}: {
-  open: boolean;
-  onClose: () => void;
-  docs: SearchDoc[];
-}) {
+const fmt = (n: number) => new Intl.NumberFormat('en-US').format(n);
+const HREF: Record<SearchDoc['kind'], string> = {
+  product: '/product/',
+  mixture: '/custom-mixtures/',
+  article: '/articles/',
+};
+
+let cachedDocs: SearchDoc[] | null = null;
+
+/** تطبيع عربي بسيط حتى يجد «عسل» ما كُتب «العسل» أو بهمزات مختلفة */
+function normalize(s: string) {
+  return s
+    .toLowerCase()
+    .replace(/[إأآا]/g, 'ا')
+    .replace(/ة/g, 'ه')
+    .replace(/ى/g, 'ي')
+    .replace(/[ً-ْ]/g, '')
+    .replace(/\bال/g, '');
+}
+
+/**
+ * بحث فوري على طريقة Odoo: يجلب فهرساً صغيراً مرة واحدة عند أول فتح
+ * ويبحث محلياً مع كل ضغطة، ويعرض الصورة والسعر مباشرة في النتيجة.
+ */
+export function SearchDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [query, setQuery] = useState('');
+  // null = الفهرس لم يُجلب بعد (حالة التحميل)
+  const [docs, setDocs] = useState<SearchDoc[] | null>(cachedDocs);
+  const loading = docs === null;
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (open) {
-      // نؤخر التركيز إطاراً حتى يُركّب الحقل فعلياً
-      const id = requestAnimationFrame(() => inputRef.current?.focus());
-      return () => cancelAnimationFrame(id);
+    if (!open) return;
+    const id = requestAnimationFrame(() => inputRef.current?.focus());
+    if (!cachedDocs) {
+      fetch('/api/search')
+        .then((r) => r.json())
+        .then((data: { docs: SearchDoc[] }) => {
+          cachedDocs = data.docs;
+          setDocs(data.docs);
+        })
+        .catch(() => setDocs([]));
     }
+    return () => cancelAnimationFrame(id);
   }, [open]);
 
   useEffect(() => {
@@ -48,13 +76,29 @@ export function SearchDialog({
   }, [open, onClose]);
 
   const results = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return [];
-    return docs.filter((d) => d.terms.includes(q)).slice(0, 8);
+    const q = normalize(query.trim());
+    if (!q || !docs) return [];
+    const words = q.split(/\s+/).filter(Boolean);
+    return docs
+      .map((d) => {
+        const hay = normalize(d.terms);
+        const title = normalize(d.title);
+        if (!words.every((w) => hay.includes(w))) return null;
+        // العنوان المطابق يتقدّم على الوصف المطابق
+        const score = words.reduce((s, w) => s + (title.includes(w) ? 2 : 1), 0);
+        return { d, score };
+      })
+      .filter((x): x is { d: SearchDoc; score: number } => x !== null)
+      .sort((a, b) => b.score - a.score)
+      .map((x) => x.d)
+      .slice(0, 10);
   }, [docs, query]);
 
-  const products = results.filter((r) => r.kind === 'product');
-  const articles = results.filter((r) => r.kind === 'article');
+  const groups: { kind: SearchDoc['kind']; title: string; icon: React.ReactNode }[] = [
+    { kind: 'product', title: 'المنتجات', icon: <Package className="w-3.5 h-3.5" /> },
+    { kind: 'mixture', title: 'الخلطات', icon: <SlidersHorizontal className="w-3.5 h-3.5" /> },
+    { kind: 'article', title: 'المقالات', icon: <FileText className="w-3.5 h-3.5" /> },
+  ];
 
   return (
     <AnimatePresence>
@@ -73,16 +117,20 @@ export function SearchDialog({
             transition={{ duration: 0.2 }}
             className="container mx-auto max-w-2xl"
             onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-label="البحث في الموقع"
           >
             <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden shadow-2xl">
               <div className="relative border-b border-zinc-800">
                 <Search className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500" />
                 <input
                   ref={inputRef}
-                  type="search"
+                  type="text"
+                  autoComplete="off"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  placeholder="ابحث عن منتج أو مقال..."
+                  placeholder="ابحث عن عسل، خلطة، أو مقال…"
                   aria-label="البحث في الموقع"
                   className="w-full bg-transparent pr-12 pl-12 py-5 text-zinc-100 placeholder-zinc-500 focus:outline-none text-lg"
                 />
@@ -98,39 +146,67 @@ export function SearchDialog({
               <div className="max-h-[60vh] overflow-y-auto">
                 {query.trim() === '' ? (
                   <p className="px-5 py-8 text-center text-zinc-500 text-sm">
-                    اكتب كلمة للبحث في المنتجات والمقالات
+                    اكتب كلمة للبحث في المنتجات والخلطات والمقالات
+                  </p>
+                ) : loading ? (
+                  <p className="flex items-center justify-center gap-2 px-5 py-8 text-sm text-zinc-500">
+                    <Loader2 className="h-4 w-4 animate-spin" /> جارٍ تجهيز البحث…
                   </p>
                 ) : results.length === 0 ? (
                   <p className="px-5 py-8 text-center text-zinc-500 text-sm">
                     لا توجد نتائج مطابقة لـ «{query}»
                   </p>
                 ) : (
-                  <>
-                    {products.length > 0 && (
-                      <Section title="المنتجات" icon={<Package className="w-3.5 h-3.5" />}>
-                        {products.map((r) => (
-                          <ResultRow
-                            key={`p-${r.slug}`}
-                            doc={r}
-                            href={`/product/${r.slug}`}
-                            onNavigate={onClose}
-                          />
+                  groups.map((g) => {
+                    const rows = results.filter((r) => r.kind === g.kind);
+                    if (rows.length === 0) return null;
+                    return (
+                      <div key={g.kind} className="py-2">
+                        <div className="flex items-center gap-1.5 px-5 py-2 text-[11px] font-bold text-amber-500/80 tracking-wide">
+                          {g.icon}
+                          {g.title}
+                        </div>
+                        {rows.map((doc) => (
+                          <Link
+                            key={`${doc.kind}-${doc.slug}`}
+                            href={`${HREF[doc.kind]}${doc.slug}`}
+                            onClick={onClose}
+                            className="flex items-center gap-3 px-5 py-3 hover:bg-zinc-800/60 transition-colors"
+                          >
+                            {doc.image ? (
+                              <img
+                                src={doc.image}
+                                alt=""
+                                className="w-12 h-12 rounded-lg object-cover shrink-0"
+                                loading="lazy"
+                              />
+                            ) : (
+                              <div className="w-12 h-12 rounded-lg bg-zinc-800 shrink-0" />
+                            )}
+                            <div className="min-w-0 flex-1">
+                              <p className="text-zinc-100 font-bold text-sm truncate">
+                                {doc.title}
+                              </p>
+                              <p className="text-zinc-500 text-xs line-clamp-1">{doc.desc}</p>
+                            </div>
+                            {doc.kind === 'product' &&
+                              (doc.inStock ? (
+                                doc.price != null && (
+                                  <span className="gold-text shrink-0 text-sm font-bold tabular-nums">
+                                    {fmt(doc.price)}{' '}
+                                    <span className="text-[10px] text-zinc-500">ل.س</span>
+                                  </span>
+                                )
+                              ) : (
+                                <span className="shrink-0 rounded-full bg-zinc-800 px-2 py-0.5 text-[10px] text-zinc-400">
+                                  غير متوفر
+                                </span>
+                              ))}
+                          </Link>
                         ))}
-                      </Section>
-                    )}
-                    {articles.length > 0 && (
-                      <Section title="المقالات" icon={<FileText className="w-3.5 h-3.5" />}>
-                        {articles.map((r) => (
-                          <ResultRow
-                            key={`a-${r.slug}`}
-                            doc={r}
-                            href={`/articles/${r.slug}`}
-                            onNavigate={onClose}
-                          />
-                        ))}
-                      </Section>
-                    )}
-                  </>
+                      </div>
+                    );
+                  })
                 )}
               </div>
             </div>
@@ -138,58 +214,5 @@ export function SearchDialog({
         </motion.div>
       )}
     </AnimatePresence>
-  );
-}
-
-function Section({
-  title,
-  icon,
-  children,
-}: {
-  title: string;
-  icon: React.ReactNode;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="py-2">
-      <div className="flex items-center gap-1.5 px-5 py-2 text-[11px] font-bold text-amber-500/80 tracking-wide">
-        {icon}
-        {title}
-      </div>
-      {children}
-    </div>
-  );
-}
-
-function ResultRow({
-  doc,
-  href,
-  onNavigate,
-}: {
-  doc: SearchDoc;
-  href: string;
-  onNavigate: () => void;
-}) {
-  return (
-    <Link
-      href={href}
-      onClick={onNavigate}
-      className="flex items-center gap-3 px-5 py-3 hover:bg-zinc-800/60 transition-colors"
-    >
-      {doc.image ? (
-        <img
-          src={doc.image}
-          alt=""
-          className="w-12 h-12 rounded-lg object-cover shrink-0"
-          loading="lazy"
-        />
-      ) : (
-        <div className="w-12 h-12 rounded-lg bg-zinc-800 shrink-0" />
-      )}
-      <div className="min-w-0">
-        <p className="text-zinc-100 font-bold text-sm truncate">{doc.title}</p>
-        <p className="text-zinc-500 text-xs line-clamp-1">{doc.desc}</p>
-      </div>
-    </Link>
   );
 }

@@ -1,17 +1,168 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { useHydrated } from '@/lib/useHydrated';
 import Link from 'next/link';
-import { ShoppingCart, Plus, Minus, Trash2, MessageCircle, Store, Truck } from 'lucide-react';
+import {
+  ShoppingCart,
+  Plus,
+  Minus,
+  Trash2,
+  MessageCircle,
+  Store,
+  Truck,
+  TicketPercent,
+  X,
+  Loader2,
+} from 'lucide-react';
 import { useCart } from '@/store/cartStore';
-import { SHIPPING, getWhatsAppLink } from '@/lib/config';
+import { getWhatsAppLink } from '@/lib/config';
+import { useSettings } from '@/components/SettingsProvider';
 import { trackBeginCheckout } from '@/lib/analytics';
+import { normalizeCouponCode, type CouponResult } from '@/lib/coupons';
 
 const fmt = (n: number) => new Intl.NumberFormat('en-US').format(n);
+
+/**
+ * شريط تقدّم التوصيل المجاني (Odoo-style): يُظهر للزبون كم بقي ليصل إلى العتبة
+ * بدل رقم جاف — أقوى محفّز لرفع متوسط الطلب.
+ */
+function FreeShippingProgress({ subtotal, threshold }: { subtotal: number; threshold: number }) {
+  const pct = Math.min(100, Math.round((subtotal / threshold) * 100));
+  const remaining = threshold - subtotal;
+  return (
+    <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-3">
+      <p className="mb-2 flex items-center gap-1.5 text-xs text-amber-200/90">
+        <Truck className="h-4 w-4 text-amber-500" />
+        {remaining > 0 ? (
+          <>
+            أضف <b className="tabular-nums">{fmt(remaining)}</b> ل.س ليصبح التوصيل مجانياً
+          </>
+        ) : (
+          <b className="text-green-400">🎉 حصلت على التوصيل المجاني</b>
+        )}
+      </p>
+      <div
+        role="progressbar"
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={pct}
+        aria-label="التقدّم نحو التوصيل المجاني"
+        className="h-2 overflow-hidden rounded-full bg-zinc-800"
+      >
+        <div
+          className={`h-full rounded-full transition-all duration-700 ${pct >= 100 ? 'bg-green-500' : 'gold-gradient'}`}
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+    </div>
+  );
+}
+
+/** حقل الكوبون — يتحقق من الخادم ويحفظ الكود في السلة ليُعاد تطبيقه تلقائياً. */
+function CouponField({
+  subtotal,
+  result,
+  onResult,
+}: {
+  subtotal: number;
+  result: CouponResult | null;
+  onResult: (r: CouponResult | null) => void;
+}) {
+  const couponCode = useCart((s) => s.couponCode);
+  const setCoupon = useCart((s) => s.setCoupon);
+  const [code, setCode] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [tick, setTick] = useState(0);
+
+  // التحقق يتم دائماً في الخادم: عند الإدخال، وعند فتح السلة، وعند تغيّر المجموع
+  useEffect(() => {
+    if (!couponCode) return;
+    let cancelled = false;
+    fetch('/api/coupons', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code: couponCode, subtotal }),
+    })
+      .then((r) => r.json() as Promise<CouponResult>)
+      .catch((): CouponResult => ({ ok: false, reason: 'تعذّر التحقق. حاول مجدداً.' }))
+      .then((data) => {
+        if (cancelled) return;
+        onResult(data);
+        // كود غير صالح يُحذف؛ أما «لم يبلغ الحد الأدنى» فيبقى ليُطبَّق تلقائياً حين يزيد الطلب
+        if (!data.ok && !data.reason.startsWith('الحد الأدنى')) setCoupon(null);
+        setBusy(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [couponCode, subtotal, tick]);
+
+  function submit(e: React.FormEvent) {
+    e.preventDefault();
+    const normalized = normalizeCouponCode(code);
+    if (!normalized) return;
+    setBusy(true);
+    if (normalized === couponCode) setTick((t) => t + 1);
+    else setCoupon(normalized);
+  }
+
+  if (result?.ok) {
+    return (
+      <div className="flex items-center justify-between gap-2 rounded-xl border border-green-500/30 bg-green-500/10 px-3 py-2 text-sm">
+        <span className="flex items-center gap-1.5 text-green-300">
+          <TicketPercent className="h-4 w-4" />
+          <b dir="ltr">{result.code}</b> — {result.label}
+        </span>
+        <button
+          type="button"
+          onClick={() => {
+            setCoupon(null);
+            onResult(null);
+            setCode('');
+          }}
+          aria-label="إزالة الكوبون"
+          className="rounded-md p-1 text-zinc-400 hover:text-white"
+        >
+          <X className="h-4 w-4" />
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <form onSubmit={submit} className="space-y-1.5">
+      <div className="flex gap-2">
+        <input
+          value={code}
+          onChange={(e) => setCode(e.target.value.toUpperCase())}
+          placeholder="كود الخصم"
+          dir="ltr"
+          aria-label="كود الخصم"
+          className="h-10 min-w-0 flex-1 rounded-xl border border-zinc-700 bg-zinc-950 px-3 text-sm text-white placeholder:text-zinc-600 focus:border-amber-500/50 focus:outline-none"
+        />
+        <button
+          type="submit"
+          disabled={busy || !code.trim()}
+          className="h-10 rounded-xl border border-amber-500/40 px-4 text-sm font-bold text-amber-300 hover:bg-amber-500/10 disabled:opacity-50"
+        >
+          {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : 'تطبيق'}
+        </button>
+      </div>
+      {result && !result.ok && <p className="text-xs text-red-400">{result.reason}</p>}
+    </form>
+  );
+}
 
 export function CartClient() {
   const mounted = useHydrated();
   const { items, removeItem, updateQuantity, clearCart, getTotalPrice, getTotalItems } = useCart();
+  const { shippingCost, freeShippingThreshold, couponsEnabled } = useSettings();
+  const couponCode = useCart((s) => s.couponCode);
+  const [couponResult, setCouponResult] = useState<CouponResult | null>(null);
+  // نتيجة التحقق تُعتمد فقط ما دام الكود محفوظاً في السلة (إفراغ السلة يلغيه)
+  const coupon = couponCode || (couponResult && !couponResult.ok) ? couponResult : null;
 
   if (!mounted) {
     return (
@@ -44,10 +195,11 @@ export function CartClient() {
   }
 
   const subtotal = getTotalPrice();
-  const freeShipping = subtotal >= SHIPPING.freeThreshold;
-  const shipping = freeShipping ? 0 : SHIPPING.cost;
-  const total = subtotal + shipping;
-  const remaining = SHIPPING.freeThreshold - subtotal;
+  const discount = coupon?.ok ? coupon.discount : 0;
+  const afterDiscount = subtotal - discount;
+  const freeShipping = freeShippingThreshold > 0 && afterDiscount >= freeShippingThreshold;
+  const shipping = freeShipping ? 0 : shippingCost;
+  const total = afterDiscount + shipping;
 
   const waMessage = [
     'مرحباً عسل الهيثم، أود تأكيد هذا الطلب:',
@@ -58,6 +210,7 @@ export function CartClient() {
     }),
     '',
     `المجموع: ${fmt(subtotal)} ل.س`,
+    ...(coupon?.ok ? [`كوبون ${coupon.code} (${coupon.label}): -${fmt(discount)} ل.س`] : []),
     `الشحن: ${freeShipping ? 'مجاني' : `${fmt(shipping)} ل.س`}`,
     `الإجمالي: ${fmt(total)} ل.س`,
     '',
@@ -157,6 +310,12 @@ export function CartClient() {
               <dt>المجموع</dt>
               <dd className="tabular-nums">{fmt(subtotal)} ل.س</dd>
             </div>
+            {coupon?.ok && (
+              <div className="flex justify-between text-green-400">
+                <dt>الخصم ({coupon.label})</dt>
+                <dd className="tabular-nums">-{fmt(discount)} ل.س</dd>
+              </div>
+            )}
             <div className="flex justify-between text-zinc-300">
               <dt className="flex items-center gap-1.5">
                 <Truck className="h-4 w-4 text-zinc-500" />
@@ -170,10 +329,11 @@ export function CartClient() {
                 )}
               </dd>
             </div>
-            {!freeShipping && remaining > 0 && (
-              <p className="rounded-lg bg-amber-500/10 px-3 py-2 text-xs leading-relaxed text-amber-200/90">
-                أضف {fmt(remaining)} ل.س أخرى ليصبح الشحن مجانياً.
-              </p>
+            {freeShippingThreshold > 0 && (
+              <FreeShippingProgress subtotal={afterDiscount} threshold={freeShippingThreshold} />
+            )}
+            {couponsEnabled && (
+              <CouponField subtotal={subtotal} result={coupon} onResult={setCouponResult} />
             )}
             <div className="flex justify-between border-t border-zinc-800 pt-3 text-base font-bold text-white">
               <dt>الإجمالي</dt>

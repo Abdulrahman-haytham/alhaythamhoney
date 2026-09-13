@@ -27,6 +27,8 @@ export interface ArticleForm {
   body: string;
   published: boolean;
   publishedAt: string;
+  /** المنتجات المذكورة في المقال — تُعرض كبطاقات شراء داخله */
+  productIds: string[];
 }
 
 const today = () => new Date().toISOString().slice(0, 10);
@@ -39,6 +41,7 @@ const empty: ArticleForm = {
   body: '',
   published: false,
   publishedAt: today(),
+  productIds: [],
 };
 
 /** أزرار شريط التنسيق — كل زر يلفّ التحديد بعلامات Markdown، والأخير يفتح منتقي الصور. */
@@ -62,13 +65,20 @@ const inputClass =
 async function uploadImage(file: File): Promise<string> {
   const form = new FormData();
   form.append('file', file);
-  const res = await fetch('/api/admin/articles/image', { method: 'POST', body: form });
+  const res = await fetch('/api/admin/images', { method: 'POST', body: form });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data.error || 'تعذّر رفع الصورة.');
   return data.url as string;
 }
 
-export function ArticleEditor({ article }: { article?: ArticleForm & { id: string } }) {
+export function ArticleEditor({
+  article,
+  products,
+}: {
+  article?: ArticleForm & { id: string };
+  /** المنتجات المنشورة لربطها بالمقال */
+  products: { id: string; name: string }[];
+}) {
   const router = useRouter();
   const [form, setForm] = useState<ArticleForm>(() => {
     if (!article) return empty;
@@ -262,6 +272,37 @@ export function ArticleEditor({ article }: { article?: ArticleForm & { id: strin
             placeholder="عسل طبيعي، فوائد العسل"
           />
         </label>
+        <fieldset className="sm:col-span-2 rounded-lg border border-zinc-800 p-3">
+          <legend className="px-1 text-sm text-amber-400">المنتجات المذكورة في المقال</legend>
+          <p className="mb-2 text-xs text-zinc-500">
+            تظهر كبطاقات «المنتج المذكور في المقال» بعد النص، ويظهر المقال في صفحة المنتج.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {products.map((p) => {
+              const on = form.productIds.includes(p.id);
+              return (
+                <button
+                  key={p.id}
+                  type="button"
+                  aria-pressed={on}
+                  onClick={() =>
+                    set(
+                      'productIds',
+                      on ? form.productIds.filter((id) => id !== p.id) : [...form.productIds, p.id],
+                    )
+                  }
+                  className={`rounded-full border px-3 py-1 text-xs transition ${
+                    on
+                      ? 'border-amber-500 bg-amber-500/15 text-amber-300'
+                      : 'border-zinc-700 text-zinc-400 hover:border-zinc-500'
+                  }`}
+                >
+                  {p.name}
+                </button>
+              );
+            })}
+          </div>
+        </fieldset>
         <div className="sm:col-span-2">
           <span>صورة الغلاف</span>
           <div className="mt-1 flex flex-wrap items-center gap-3">

@@ -12,8 +12,13 @@ export async function POST(request: Request) {
   if (!parsed.success)
     return NextResponse.json({ error: 'تحقق من الحقول ورابط الصورة.' }, { status: 400 });
   try {
+    const { relatedIds, ...data } = parsed.data;
     const product = await db.product.create({
-      data: { ...parsed.data, detailedInfo: parsed.data.detailedInfo ?? Prisma.DbNull },
+      data: {
+        ...data,
+        detailedInfo: data.detailedInfo ?? Prisma.DbNull,
+        related: { create: relatedIds.map((relatedId, sortOrder) => ({ relatedId, sortOrder })) },
+      },
     });
     return NextResponse.json({ id: product.id }, { status: 201 });
   } catch (error) {

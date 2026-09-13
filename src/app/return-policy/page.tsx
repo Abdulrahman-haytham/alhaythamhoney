@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { RotateCcw, CheckCircle2, XCircle, RefreshCw, ShieldCheck } from 'lucide-react';
 import { SHIPPING, SITE, getWhatsAppLink } from '@/lib/config';
+import { getSettings } from '@/lib/settings.server';
 import { LegalPage, LegalSection } from '@/components/LegalPage';
 
 export const metadata: Metadata = {
@@ -35,7 +36,11 @@ function PolicyList({ tone, items }: { tone: Tone; items: React.ReactNode[] }) {
   );
 }
 
-export default function ReturnPolicyPage() {
+// الرقم وأجور الشحن تُقرأ من الإعدادات وقت الطلب (لا من ثوابت البناء)
+export const dynamic = 'force-dynamic';
+
+export default async function ReturnPolicyPage() {
+  await getSettings();
   return (
     <LegalPage
       icon={<RotateCcw className="w-7 h-7 text-amber-500" strokeWidth={1.5} />}

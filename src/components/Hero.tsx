@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion';
 import { ShieldCheck, Microscope, Award, Truck } from 'lucide-react';
 import { getWhatsAppLink } from '@/lib/config';
+import { useSettings } from '@/components/SettingsProvider';
 
 const trustIcons = [
   { icon: <ShieldCheck className="w-5 h-5" />, text: 'طبيعي 100%' },
@@ -11,7 +12,12 @@ const trustIcons = [
   { icon: <Truck className="w-5 h-5" />, text: 'شحن آمن داخل سوريا' },
 ];
 
+const DEFAULT_HERO_IMAGE =
+  'https://res.cloudinary.com/dkbvnupge/image/upload/f_auto,q_auto/v1767958674/my-app-uploads/kromozksoa3vpcwrnvtw.jpg';
+
+/** النصوص وصورة الخلفية تُحرَّر من /admin/settings. */
 export default function Hero() {
+  const s = useSettings();
   return (
     <section className="relative min-h-screen w-full flex flex-col items-center justify-center overflow-hidden pt-16 md:pt-20 pb-8 md:pb-0">
       {/* خلفية متحركة بهدوء */}
@@ -22,7 +28,7 @@ export default function Hero() {
         className="absolute inset-0 z-0"
       >
         <img
-          src="https://res.cloudinary.com/dkbvnupge/image/upload/f_auto,q_auto/v1767958674/my-app-uploads/kromozksoa3vpcwrnvtw.jpg"
+          src={s.heroImage ?? DEFAULT_HERO_IMAGE}
           alt="عسل طبيعي 100% من مراعي سوريا - الهيثم — نحل وعسل"
           fetchPriority="high"
           loading="eager"
@@ -42,7 +48,7 @@ export default function Hero() {
         >
           <span className="text-amber-400 text-xs md:text-sm font-black tracking-widest uppercase flex items-center gap-2">
             <Award className="w-4 h-4 text-amber-500" />
-            إرث عائلي موثوق منذ 1997
+            {s.heroBadge}
           </span>
         </motion.div>
 
@@ -52,8 +58,8 @@ export default function Hero() {
           transition={{ delay: 0.5, duration: 0.8 }}
           className="text-3xl sm:text-4xl md:text-6xl lg:text-8xl font-amiri font-bold text-white mb-4 md:mb-6 leading-tight px-2"
         >
-          عسل طبيعي 100% من مراعي سوريا <br />
-          <span className="gold-text">الهيثم — نحل وعسل – منذ 1997</span>
+          {s.heroTitle} <br />
+          <span className="gold-text">{s.heroHighlight}</span>
         </motion.h1>
 
         <motion.p
@@ -62,7 +68,7 @@ export default function Hero() {
           transition={{ delay: 0.8, duration: 0.8 }}
           className="max-w-2xl mx-auto text-zinc-300 text-sm sm:text-base md:text-lg lg:text-2xl mb-8 md:mb-12 font-light leading-relaxed px-4"
         >
-          نقدّم عسلًا 100% طبيعي، مفحوصًا مخبريًا، من الخلية إلى مائدتك بلا أي إضافات.
+          {s.heroSubtitle}
         </motion.p>
 
         {/* شبكة أيقونات الثقة */}

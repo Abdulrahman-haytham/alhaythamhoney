@@ -18,6 +18,19 @@ export interface ArticleMeta {
 export interface Article extends ArticleMeta {
   /** جسم المقال بعد تحويله من Markdown إلى HTML مُعقَّم. */
   html: string;
+  /** المنتجات التي ربطها الأدمن بالمقال (المنشورة فقط) */
+  products: ArticleProduct[];
+}
+
+export interface ArticleProduct {
+  id: string;
+  slug: string;
+  name: string;
+  image: string;
+  price: number | null;
+  weight: string | null;
+  inStock: boolean;
+  stockQty: number | null;
 }
 
 const WORDS_PER_MINUTE = 200;
@@ -94,9 +107,27 @@ export async function getArticleBySlug(
   slug: string,
   includeDrafts = false,
 ): Promise<Article | null> {
-  const row = await db.article.findUnique({ where: { slug } });
+  const row = await db.article.findUnique({
+    where: { slug },
+    include: {
+      products: {
+        where: { published: true },
+        orderBy: { sortOrder: 'asc' },
+        select: {
+          id: true,
+          slug: true,
+          name: true,
+          image: true,
+          price: true,
+          weight: true,
+          inStock: true,
+          stockQty: true,
+        },
+      },
+    },
+  });
   if (!row) return null;
   const live = row.published && row.publishedAt <= new Date();
   if (!live && !includeDrafts) return null;
-  return { ...toMeta(row), html: renderMarkdown(row.body) };
+  return { ...toMeta(row), html: renderMarkdown(row.body), products: row.products };
 }

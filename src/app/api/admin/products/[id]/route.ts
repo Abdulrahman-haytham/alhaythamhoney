@@ -20,9 +20,19 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       { status: 400 },
     );
   }
+  const { relatedIds, ...data } = parsed.data;
+  // المنتج لا يقترح نفسه؛ وتُستبدل القائمة كاملة بما اختاره الأدمن بالترتيب
+  const related = relatedIds.filter((rid) => rid !== id);
   await db.product.update({
     where: { id },
-    data: { ...parsed.data, detailedInfo: parsed.data.detailedInfo ?? Prisma.DbNull },
+    data: {
+      ...data,
+      detailedInfo: data.detailedInfo ?? Prisma.DbNull,
+      related: {
+        deleteMany: {},
+        create: related.map((relatedId, sortOrder) => ({ relatedId, sortOrder })),
+      },
+    },
   });
   return NextResponse.json({ ok: true });
 }

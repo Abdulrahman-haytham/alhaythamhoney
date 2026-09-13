@@ -14,10 +14,14 @@ import {
   ShoppingCart,
   Heart,
   Camera,
+  Search,
+  Megaphone,
 } from 'lucide-react';
 import { SITE, getWhatsAppLink } from '@/lib/config';
 import { useCart } from '@/store/cartStore';
 import { useWishlist } from '@/store/wishlistStore';
+import { useSettings } from '@/components/SettingsProvider';
+import { SearchDialog } from '@/components/SearchDialog';
 
 function SkipLink() {
   return (
@@ -34,6 +38,8 @@ function SkipLink() {
 /** رأس الموقع — ثابت (fixed) لأن صفحات مثل /contact تحسب مساحته عبر pt-32. */
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const settings = useSettings();
   const mounted = useHydrated();
   const pathname = usePathname();
   const router = useRouter();
@@ -43,6 +49,18 @@ export default function Header() {
   // العدّادات من localStorage — تُصفَّر قبل الترطيب لتفادي عدم التطابق
   const cartCount = mounted ? getTotalItems() : 0;
   const savedCount = mounted ? wishlistCount : 0;
+
+  // اختصار لوحة المفاتيح للبحث (Ctrl/⌘ + K) كما في المتاجر الحديثة
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setSearchOpen(true);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
 
   useEffect(() => {
     if (mobileMenuOpen) {
@@ -72,45 +90,64 @@ export default function Header() {
       <SkipLink />
 
       <header className="fixed top-0 left-0 w-full z-50">
-        {/* شريط الثقة العلوي */}
-        <div className="bg-black border-b border-amber-900/30 py-1.5 sm:py-2 px-3 sm:px-4 text-[10px] sm:text-xs md:text-sm font-light tracking-wide overflow-hidden">
-          {/* عرض متحرك للجوال */}
-          <div className="md:hidden w-full relative">
-            <div className="animate-marquee whitespace-nowrap">
-              <div className="inline-flex items-center gap-1.5 mx-3 text-amber-200/80">
-                <ShieldCheck className="w-3.5 h-3.5 text-amber-500" />
+        {/* شريط الإعلان (من لوحة التحكم) يحلّ محلّ شريط الثقة عند تفعيله — نفس الارتفاع فلا يقفز التخطيط */}
+        {settings.announcementEnabled && settings.announcementText ? (
+          <div className="bg-amber-500 py-1.5 sm:py-2 px-3 sm:px-4 text-[11px] sm:text-xs md:text-sm font-bold text-zinc-950">
+            {settings.announcementLink ? (
+              <Link
+                href={settings.announcementLink}
+                className="container mx-auto flex items-center justify-center gap-2 hover:underline"
+              >
+                <Megaphone className="w-4 h-4 shrink-0" />
+                <span className="truncate">{settings.announcementText}</span>
+              </Link>
+            ) : (
+              <p className="container mx-auto flex items-center justify-center gap-2">
+                <Megaphone className="w-4 h-4 shrink-0" />
+                <span className="truncate">{settings.announcementText}</span>
+              </p>
+            )}
+          </div>
+        ) : (
+          <div className="bg-black border-b border-amber-900/30 py-1.5 sm:py-2 px-3 sm:px-4 text-[10px] sm:text-xs md:text-sm font-light tracking-wide overflow-hidden">
+            {/* عرض متحرك للجوال */}
+            <div className="md:hidden w-full relative">
+              <div className="animate-marquee whitespace-nowrap">
+                <div className="inline-flex items-center gap-1.5 mx-3 text-amber-200/80">
+                  <ShieldCheck className="w-3.5 h-3.5 text-amber-500" />
+                  <span>طبيعي 100% ومفحوص مخبرياً</span>
+                </div>
+                <div className="inline-flex items-center gap-1.5 mx-3 text-amber-200/80">
+                  <Award className="w-3.5 h-3.5 text-amber-500" />
+                  <span>خبرة عائلية +25 عاماً</span>
+                </div>
+                <div className="inline-flex items-center gap-1.5 mx-3 text-amber-200/80">
+                  <Truck className="w-3.5 h-3.5 text-amber-500" />
+                  <span>شحن آمن لكافة المحافظات السورية</span>
+                </div>
+              </div>
+            </div>
+
+            {/* عرض ثابت لسطح المكتب */}
+            <div className="hidden md:flex container mx-auto justify-center items-center gap-8 text-amber-200/80">
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-amber-500" />
                 <span>طبيعي 100% ومفحوص مخبرياً</span>
               </div>
-              <div className="inline-flex items-center gap-1.5 mx-3 text-amber-200/80">
-                <Award className="w-3.5 h-3.5 text-amber-500" />
+              <div className="w-px h-4 bg-amber-900/50"></div>
+              <div className="flex items-center gap-2">
+                <Award className="w-4 h-4 text-amber-500" />
                 <span>خبرة عائلية +25 عاماً</span>
               </div>
-              <div className="inline-flex items-center gap-1.5 mx-3 text-amber-200/80">
-                <Truck className="w-3.5 h-3.5 text-amber-500" />
-                <span>شحن آمن لكافة المحافظات السورية</span>
+              <div className="w-px h-4 bg-amber-900/50"></div>
+              <div className="flex items-center gap-2">
+                <Truck className="w-4 h-4 text-amber-500" />
+                <span className="hidden sm:inline">شحن آمن لكافة المحافظات السورية</span>
+                <span className="sm:hidden">شحن آمن</span>
               </div>
             </div>
           </div>
-
-          {/* عرض ثابت لسطح المكتب */}
-          <div className="hidden md:flex container mx-auto justify-center items-center gap-8 text-amber-200/80">
-            <div className="flex items-center gap-2">
-              <ShieldCheck className="w-4 h-4 text-amber-500" />
-              <span>طبيعي 100% ومفحوص مخبرياً</span>
-            </div>
-            <div className="w-px h-4 bg-amber-900/50"></div>
-            <div className="flex items-center gap-2">
-              <Award className="w-4 h-4 text-amber-500" />
-              <span>خبرة عائلية +25 عاماً</span>
-            </div>
-            <div className="w-px h-4 bg-amber-900/50"></div>
-            <div className="flex items-center gap-2">
-              <Truck className="w-4 h-4 text-amber-500" />
-              <span className="hidden sm:inline">شحن آمن لكافة المحافظات السورية</span>
-              <span className="sm:hidden">شحن آمن</span>
-            </div>
-          </div>
-        </div>
+        )}
 
         {/* التنقل الرئيسي */}
         <nav
@@ -175,6 +212,16 @@ export default function Header() {
 
             {/* أيقونات الإجراءات + الدعوة لاتخاذ إجراء */}
             <div className="flex items-center gap-2 sm:gap-3">
+              {/* البحث */}
+              <button
+                type="button"
+                onClick={() => setSearchOpen(true)}
+                className="p-2.5 text-zinc-400 hover:text-amber-500 hover:bg-zinc-900 rounded-lg transition-colors"
+                aria-label="البحث في الموقع"
+              >
+                <Search className="w-5 h-5" />
+              </button>
+
               {/* المفضلة */}
               <Link
                 href="/wishlist"
@@ -314,6 +361,7 @@ export default function Header() {
           </div>
         </nav>
       </header>
+      <SearchDialog open={searchOpen} onClose={() => setSearchOpen(false)} />
     </>
   );
 }

@@ -18,6 +18,8 @@ import {
 } from '@/lib/articles';
 import { SITE, getWhatsAppLink } from '@/lib/config';
 import { requireAdmin } from '@/lib/auth';
+import { getSettings } from '@/lib/settings.server';
+import ArticleProductCard from '@/components/ArticleProductCard';
 
 type Params = Promise<{ slug: string }>;
 
@@ -25,7 +27,7 @@ export const dynamic = 'force-dynamic';
 
 /** الأدمن يرى المسودّات والمجدولة ليعاينها قبل النشر؛ الزائر يرى المنشور فقط. */
 async function loadArticle(slug: string) {
-  const admin = await requireAdmin();
+  const [admin] = await Promise.all([requireAdmin(), getSettings()]);
   return getArticleBySlug(slug, !!admin);
 }
 
@@ -132,6 +134,21 @@ export default async function ArticlePage({ params }: { params: Params }) {
 
         {/* HTML مُصيَّر من Markdown ومُعقَّم في renderMarkdown — آمن للحقن هنا. */}
         <div className="prose" dangerouslySetInnerHTML={{ __html: article.html }} />
+
+        {article.products.length > 0 && (
+          <aside aria-labelledby="article-products" className="mt-12">
+            <h2 id="article-products" className="mb-4 font-amiri text-2xl font-bold text-white">
+              {article.products.length === 1
+                ? 'المنتج المذكور في المقال'
+                : 'المنتجات المذكورة في المقال'}
+            </h2>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {article.products.map((p) => (
+                <ArticleProductCard key={p.id} product={p} />
+              ))}
+            </div>
+          </aside>
+        )}
 
         <div className="mt-16 rounded-2xl border border-amber-500/20 bg-gradient-to-br from-amber-500/10 to-transparent p-8 text-center sm:p-12">
           <h2 className="mb-4 font-amiri text-2xl font-bold text-white sm:text-3xl">

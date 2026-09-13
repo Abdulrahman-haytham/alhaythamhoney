@@ -6,6 +6,8 @@ import { StructuredData } from '@/components/StructuredData';
 import ServiceWorkerRegistrar from '@/components/ServiceWorkerRegistrar';
 import SiteShell from '@/components/SiteShell';
 import Footer from '@/components/Footer';
+import { SettingsProvider } from '@/components/SettingsProvider';
+import { getSettings } from '@/lib/settings.server';
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE.url),
@@ -30,7 +32,9 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = { themeColor: '#09090b', viewportFit: 'cover' };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  // إعدادات لوحة التحكم (واتساب، الشحن، الإعلان…) تُقرأ هنا وتُوزَّع على الخادم والمتصفح
+  const settings = await getSettings();
   return (
     <html lang="ar" dir="rtl">
       <head>
@@ -42,7 +46,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="bg-zinc-950 text-zinc-100 antialiased">
         <Script src="/haytham-loader.js" strategy="beforeInteractive" />
         <StructuredData />
-        <SiteShell footer={<Footer />}>{children}</SiteShell>
+        <SettingsProvider settings={settings}>
+          <SiteShell footer={<Footer />}>{children}</SiteShell>
+        </SettingsProvider>
         <ServiceWorkerRegistrar />
       </body>
     </html>

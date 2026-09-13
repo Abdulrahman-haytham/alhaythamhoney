@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Phone, MessageCircle, Mail, MapPin, Clock, Globe } from 'lucide-react';
 import { SITE, getWhatsAppLink, getTelLink } from '@/lib/config';
+import { getSettings } from '@/lib/settings.server';
 
 export const metadata: Metadata = {
   title: 'تواصل معنا',
@@ -36,7 +37,11 @@ const channels = [
   },
 ];
 
-export default function ContactPage() {
+// الرقم وأجور الشحن تُقرأ من الإعدادات وقت الطلب (لا من ثوابت البناء)
+export const dynamic = 'force-dynamic';
+
+export default async function ContactPage() {
+  await getSettings();
   return (
     <section className="min-h-screen pt-32 pb-16 px-4 sm:px-6 bg-zinc-950">
       <div className="container mx-auto max-w-4xl">

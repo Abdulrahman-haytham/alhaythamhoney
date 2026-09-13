@@ -10,6 +10,8 @@ import FAQ from '@/components/FAQ';
 import { Location } from '@/components/Location';
 import { getProducts } from '@/lib/products.server';
 import { getMixtureCards } from '@/lib/mixtures.server';
+import { getSettings } from '@/lib/settings.server';
+import RecentlyViewed from '@/components/RecentlyViewed';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = { alternates: { canonical: '/' } };
@@ -23,7 +25,7 @@ export const dynamic = 'force-dynamic';
  * الحكاية أُخّرت لأن الزائر على الجوال يريد رؤية ما يُباع قبل تاريخ العلامة.
  */
 export default async function HomePage() {
-  const [products, mixtures] = await Promise.all([getProducts(), getMixtureCards()]);
+  const [products, mixtures] = await Promise.all([getProducts(), getMixtureCards(), getSettings()]);
 
   return (
     <>
@@ -31,6 +33,7 @@ export default async function HomePage() {
       <Stats />
       <Products products={products} mobileCarousel />
       <MixturesSection mixtures={mixtures} mobileCarousel />
+      <RecentlyViewed />
       <SpecialOffers />
       <CustomerReviews />
       <WhyChooseUs />

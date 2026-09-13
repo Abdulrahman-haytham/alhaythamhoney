@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Scale } from 'lucide-react';
 import { SHIPPING, SITE, getWhatsAppLink } from '@/lib/config';
+import { getSettings } from '@/lib/settings.server';
 import { LegalPage, LegalSection } from '@/components/LegalPage';
 
 export const metadata: Metadata = {
@@ -11,7 +12,11 @@ export const metadata: Metadata = {
 
 const fmt = (n: number) => new Intl.NumberFormat('en-US').format(n);
 
-export default function TermsPage() {
+// الرقم وأجور الشحن تُقرأ من الإعدادات وقت الطلب (لا من ثوابت البناء)
+export const dynamic = 'force-dynamic';
+
+export default async function TermsPage() {
+  await getSettings();
   return (
     <LegalPage
       icon={<Scale className="w-7 h-7 text-amber-500" strokeWidth={1.5} />}

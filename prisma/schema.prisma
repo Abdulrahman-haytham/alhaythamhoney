@@ -41,8 +41,8 @@ model Admin {
 }
 
 model Product {
-  id           String          @id @default(cuid())
-  slug         String          @unique
+  id           String            @id @default(cuid())
+  slug         String            @unique
   name         String
   desc         String
   benefit      String?
@@ -50,18 +50,37 @@ model Product {
   badge        String?
   price        Int?
   weight       String?
-  category     ProductCategory @default(HONEY)
+  category     ProductCategory   @default(HONEY)
   detailedInfo Json?
-  inStock      Boolean         @default(true)
-  published    Boolean         @default(true)
-  sortOrder    Int             @default(0)
-  createdAt    DateTime        @default(now())
-  updatedAt    DateTime        @updatedAt
+  inStock      Boolean           @default(true)
+  /// الكمية المتبقية — null تعني «غير متتبَّعة». تُظهر شارة «بقي X فقط» تحت عتبة الإعدادات.
+  stockQty     Int?
+  published    Boolean           @default(true)
+  sortOrder    Int               @default(0)
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
   orderItems   OrderItem[]
   reviews      Review[]
+  /// «يُشترى معه عادةً» — يختارها الأدمن يدوياً
+  related      ProductRelation[] @relation("RelatedFrom")
+  relatedBy    ProductRelation[] @relation("RelatedTo")
+  articles     Article[]
 
   @@index([published, sortOrder])
   @@map("products")
+}
+
+/// علاقة «يُشترى معه عادةً» باتجاه واحد: المنتج ← ما يُقترح معه.
+model ProductRelation {
+  productId String
+  product   Product @relation("RelatedFrom", fields: [productId], references: [id], onDelete: Cascade)
+  relatedId String
+  related   Product @relation("RelatedTo", fields: [relatedId], references: [id], onDelete: Cascade)
+  sortOrder Int     @default(0)
+
+  @@id([productId, relatedId])
+  @@index([relatedId])
+  @@map("product_relations")
 }
 
 model Order {
@@ -104,18 +123,18 @@ model OrderItem {
 
 /// تقييم عميل. لا يُنشر إلا بعد موافقة الأدمن — حماية من السبام والمحتوى المسيء.
 model Review {
-  id          String       @id @default(cuid())
-  productId   String?
-  product     Product?     @relation(fields: [productId], references: [id], onDelete: Cascade)
-  authorName  String
-  authorCity  String?
-  rating      Int
-  body        String
-  status      ReviewStatus @default(PENDING)
+  id         String       @id @default(cuid())
+  productId  String?
+  product    Product?     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  authorName String
+  authorCity String?
+  rating     Int
+  body       String
+  status     ReviewStatus @default(PENDING)
   /// حقل قديم محفوظ لتجنب فقد البيانات؛ لا يكفي لإثبات الشراء.
-  orderRef    String?
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  orderRef   String?
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
 
   @@index([status, createdAt])
   @@index([productId, status])
@@ -189,20 +208,79 @@ model StudioPhoto {
 /// مقال في المدونة — يكتبه الأدمن بصيغة Markdown (مع السماح بـ HTML بسيط)،
 /// ويُحوَّل إلى HTML مُعقَّم عند العرض. المسودّات لا تظهر إلا للأدمن.
 model Article {
-  id          String   @id @default(cuid())
-  slug        String   @unique
+  id          String    @id @default(cuid())
+  slug        String    @unique
   title       String
   description String
-  keywords    String[] @default([])
+  keywords    String[]  @default([])
   image       String?
   body        String
-  published   Boolean  @default(false)
-  publishedAt DateTime @default(now())
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  published   Boolean   @default(false)
+  publishedAt DateTime  @default(now())
+  /// المنتجات المذكورة في المقال — تُعرض كبطاقات شراء داخله وتربط المنتج بمقالاته
+  products    Product[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   @@index([published, publishedAt])
   @@map("articles")
+}
+
+enum CouponType {
+  PERCENT
+  FIXED
+}
+
+/// كوبون خصم يكتبه الزبون في السلة؛ يُحتسب محلياً ويُرسل ضمن رسالة واتساب.
+/// لا عدّاد استخدام لأن الطلب يُتمّ خارج الموقع — الأدمن يعطّله يدوياً أو بتاريخ انتهاء.
+model Coupon {
+  id          String     @id @default(cuid())
+  code        String     @unique
+  type        CouponType @default(PERCENT)
+  /// نسبة مئوية (1–100) أو مبلغ ثابت بالليرة
+  value       Int
+  minOrder    Int        @default(0)
+  /// سقف الخصم بالليرة للنسبة المئوية (اختياري)
+  maxDiscount Int?
+  active      Boolean    @default(true)
+  startsAt    DateTime?
+  expiresAt   DateTime?
+  note        String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@map("coupons")
+}
+
+/// إعدادات الموقع — صف واحد (id = "site") يحرّره الأدمن بلا نشر جديد.
+model SiteSettings {
+  id                    String   @id @default("site")
+  /// رقم واتساب بالصيغة الدولية بلا + (مثال 963947931959)
+  whatsappNumber        String   @default("963947931959")
+  phoneDisplay          String   @default("+963947931959")
+  email                 String?
+  workingHours          String   @default("يومياً من 9 صباحاً حتى 9 مساءً")
+  shippingCost          Int      @default(25000)
+  /// 0 = لا توصيل مجاني
+  freeShippingThreshold Int      @default(500000)
+  heroBadge             String   @default("إرث عائلي موثوق منذ 1997")
+  heroTitle             String   @default("عسل طبيعي 100% من مراعي سوريا")
+  heroHighlight         String   @default("الهيثم — نحل وعسل – منذ 1997")
+  heroSubtitle          String   @default("نقدّم عسلًا 100% طبيعي، مفحوصًا مخبريًا، من الخلية إلى مائدتك بلا أي إضافات.")
+  heroImage             String?
+  announcementEnabled   Boolean  @default(false)
+  announcementText      String?
+  announcementLink      String?
+  lowStockThreshold     Int      @default(3)
+  showRecentlyViewed    Boolean  @default(true)
+  autoRelatedProducts   Boolean  @default(true)
+  cartReminderEnabled   Boolean  @default(true)
+  /// بعد كم ساعة من آخر تعديل تُعتبر السلة «متروكة»
+  cartReminderHours     Int      @default(12)
+  couponsEnabled        Boolean  @default(true)
+  updatedAt             DateTime @updatedAt
+
+  @@map("site_settings")
 }
 
 model RateLimit {

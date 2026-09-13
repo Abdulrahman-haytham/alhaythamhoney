@@ -10,6 +10,8 @@ import { useWishlist } from '@/store/wishlistStore';
 import { getWhatsAppLink } from '@/lib/config';
 import { trackAddToCart, trackWhatsAppClick } from '@/lib/analytics';
 import { useHydrated } from '@/lib/useHydrated';
+import { isAvailable, lowStockLabel } from '@/lib/settings';
+import { useSettings } from '@/components/SettingsProvider';
 
 function formatPrice(price: number) {
   return new Intl.NumberFormat('en-US').format(price);
@@ -25,7 +27,11 @@ export default function ProductCard({ product }: { product: Product }) {
   const { addItem: addWishlist, removeItem: removeWishlist, isWishlisted } = useWishlist();
   const hydrated = useHydrated();
   const wishlisted = hydrated && isWishlisted(product.id);
-  const canOrder = product.inStock && product.price !== null;
+  const { lowStockThreshold } = useSettings();
+  // inStock من الأدمن + الكمية المتتبَّعة (0 = نفد) — والشارة «بقي X» تحت العتبة
+  const available = isAvailable(product);
+  const lowStock = lowStockLabel(product.stockQty, lowStockThreshold);
+  const canOrder = available && product.price !== null;
   const [added, setAdded] = useState(false);
 
   const cartProduct = {
@@ -61,19 +67,26 @@ export default function ProductCard({ product }: { product: Product }) {
             src={product.image}
             alt={`${product.name} - عسل طبيعي 100% من الهيثم — نحل وعسل في سوريا`}
             className={`aspect-[4/5] w-full object-cover transition-transform duration-700 group-hover:scale-105 sm:aspect-[4/3] ${
-              product.inStock ? '' : 'opacity-45 grayscale'
+              available ? '' : 'opacity-45 grayscale'
             }`}
             loading="lazy"
           />
         </Link>
 
-        {!product.inStock && (
+        {!available && (
           <span className="absolute inset-x-0 bottom-0 z-10 bg-zinc-950/85 py-1.5 text-center text-[11px] font-bold text-amber-300 backdrop-blur-sm sm:text-xs">
             نفد المخزون — سيعود قريباً
           </span>
         )}
 
-        {product.badge && product.inStock && (
+        {available && lowStock && (
+          <span className="absolute inset-x-0 bottom-0 z-10 flex items-center justify-center gap-1.5 bg-red-950/85 py-1.5 text-center text-[11px] font-bold text-red-200 backdrop-blur-sm sm:text-xs">
+            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-red-400" />
+            {lowStock}
+          </span>
+        )}
+
+        {product.badge && available && (
           <span className="golden-glow absolute top-2.5 right-2.5 z-10 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 px-2 py-0.5 text-[9px] font-black text-zinc-950 shadow-lg sm:top-4 sm:right-4 sm:px-3 sm:py-1 sm:text-[10px]">
             {product.badge}
           </span>
@@ -137,7 +150,7 @@ export default function ProductCard({ product }: { product: Product }) {
             تفاصيل
           </Link>
           {/* الصنف النافد لا يُترك زراً ميتاً — يتحوّل إلى طلب إشعار عبر واتساب */}
-          {product.inStock ? (
+          {available ? (
             <button
               type="button"
               onClick={handleAdd}

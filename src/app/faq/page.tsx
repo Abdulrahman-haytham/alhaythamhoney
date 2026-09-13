@@ -3,6 +3,7 @@ import { MessageCircle } from 'lucide-react';
 import FAQ from '@/components/FAQ';
 import { FAQ_ITEMS, faqPlainAnswer } from '@/lib/faq';
 import { getWhatsAppLink } from '@/lib/config';
+import { getSettings } from '@/lib/settings.server';
 
 export const metadata: Metadata = {
   title: 'الأسئلة الشائعة',
@@ -11,7 +12,11 @@ export const metadata: Metadata = {
   alternates: { canonical: '/faq' },
 };
 
-export default function FAQPage() {
+// الرقم وأجور الشحن تُقرأ من الإعدادات وقت الطلب (لا من ثوابت البناء)
+export const dynamic = 'force-dynamic';
+
+export default async function FAQPage() {
+  await getSettings();
   const faqSchema = {
     '@context': 'https://schema.org',
     '@type': 'FAQPage',

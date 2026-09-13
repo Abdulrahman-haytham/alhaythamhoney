@@ -3,6 +3,10 @@ import { MIN_JAR_SIZE, MAX_JAR_SIZE, normalizeSizes } from '@/lib/mixturePricing
 
 const amount = z.number().int().min(0).max(1_000_000_000);
 const text = (max: number) => z.string().trim().max(max);
+const isoDay = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/)
+  .refine((d) => !Number.isNaN(Date.parse(`${d}T00:00:00Z`)), 'تاريخ غير صالح.');
 const slug = text(100).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/);
 /** صورة محلية فقط: من مجلد الصور أو مما رُفع عبر الاستديو. */
 const localImage = text(500).refine(
@@ -23,8 +27,12 @@ export const productInput = z
     weight: text(80).nullable(),
     category: z.enum(['HONEY', 'SUPPLEMENT']),
     inStock: z.boolean(),
+    /** null = لا تتبّع للكمية */
+    stockQty: z.number().int().min(0).max(1_000_000).nullable(),
     published: z.boolean(),
     sortOrder: z.number().int().min(0).max(10000),
+    /** معرّفات «يُشترى معه عادةً» بالترتيب */
+    relatedIds: z.array(text(50).min(1)).max(12),
     detailedInfo: z
       .object({
         uses: z.array(text(400)).max(20).optional(),
@@ -99,9 +107,75 @@ export const articleInput = z
       .max(200_000)
       .refine((b) => b.trim().length >= 20, 'المقال قصير جداً.'),
     published: z.boolean(),
-    publishedAt: z
+    publishedAt: isoDay,
+    /** معرّفات المنتجات المذكورة في المقال */
+    productIds: z.array(text(50).min(1)).max(12),
+  })
+  .strict();
+
+const couponCode = z
+  .string()
+  .trim()
+  .toUpperCase()
+  .regex(/^[A-Z0-9-]{3,30}$/, 'الكود: حروف إنجليزية وأرقام وشرطة فقط (3–30).');
+
+export const couponInput = z
+  .object({
+    code: couponCode,
+    type: z.enum(['PERCENT', 'FIXED']),
+    value: z.number().int().min(1).max(1_000_000_000),
+    minOrder: amount,
+    maxDiscount: amount.nullable(),
+    active: z.boolean(),
+    startsAt: isoDay.nullable(),
+    expiresAt: isoDay.nullable(),
+    note: text(200).nullable(),
+  })
+  .strict()
+  .refine((c) => c.type !== 'PERCENT' || c.value <= 100, 'النسبة المئوية بين 1 و100.')
+  .refine(
+    (c) => !c.startsAt || !c.expiresAt || c.startsAt <= c.expiresAt,
+    'تاريخ الانتهاء قبل تاريخ البداية.',
+  );
+
+/** ما يرسله الزائر من السلة للتحقق من كوبون */
+export const couponCheckInput = z.object({ code: couponCode, subtotal: amount }).strict();
+
+const optionalText = (max: number) =>
+  text(max)
+    .transform((v) => (v.length ? v : null))
+    .nullable();
+
+export const settingsInput = z
+  .object({
+    whatsappNumber: z
       .string()
-      .regex(/^\d{4}-\d{2}-\d{2}$/)
-      .refine((d) => !Number.isNaN(Date.parse(`${d}T00:00:00Z`)), 'تاريخ غير صالح.'),
+      .trim()
+      .regex(/^[1-9]\d{7,14}$/, 'رقم واتساب دولي بلا + (مثال 963947931959).'),
+    phoneDisplay: text(30).min(5),
+    email: optionalText(120).refine(
+      (v) => v === null || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v),
+      'بريد غير صالح.',
+    ),
+    workingHours: text(120).min(3),
+    shippingCost: amount,
+    freeShippingThreshold: amount,
+    heroBadge: text(80).min(2),
+    heroTitle: text(120).min(3),
+    heroHighlight: text(120).min(2),
+    heroSubtitle: text(300).min(10),
+    heroImage: localImage.nullable(),
+    announcementEnabled: z.boolean(),
+    announcementText: optionalText(200),
+    announcementLink: optionalText(300).refine(
+      (v) => v === null || /^\/[^\s]*$/.test(v) || /^https:\/\/[^\s]+$/.test(v),
+      'الرابط يبدأ بـ / أو https://',
+    ),
+    lowStockThreshold: z.number().int().min(0).max(1000),
+    showRecentlyViewed: z.boolean(),
+    autoRelatedProducts: z.boolean(),
+    cartReminderEnabled: z.boolean(),
+    cartReminderHours: z.number().int().min(1).max(720),
+    couponsEnabled: z.boolean(),
   })
   .strict();

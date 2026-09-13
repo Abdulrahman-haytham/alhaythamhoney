@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Shield } from 'lucide-react';
 import { SITE, getWhatsAppLink } from '@/lib/config';
+import { getSettings } from '@/lib/settings.server';
 import { LegalPage, LegalSection } from '@/components/LegalPage';
 
 export const metadata: Metadata = {
@@ -9,7 +10,11 @@ export const metadata: Metadata = {
   alternates: { canonical: '/privacy-policy' },
 };
 
-export default function PrivacyPolicyPage() {
+// الرقم وأجور الشحن تُقرأ من الإعدادات وقت الطلب (لا من ثوابت البناء)
+export const dynamic = 'force-dynamic';
+
+export default async function PrivacyPolicyPage() {
+  await getSettings();
   return (
     <LegalPage
       icon={<Shield className="w-7 h-7 text-amber-500" strokeWidth={1.5} />}

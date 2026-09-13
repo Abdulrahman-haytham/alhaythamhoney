@@ -6,5 +6,10 @@ import type { articleInput } from '@/lib/validation';
 export const ARTICLE_BODY_LIMIT = 512 * 1024;
 
 export function toArticleData(input: z.infer<typeof articleInput>) {
-  return { ...input, publishedAt: new Date(`${input.publishedAt}T00:00:00Z`) };
+  const { productIds, ...rest } = input;
+  return {
+    ...rest,
+    publishedAt: new Date(`${input.publishedAt}T00:00:00Z`),
+    products: { set: productIds.map((id) => ({ id })) },
+  };
 }

@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { ArrowLeft, BookOpen, Calendar, Clock, FileText, MessageCircle } from 'lucide-react';
 import { getAllArticles, formatArticleDate, formatReadingTime } from '@/lib/articles';
 import { SITE, getWhatsAppLink } from '@/lib/config';
+import { getSettings } from '@/lib/settings.server';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,7 +21,7 @@ export const metadata: Metadata = {
 };
 
 export default async function ArticlesPage() {
-  const articles = await getAllArticles();
+  const [articles] = await Promise.all([getAllArticles(), getSettings()]);
 
   return (
     <section className="min-h-screen bg-zinc-950 px-4 pt-32 pb-16 sm:px-6">

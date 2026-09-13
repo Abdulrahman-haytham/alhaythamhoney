@@ -17,7 +17,10 @@ export async function POST(request: Request) {
     );
   }
   try {
-    const article = await db.article.create({ data: toArticleData(parsed.data) });
+    const { products, ...data } = toArticleData(parsed.data);
+    const article = await db.article.create({
+      data: { ...data, products: { connect: products.set } },
+    });
     return NextResponse.json({ id: article.id }, { status: 201 });
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
