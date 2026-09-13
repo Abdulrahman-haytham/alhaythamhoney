@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { reviewInput, productInput, mixtureInput } from '@/lib/validation';
+import { reviewInput, productInput, mixtureInput, articleInput } from '@/lib/validation';
+import { renderMarkdown } from '@/lib/markdown';
 import {
   computePrice,
   normalizeSizes,
@@ -142,5 +143,41 @@ describe('restored contact cards and PWA', () => {
     expect(manifest().name).toBe('الهيثم — نحل وعسل');
     for (const icon of manifest().icons ?? [])
       expect(existsSync(path.join(process.cwd(), 'public', icon.src))).toBe(true);
+  });
+});
+describe('blog articles', () => {
+  it('validates admin article input', () => {
+    const input = {
+      slug: 'honey-benefits',
+      title: 'فوائد العسل',
+      description: 'وصف قصير يشرح ما في المقال للقارئ ولمحركات البحث.',
+      keywords: ['عسل', 'فوائد'],
+      image: null,
+      body: '## عنوان\n\nفقرة تشرح فوائد العسل الطبيعي بالتفصيل.',
+      published: true,
+      publishedAt: '2026-09-13',
+    };
+    expect(articleInput.safeParse(input).success).toBe(true);
+    for (const bad of [
+      { ...input, slug: 'Honey Benefits' },
+      { ...input, body: 'قصير' },
+      { ...input, publishedAt: '13/09/2026' },
+      { ...input, image: 'https://evil.example/x.png' },
+      { ...input, extra: 1 },
+    ])
+      expect(articleInput.safeParse(bad).success).toBe(false);
+  });
+
+  it('renders markdown and strips scripts, keeping local images and safe links', () => {
+    const html = renderMarkdown(
+      '# عنوان\n\n**غامق** و[رابط](https://example.com)\n\n![صورة](/uploads/studio/a.webp)\n\n<script>alert(1)</script><p onclick="x()">نص</p>',
+    );
+    expect(html).toContain('<h2>عنوان</h2>');
+    expect(html).toContain('<strong>غامق</strong>');
+    expect(html).toContain('target="_blank"');
+    expect(html).toContain('src="/uploads/studio/a.webp"');
+    expect(html).not.toContain('<script');
+    expect(html).not.toContain('onclick');
+    expect(html).not.toContain('alert(1)');
   });
 });

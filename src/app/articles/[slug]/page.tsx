@@ -17,16 +17,21 @@ import {
   formatReadingTime,
 } from '@/lib/articles';
 import { SITE, getWhatsAppLink } from '@/lib/config';
+import { requireAdmin } from '@/lib/auth';
 
 type Params = Promise<{ slug: string }>;
 
-export function generateStaticParams() {
-  return getAllArticles().map(({ slug }) => ({ slug }));
+export const dynamic = 'force-dynamic';
+
+/** الأدمن يرى المسودّات والمجدولة ليعاينها قبل النشر؛ الزائر يرى المنشور فقط. */
+async function loadArticle(slug: string) {
+  const admin = await requireAdmin();
+  return getArticleBySlug(slug, !!admin);
 }
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { slug } = await params;
-  const article = await getArticleBySlug(slug);
+  const article = await loadArticle(slug);
   if (!article) notFound();
 
   return {
@@ -49,12 +54,11 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
 
 export default async function ArticlePage({ params }: { params: Params }) {
   const { slug } = await params;
-  const article = await getArticleBySlug(slug);
+  const article = await loadArticle(slug);
   if (!article) notFound();
+  const isLive = article.published && article.publishedAt <= new Date().toISOString().slice(0, 10);
 
-  const related = getAllArticles()
-    .filter((a) => a.slug !== article.slug)
-    .slice(0, 3);
+  const related = (await getAllArticles()).filter((a) => a.slug !== article.slug).slice(0, 3);
 
   const articleUrl = `${SITE.url}/articles/${article.slug}`;
   const jsonLd = {
@@ -79,6 +83,12 @@ export default async function ArticlePage({ params }: { params: Params }) {
       />
 
       <div className="container mx-auto max-w-4xl">
+        {!isLive && (
+          <p className="mb-6 rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
+            معاينة للأدمن فقط — هذا المقال {article.published ? 'مجدول للنشر لاحقاً' : 'مسودّة'} ولا
+            يراه الزوار.
+          </p>
+        )}
         <Link
           href="/articles"
           className="mb-8 inline-flex items-center gap-1.5 text-sm text-zinc-500 transition-colors hover:text-amber-400"
@@ -110,7 +120,6 @@ export default async function ArticlePage({ params }: { params: Params }) {
 
           {article.image && (
             <div className="mt-8 overflow-hidden rounded-3xl border border-amber-500/20 bg-zinc-900/40">
-              {}
               <img
                 src={article.image}
                 alt={article.title}
@@ -121,7 +130,7 @@ export default async function ArticlePage({ params }: { params: Params }) {
           )}
         </header>
 
-        {/* المحتوى ملفات HTML موثوقة من داخل المستودع (content/articles). */}
+        {/* HTML مُصيَّر من Markdown ومُعقَّم في renderMarkdown — آمن للحقن هنا. */}
         <div className="prose" dangerouslySetInnerHTML={{ __html: article.html }} />
 
         <div className="mt-16 rounded-2xl border border-amber-500/20 bg-gradient-to-br from-amber-500/10 to-transparent p-8 text-center sm:p-12">

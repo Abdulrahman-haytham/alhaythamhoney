@@ -30,14 +30,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     db.mixture.findMany({ where: { published: true }, select: { slug: true, updatedAt: true } }),
   ]);
 
-  // المقالات ثابتة في الكود — تُقرأ بشكل كسول حتى لا يفشل الـ sitemap إن لم تُبنَ المدونة بعد
-  let articles: { slug: string; publishedAt: string }[] = [];
-  try {
-    const mod = await import('@/lib/articles');
-    articles = await mod.getAllArticles();
-  } catch {
-    articles = [];
-  }
+  const articles = await db.article.findMany({
+    where: { published: true, publishedAt: { lte: new Date() } },
+    select: { slug: true, updatedAt: true },
+  });
 
   return [
     ...STATIC.map((s) => ({
@@ -59,7 +55,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })),
     ...articles.map((a) => ({
       url: `${SITE.url}/articles/${a.slug}`,
-      lastModified: new Date(a.publishedAt),
+      lastModified: a.updatedAt,
       priority: 0.7,
       changeFrequency: 'yearly' as const,
     })),

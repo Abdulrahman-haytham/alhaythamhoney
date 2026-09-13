@@ -1,12 +1,10 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ArrowLeft, BookOpen, Calendar, Clock, FileText, MessageCircle } from 'lucide-react';
-import {
-  getAllArticlesWithReadingTime,
-  formatArticleDate,
-  formatReadingTime,
-} from '@/lib/articles';
+import { getAllArticles, formatArticleDate, formatReadingTime } from '@/lib/articles';
 import { SITE, getWhatsAppLink } from '@/lib/config';
+
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: 'المدونة',
@@ -22,7 +20,7 @@ export const metadata: Metadata = {
 };
 
 export default async function ArticlesPage() {
-  const articles = await getAllArticlesWithReadingTime();
+  const articles = await getAllArticles();
 
   return (
     <section className="min-h-screen bg-zinc-950 px-4 pt-32 pb-16 sm:px-6">
@@ -39,6 +37,10 @@ export default async function ArticlesPage() {
             من أهل الخبرة.
           </p>
         </div>
+
+        {articles.length === 0 && (
+          <p className="mb-16 text-center text-zinc-500">لا مقالات منشورة بعد — عُد قريباً.</p>
+        )}
 
         <div className="mb-16 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {articles.map((article) => (

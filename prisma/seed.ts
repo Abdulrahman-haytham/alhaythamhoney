@@ -1,5 +1,6 @@
 import { PrismaClient, ProductCategory } from '@prisma/client';
 import { hashPassword } from '../src/lib/password';
+import { SEED_ARTICLES, readSeedArticleBody } from './seed-articles';
 
 const db = new PrismaClient();
 
@@ -430,6 +431,23 @@ async function main() {
   }
 
   console.log(`${MIXTURES.length} خلطات جاهزة.`);
+
+  // المقالات الأصلية تُزرع مرة واحدة، ثم تُكتب وتُعدَّل من /admin/articles فقط
+  for (const article of SEED_ARTICLES) {
+    const exists = await db.article.findUnique({ where: { slug: article.slug } });
+    if (exists) continue;
+    await db.article.create({
+      data: {
+        ...article,
+        image: article.image ?? null,
+        publishedAt: new Date(`${article.publishedAt}T00:00:00Z`),
+        body: await readSeedArticleBody(article.slug),
+        published: true, // محتوى منشور سابقاً على الموقع القديم — يبقى ظاهراً
+      },
+    });
+  }
+
+  console.log(`${SEED_ARTICLES.length} مقالات جاهزة.`);
 }
 
 main()

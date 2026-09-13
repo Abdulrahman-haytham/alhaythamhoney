@@ -7,6 +7,7 @@ const TABS = [
   { href: '/admin/products', label: 'المنتجات' },
   { href: '/admin/reviews', label: 'التقييمات' },
   { href: '/admin/mixtures', label: 'الخلطات' },
+  { href: '/admin/articles', label: 'المدونة' },
   { href: '/admin/studio', label: 'استديو الهيثم' },
 ];
 

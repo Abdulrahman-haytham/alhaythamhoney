@@ -3,18 +3,21 @@ import { MIN_JAR_SIZE, MAX_JAR_SIZE, normalizeSizes } from '@/lib/mixturePricing
 
 const amount = z.number().int().min(0).max(1_000_000_000);
 const text = (max: number) => z.string().trim().max(max);
+const slug = text(100).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/);
+/** صورة محلية فقط: من مجلد الصور أو مما رُفع عبر الاستديو. */
+const localImage = text(500).refine(
+  (url) =>
+    /^\/images\/[a-zA-Z0-9/_-]+\.(webp|png|jpe?g|avif)$/.test(url) ||
+    /^\/uploads\/studio\/[a-f0-9-]+\.(webp|png|jpe?g|avif)$/.test(url),
+  'اختر صورة محلية من المنتجات أو الاستديو.',
+);
 export const productInput = z
   .object({
-    slug: text(100).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
+    slug,
     name: text(150).min(2),
     desc: text(3000).min(10),
     benefit: text(200).nullable(),
-    image: text(500).refine(
-      (url) =>
-        /^\/images\/[a-zA-Z0-9/_-]+\.(webp|png|jpe?g|avif)$/.test(url) ||
-        /^\/uploads\/studio\/[a-f0-9-]+\.(webp|png|jpe?g|avif)$/.test(url),
-      'اختر صورة محلية من المنتجات أو الاستديو.',
-    ),
+    image: localImage,
     badge: text(100).nullable(),
     price: amount.nullable(),
     weight: text(80).nullable(),
@@ -82,3 +85,23 @@ export const mixtureInput = z
     (m) => m.ingredients.reduce((sum, i) => sum + i.maxGrams, 0) < Math.min(...m.sizes),
     'مجموع الحدود القصوى يجب أن يبقي مساحة للعسل في أصغر حجم — خفّض الحدود أو احذف الحجم الصغير.',
   );
+
+export const articleInput = z
+  .object({
+    slug,
+    title: text(200).min(3),
+    description: text(400).min(10),
+    keywords: z.array(text(60).min(1)).max(20),
+    image: localImage.nullable(),
+    /** Markdown مع HTML بسيط — يُعقَّم عند العرض. */
+    body: z
+      .string()
+      .max(200_000)
+      .refine((b) => b.trim().length >= 20, 'المقال قصير جداً.'),
+    published: z.boolean(),
+    publishedAt: z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/)
+      .refine((d) => !Number.isNaN(Date.parse(`${d}T00:00:00Z`)), 'تاريخ غير صالح.'),
+  })
+  .strict();
