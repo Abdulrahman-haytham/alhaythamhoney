@@ -21,10 +21,16 @@ export interface HoneyOption {
   pricePerGram: number;
 }
 
-export const JAR_SIZES = [250, 500, 1000] as const;
-export type JarSize = (typeof JAR_SIZES)[number];
+/** حدود حجم المرطبان التي يقبلها الأدمن عند ضبط الأحجام المتاحة. */
+export const MIN_JAR_SIZE = 100;
+export const MAX_JAR_SIZE = 5000;
 
-/** يقرّب إلى أقرب خطوة ويبقى ضمن الحدود. */
+/**
+ * يقرّب إلى أقرب خطوة ويبقى ضمن الحدود.
+ * الحدود مطلقة بالغرام كما ضبطها الأدمن ولا تتغير مع حجم المرطبان —
+ * جرعة غذاء الملكات القصوى واحدة سواء كان المرطبان 250غ أو كيلوغراماً؛
+ * الحجم يغيّر كمية العسل التي تملأ الباقي فقط.
+ */
 export function clampToStep(
   value: number,
   spec: { minGrams: number; maxGrams: number; step: number },
@@ -33,19 +39,12 @@ export function clampToStep(
   return Math.min(spec.maxGrams, Math.max(spec.minGrams, stepped));
 }
 
-/**
- * يوسّع/يقلّص مواصفات المكوّن حسب حجم المرطبان — النِسب ثابتة كما ضبطها الخبير،
- * والمقادير فقط تتبع الحجم (250غ = نصف الجرعات، 1كغ = ضعفها).
- */
-export function scaleSpec(spec: IngredientSpec, size: number, baseSize: number): IngredientSpec {
-  const f = size / baseSize;
-  const scale = (v: number) => Math.max(spec.step, Math.round((v * f) / spec.step) * spec.step);
-  return {
-    ...spec,
-    minGrams: spec.minGrams === 0 ? 0 : scale(spec.minGrams),
-    maxGrams: scale(spec.maxGrams),
-    recommended: spec.recommended === 0 ? 0 : scale(spec.recommended),
-  };
+/** يتحقق من قائمة أحجام يدخلها الأدمن ويعيدها مرتّبة بلا تكرار، أو null إن كانت غير صالحة. */
+export function normalizeSizes(input: unknown): number[] | null {
+  if (!Array.isArray(input) || input.length === 0 || input.length > 6) return null;
+  const sizes = [...new Set(input.map(Number))].sort((a, b) => a - b);
+  const ok = sizes.every((s) => Number.isInteger(s) && s >= MIN_JAR_SIZE && s <= MAX_JAR_SIZE);
+  return ok ? sizes : null;
 }
 
 export interface PriceBreakdown {

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { MIN_JAR_SIZE, MAX_JAR_SIZE, normalizeSizes } from '@/lib/mixturePricing';
 
 const amount = z.number().int().min(0).max(1_000_000_000);
 const text = (max: number) => z.string().trim().max(max);
@@ -58,14 +59,26 @@ const ingredientInput = z
     (i) => i.minGrams <= i.recommended && i.recommended <= i.maxGrams,
     'الموصى به يجب أن يقع بين الحد الأدنى والأقصى.',
   );
+const jarSize = z.number().int().min(MIN_JAR_SIZE).max(MAX_JAR_SIZE);
+
 export const mixtureInput = z
   .object({
     prepFee: amount,
     published: z.boolean(),
+    sizes: z.array(jarSize).min(1).max(6),
+    defaultSize: jarSize,
     ingredients: z.array(ingredientInput).min(1).max(30),
   })
   .strict()
   .refine(
     (m) => new Set(m.ingredients.map((i) => i.id)).size === m.ingredients.length,
     'المكوّنات المكررة غير مسموحة.',
+  )
+  .refine((m) => normalizeSizes(m.sizes) !== null, 'الأحجام غير صالحة.')
+  .refine((m) => m.sizes.includes(m.defaultSize), 'الحجم الافتراضي يجب أن يكون من الأحجام المتاحة.')
+  .refine(
+    // الضمان الأهم: حتى لو رفع الزبون كل مكوّن إلى حدّه الأقصى يبقى مكان للعسل
+    // في أصغر مرطبان. هذا يجعل الحدود التي يضبطها الأدمن آمنة بذاتها.
+    (m) => m.ingredients.reduce((sum, i) => sum + i.maxGrams, 0) < Math.min(...m.sizes),
+    'مجموع الحدود القصوى يجب أن يبقي مساحة للعسل في أصغر حجم — خفّض الحدود أو احذف الحجم الصغير.',
   );

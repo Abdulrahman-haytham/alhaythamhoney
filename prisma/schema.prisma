@@ -137,7 +137,9 @@ model Mixture {
   tagline     String
   desc        String
   image       String?
-  baseSize    Int                 @default(500)
+  /// أحجام المرطبان المتاحة بالغرام — يضبطها الأدمن؛ الحجم يغيّر كمية العسل فقط
+  sizes       Int[]               @default([250, 500, 1000])
+  defaultSize Int                 @default(500)
   prepFee     Int                 @default(0)
   published   Boolean             @default(true)
   sortOrder   Int                 @default(0)

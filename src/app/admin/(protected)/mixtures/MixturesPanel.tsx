@@ -20,7 +20,8 @@ export interface AdminMixture {
   slug: string;
   name: string;
   tagline: string;
-  baseSize: number;
+  sizes: number[];
+  defaultSize: number;
   prepFee: number;
   published: boolean;
   ingredients: AdminIngredient[];
@@ -62,6 +63,8 @@ function MixtureEditor({ initial }: { initial: AdminMixture }) {
       body: JSON.stringify({
         prepFee: m.prepFee,
         published: m.published,
+        sizes: m.sizes,
+        defaultSize: m.defaultSize,
         ingredients: m.ingredients,
       }),
     }).catch(() => null);
@@ -87,7 +90,7 @@ function MixtureEditor({ initial }: { initial: AdminMixture }) {
         <div>
           <h2 className="font-amiri text-xl font-bold text-white">{m.name}</h2>
           <p className="text-xs text-zinc-500">
-            {m.tagline} · المرطبان المرجعي {m.baseSize}غ ·{' '}
+            {m.tagline} ·{' '}
             <a
               href={`/custom-mixtures/${m.slug}`}
               target="_blank"
@@ -106,6 +109,57 @@ function MixtureEditor({ initial }: { initial: AdminMixture }) {
           />
           منشورة
         </label>
+      </div>
+
+      <div className="mb-5 grid gap-4 rounded-xl border border-zinc-800 bg-zinc-950/40 p-4 sm:grid-cols-2">
+        <div>
+          <label
+            htmlFor={`sizes-${m.id}`}
+            className="mb-1.5 block text-xs font-medium text-zinc-400"
+          >
+            أحجام المرطبان المتاحة (بالغرام، مفصولة بفاصلة)
+          </label>
+          <input
+            id={`sizes-${m.id}`}
+            value={m.sizes.join('، ')}
+            onChange={(e) => {
+              const sizes = e.target.value
+                .split(/[,،]/)
+                .map((s) => Number(s.trim()))
+                .filter((n) => Number.isFinite(n) && n > 0);
+              setM({ ...m, sizes });
+            }}
+            dir="ltr"
+            inputMode="numeric"
+            className="h-10 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 text-sm text-white focus:border-amber-500/50 focus:outline-none"
+          />
+          <p className="mt-1 text-[11px] text-zinc-600">
+            الحجم يغيّر كمية العسل فقط — جرعات المكوّنات ثابتة كما تضبطها أدناه.
+          </p>
+        </div>
+        <div>
+          <label
+            htmlFor={`default-size-${m.id}`}
+            className="mb-1.5 block text-xs font-medium text-zinc-400"
+          >
+            الحجم المختار افتراضياً
+          </label>
+          <select
+            id={`default-size-${m.id}`}
+            value={m.defaultSize}
+            onChange={(e) => setM({ ...m, defaultSize: Number(e.target.value) })}
+            className="h-10 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 text-sm text-white focus:border-amber-500/50 focus:outline-none"
+          >
+            {m.sizes.map((s) => (
+              <option key={s} value={s}>
+                {s} غرام
+              </option>
+            ))}
+          </select>
+          <p className="mt-1 text-[11px] text-zinc-600">
+            مجموع الحدود القصوى يجب أن يبقي مساحة للعسل في أصغر حجم.
+          </p>
+        </div>
       </div>
 
       <div className="overflow-x-auto">

@@ -3,11 +3,12 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { ShoppingCart, Eye, Heart, Check } from 'lucide-react';
+import { ShoppingCart, Eye, Heart, Check, BellRing } from 'lucide-react';
 import type { Product } from '@prisma/client';
 import { useCart } from '@/store/cartStore';
 import { useWishlist } from '@/store/wishlistStore';
-import { trackAddToCart } from '@/lib/analytics';
+import { getWhatsAppLink } from '@/lib/config';
+import { trackAddToCart, trackWhatsAppClick } from '@/lib/analytics';
 import { useHydrated } from '@/lib/useHydrated';
 
 function formatPrice(price: number) {
@@ -59,12 +60,20 @@ export default function ProductCard({ product }: { product: Product }) {
           <img
             src={product.image}
             alt={`${product.name} - عسل طبيعي 100% من الهيثم — نحل وعسل في سوريا`}
-            className="aspect-[4/5] w-full object-cover transition-transform duration-700 group-hover:scale-105 sm:aspect-[4/3]"
+            className={`aspect-[4/5] w-full object-cover transition-transform duration-700 group-hover:scale-105 sm:aspect-[4/3] ${
+              product.inStock ? '' : 'opacity-45 grayscale'
+            }`}
             loading="lazy"
           />
         </Link>
 
-        {product.badge && (
+        {!product.inStock && (
+          <span className="absolute inset-x-0 bottom-0 z-10 bg-zinc-950/85 py-1.5 text-center text-[11px] font-bold text-amber-300 backdrop-blur-sm sm:text-xs">
+            نفد المخزون — سيعود قريباً
+          </span>
+        )}
+
+        {product.badge && product.inStock && (
           <span className="golden-glow absolute top-2.5 right-2.5 z-10 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 px-2 py-0.5 text-[9px] font-black text-zinc-950 shadow-lg sm:top-4 sm:right-4 sm:px-3 sm:py-1 sm:text-[10px]">
             {product.badge}
           </span>
@@ -127,26 +136,34 @@ export default function ProductCard({ product }: { product: Product }) {
             <Eye className="h-4 w-4 transition-colors group-hover/btn:text-amber-500" />
             تفاصيل
           </Link>
-          <button
-            type="button"
-            onClick={handleAdd}
-            disabled={!canOrder}
-            aria-label={`أضف ${product.name} إلى السلة`}
-            className={`flex h-10 flex-1 items-center justify-center gap-1.5 rounded-xl text-[13px] font-bold transition-all duration-300 sm:h-auto sm:py-2.5 sm:text-sm ${
-              added
-                ? 'bg-green-600 text-white'
-                : 'bg-amber-500 text-zinc-950 shadow-lg shadow-amber-500/20 hover:-translate-y-0.5 hover:bg-amber-400 hover:shadow-amber-500/40'
-            }`}
-          >
-            {added ? <Check className="h-4 w-4" /> : <ShoppingCart className="h-4 w-4" />}
-            {!product.inStock
-              ? 'غير متوفر'
-              : product.price === null
-                ? 'استفسر عن السعر'
-                : added
-                  ? 'أُضيف'
-                  : 'أضف للسلة'}
-          </button>
+          {/* الصنف النافد لا يُترك زراً ميتاً — يتحوّل إلى طلب إشعار عبر واتساب */}
+          {product.inStock ? (
+            <button
+              type="button"
+              onClick={handleAdd}
+              disabled={!canOrder}
+              aria-label={`أضف ${product.name} إلى السلة`}
+              className={`flex h-10 flex-1 items-center justify-center gap-1.5 rounded-xl text-[13px] font-bold transition-all duration-300 sm:h-auto sm:py-2.5 sm:text-sm ${
+                added
+                  ? 'bg-green-600 text-white'
+                  : 'bg-amber-500 text-zinc-950 shadow-lg shadow-amber-500/20 hover:-translate-y-0.5 hover:bg-amber-400 hover:shadow-amber-500/40'
+              }`}
+            >
+              {added ? <Check className="h-4 w-4" /> : <ShoppingCart className="h-4 w-4" />}
+              {product.price === null ? 'استفسر عن السعر' : added ? 'أُضيف' : 'أضف للسلة'}
+            </button>
+          ) : (
+            <a
+              href={getWhatsAppLink(`مرحباً، أرجو إعلامي عند توفر ${product.name}.`)}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => trackWhatsAppClick('out-of-stock')}
+              className="flex h-10 flex-1 items-center justify-center gap-1.5 rounded-xl border border-amber-500/40 bg-amber-500/10 text-[13px] font-bold text-amber-300 transition-colors hover:bg-amber-500/20 sm:h-auto sm:py-2.5 sm:text-sm"
+            >
+              <BellRing className="h-4 w-4" />
+              أبلغني عند توفره
+            </a>
+          )}
         </div>
       </div>
     </motion.article>

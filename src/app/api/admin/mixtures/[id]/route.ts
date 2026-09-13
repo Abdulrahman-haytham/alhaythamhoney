@@ -24,16 +24,15 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   if (body.ingredients.length !== known.size || body.ingredients.some((i) => !known.has(i.id))) {
     return NextResponse.json({ error: 'مكوّن مفقود أو غير معروف.' }, { status: 400 });
   }
-  if (body.ingredients.reduce((sum, i) => sum + i.recommended, 0) >= mixture.baseSize) {
-    return NextResponse.json(
-      { error: 'يجب أن تبقى مساحة للعسل في الوصفة الموصى بها.' },
-      { status: 400 },
-    );
-  }
   await db.$transaction([
     db.mixture.update({
       where: { id },
-      data: { prepFee: body.prepFee, published: body.published },
+      data: {
+        prepFee: body.prepFee,
+        published: body.published,
+        sizes: body.sizes,
+        defaultSize: body.defaultSize,
+      },
     }),
     ...body.ingredients.map(({ id: ingredientId, name: _name, ...data }) =>
       db.mixtureIngredient.update({ where: { id: ingredientId }, data }),

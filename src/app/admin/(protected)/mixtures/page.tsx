@@ -22,7 +22,8 @@ export default async function AdminMixturesPage() {
           slug: m.slug,
           name: m.name,
           tagline: m.tagline,
-          baseSize: m.baseSize,
+          sizes: m.sizes,
+          defaultSize: m.defaultSize,
           prepFee: m.prepFee,
           published: m.published,
           ingredients: m.ingredients.map((i) => ({

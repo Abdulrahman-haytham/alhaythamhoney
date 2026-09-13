@@ -24,5 +24,16 @@ export default defineConfig([
     'data/**',
     'test-results/**',
     'playwright-report/**',
+    // سكربتات تشخيص محلية غير متتبَّعة في Git (انظر .gitignore) — ليست جزءاً من التطبيق
+    'tmp/**',
+    'audit.mjs',
+    'checkout.mjs',
+    'diag.mjs',
+    'hook.mjs',
+    'iotest.mjs',
+    'probe.mjs',
+    'sections.mjs',
+    'shot.mjs',
+    'shot2.mjs',
   ]),
 ]);

@@ -261,7 +261,8 @@ interface SeedMixture {
   tagline: string;
   desc: string;
   image?: string;
-  baseSize: number;
+  sizes: number[];
+  defaultSize: number;
   prepFee: number;
   sortOrder: number;
   ingredients: SeedIngredient[];
@@ -270,7 +271,7 @@ interface SeedMixture {
 // ⚠️ الأسعار للغرام والجرعات الموصى بها هنا قيَم افتراضية للانطلاق —
 // أسعار غذاء الملكات والعكبر وغبار الطلع مشتقة من أسعار منتجاتها الحالية،
 // أما الجنسنغ وطلع النخيل والزنجبيل والمكسرات فتقديرية ويجب ضبطها من لوحة التحكم.
-// الحدود (الأدنى/الأقصى) حسب ما حدّده صاحب المتجر. الكميات لمرطبان مرجعي 500غ.
+// الحدود (الأدنى/الأقصى) حسب ما حدّده صاحب المتجر، وهي مطلقة لا تتغير مع حجم المرطبان.
 const MIXTURES: SeedMixture[] = [
   {
     slug: 'royal',
@@ -278,7 +279,8 @@ const MIXTURES: SeedMixture[] = [
     tagline: 'للحيوية والتركيز',
     desc: 'غذاء ملكات النحل مع الجنسنغ الكوري الأحمر وطلع النخيل، في قاعدة من عسلك المفضّل. خلطة الطاقة والتركيز لمن يبدأ يومه بجدّية.',
     image: '/images/products/royal-jelly.webp',
-    baseSize: 500,
+    sizes: [250, 500, 1000],
+    defaultSize: 500,
     prepFee: 10000,
     sortOrder: 0,
     ingredients: [
@@ -314,7 +316,8 @@ const MIXTURES: SeedMixture[] = [
     tagline: 'درعك المناعي',
     desc: 'كل ما تصنعه الخلية في مرطبان واحد: عسل وعكبر وغبار طلع وغذاء ملكات، مع لمسة زنجبيل. الخلطة الأشمل لدعم المناعة.',
     image: '/images/products/propolis.webp',
-    baseSize: 500,
+    sizes: [250, 500, 1000],
+    defaultSize: 500,
     prepFee: 10000,
     sortOrder: 1,
     ingredients: [
@@ -358,7 +361,8 @@ const MIXTURES: SeedMixture[] = [
     tagline: 'فطور الملوك كل يوم',
     desc: 'مكسرات مختارة مغمورة بعسلك المفضّل. للمتعة والطعم وطاقة الصباح — اختر مكسراتك، أو استثنِ ما لا تحبه.',
     image: '/images/products/jejan-honey.webp',
-    baseSize: 500,
+    sizes: [750, 1000],
+    defaultSize: 1000,
     prepFee: 5000,
     sortOrder: 2,
     ingredients: [

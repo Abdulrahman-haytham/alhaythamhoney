@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { reviewInput, productInput, mixtureInput } from '@/lib/validation';
 import {
   computePrice,
-  scaleSpec,
+  normalizeSizes,
   parseGrams,
   clampToStep,
   type IngredientSpec,
@@ -32,11 +32,18 @@ describe('pricing and validation', () => {
     ['100 مل', null],
     ['', null],
   ])('parses %s', (value, grams) => expect(parseGrams(value as string)).toBe(grams));
-  it('scales zero amounts and clamps within limits', () => {
-    expect(scaleSpec({ ...spec, recommended: 0 }, 1000, 500).recommended).toBe(0);
-    expect(scaleSpec(spec, 1000, 500).recommended).toBe(100);
+  it('clamps grams within the admin limits regardless of jar size', () => {
     expect(clampToStep(8, { minGrams: 3, maxGrams: 23, step: 5 })).toBe(8);
+    // فوق الحد الأقصى يُقصّ إليه — لا يستطيع الزبون تجاوز ما ضبطه الأدمن
     expect(clampToStep(1000, spec)).toBe(300);
+    expect(clampToStep(-50, spec)).toBe(spec.minGrams);
+  });
+
+  it('normalizes admin jar sizes and rejects invalid ones', () => {
+    expect(normalizeSizes([500, 250, 500])).toEqual([250, 500]);
+    expect(normalizeSizes([50])).toBeNull();
+    expect(normalizeSizes([])).toBeNull();
+    expect(normalizeSizes([250.5])).toBeNull();
   });
   it('computes a price and blocks recipes that leave no honey', () => {
     const options = {
@@ -90,12 +97,30 @@ describe('pricing and validation', () => {
     );
   });
   it('rejects invalid ingredient ranges and duplicate IDs', () => {
-    const input = { prepFee: 10, published: true, ingredients: [spec] };
+    const input = {
+      prepFee: 10,
+      published: true,
+      sizes: [500, 1000], // حد المكوّن الأقصى 300غ، فأصغر حجم مسموح هو 500غ
+      defaultSize: 500,
+      ingredients: [spec],
+    };
     expect(mixtureInput.safeParse(input).success).toBe(true);
     expect(mixtureInput.safeParse({ ...input, ingredients: [spec, spec] }).success).toBe(false);
     expect(
       mixtureInput.safeParse({ ...input, ingredients: [{ ...spec, recommended: 999 }] }).success,
     ).toBe(false);
+  });
+
+  it('rejects limits that could leave no room for honey', () => {
+    const base = { prepFee: 0, published: true, ingredients: [spec] };
+    // الحد الأقصى 300غ لا يترك مكاناً للعسل في مرطبان 250غ
+    expect(mixtureInput.safeParse({ ...base, sizes: [250], defaultSize: 250 }).success).toBe(false);
+    expect(mixtureInput.safeParse({ ...base, sizes: [500], defaultSize: 500 }).success).toBe(true);
+    // الحجم الافتراضي يجب أن يكون ضمن الأحجام المتاحة
+    expect(mixtureInput.safeParse({ ...base, sizes: [250, 500], defaultSize: 1000 }).success).toBe(
+      false,
+    );
+    expect(mixtureInput.safeParse({ ...base, sizes: [], defaultSize: 500 }).success).toBe(false);
   });
 });
 describe('restored contact cards and PWA', () => {

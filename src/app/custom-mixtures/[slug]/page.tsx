@@ -66,12 +66,12 @@ export default async function MixturePage({ params }: { params: Promise<{ slug: 
                   الخلطة.
                 </li>
                 <li>
-                  <span className="text-amber-500">٢.</span> اختر الحجم؛ النِسب تبقى كما ضبطها
-                  الخبير.
+                  <span className="text-amber-500">٢.</span> اختر الحجم؛ الجرعات ثابتة كما ضبطها
+                  الخبير، والعسل يملأ الباقي.
                 </li>
                 <li>
-                  <span className="text-amber-500">٣.</span> إن أردت، عدّل أي مكوّن ضمن حدوده —
-                  والسعر يتحدّث فوراً.
+                  <span className="text-amber-500">٣.</span> إن أردت، عدّل أي مكوّن ضمن الحدود
+                  المسموحة — والسعر يتحدّث فوراً.
                 </li>
               </ol>
               <p className="mt-4 border-t border-zinc-800 pt-3 text-xs leading-relaxed text-zinc-500">
@@ -88,7 +88,8 @@ export default async function MixturePage({ params }: { params: Promise<{ slug: 
                 name: mixture.name,
                 tagline: mixture.tagline,
                 desc: mixture.desc,
-                baseSize: mixture.baseSize,
+                sizes: mixture.sizes,
+                defaultSize: mixture.defaultSize,
                 prepFee: mixture.prepFee,
                 ingredients: mixture.ingredients.map((i) => ({
                   id: i.id,

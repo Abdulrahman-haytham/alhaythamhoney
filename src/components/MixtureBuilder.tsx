@@ -15,14 +15,11 @@ import { useCart } from '@/store/cartStore';
 import { getWhatsAppLink } from '@/lib/config';
 import { trackAddToCart, trackWhatsAppClick } from '@/lib/analytics';
 import {
-  JAR_SIZES,
   computePrice,
   clampToStep,
   describeRecipe,
-  scaleSpec,
   type HoneyOption,
   type IngredientSpec,
-  type JarSize,
 } from '@/lib/mixturePricing';
 
 const fmt = (n: number) => new Intl.NumberFormat('en-US').format(n);
@@ -32,10 +29,13 @@ export interface MixtureData {
   name: string;
   tagline: string;
   desc: string;
-  baseSize: number;
+  sizes: number[];
+  defaultSize: number;
   prepFee: number;
   ingredients: IngredientSpec[];
 }
+
+const sizeLabel = (s: number) => (s >= 1000 ? `${s / 1000} كغ` : `${s} غ`);
 
 export function MixtureBuilder({
   mixture,
@@ -46,17 +46,17 @@ export function MixtureBuilder({
 }) {
   const { addItem } = useCart();
   const [honeySlug, setHoneySlug] = useState(honeys[0]?.slug ?? '');
-  const [size, setSize] = useState<JarSize>(mixture.baseSize as JarSize);
+  const [size, setSize] = useState(
+    mixture.sizes.includes(mixture.defaultSize) ? mixture.defaultSize : mixture.sizes[0],
+  );
   const [advanced, setAdvanced] = useState(false);
-  // الغرامات المعدّلة يدوياً فقط — ما لم يُلمس يتبع الموصى به تلقائياً عند تغيير الحجم
+  // الغرامات المعدّلة يدوياً فقط — ما لم يُلمس يبقى على الموصى به
   const [overrides, setOverrides] = useState<Record<string, number>>({});
   const [added, setAdded] = useState(false);
 
   const honey = honeys.find((h) => h.slug === honeySlug) ?? honeys[0];
-  const specs = useMemo(
-    () => mixture.ingredients.map((s) => scaleSpec(s, size, mixture.baseSize)),
-    [mixture.ingredients, size, mixture.baseSize],
-  );
+  // الحدود مطلقة كما ضبطها الأدمن — لا تتغير مع الحجم
+  const specs = mixture.ingredients;
   const grams = useMemo(() => {
     const g: Record<string, number> = {};
     for (const s of specs)
@@ -71,11 +71,6 @@ export function MixtureBuilder({
 
   const isCustomized = specs.some((s) => grams[s.id] !== s.recommended);
   const aboveRecommended = specs.filter((s) => grams[s.id] > s.recommended);
-
-  function changeSize(next: JarSize) {
-    setSize(next);
-    setOverrides({});
-  }
 
   if (!honey || !price) {
     return <p className="text-zinc-500">لا يتوفر عسل أساسي حالياً — تواصل معنا عبر واتساب.</p>;
@@ -158,11 +153,11 @@ export function MixtureBuilder({
           <span className="text-amber-500">٢.</span> اختر الحجم
         </h2>
         <div className="flex gap-2">
-          {JAR_SIZES.map((s) => (
+          {mixture.sizes.map((s) => (
             <button
               key={s}
               type="button"
-              onClick={() => changeSize(s)}
+              onClick={() => setSize(s)}
               aria-pressed={s === size}
               className={`h-11 flex-1 rounded-xl border text-sm font-bold transition-colors ${
                 s === size
@@ -170,10 +165,13 @@ export function MixtureBuilder({
                   : 'border-zinc-800 text-zinc-400 hover:border-zinc-600 hover:text-zinc-200'
               }`}
             >
-              {s >= 1000 ? `${s / 1000} كغ` : `${s} غ`}
+              {sizeLabel(s)}
             </button>
           ))}
         </div>
+        <p className="mt-2 text-xs text-zinc-500">
+          الجرعات ثابتة كما ضبطها الخبير مهما كان الحجم — الحجم يغيّر كمية العسل فقط.
+        </p>
       </section>
 
       {/* الوصفة — الافتراضي هو وصفة الخبير؛ التعديل مطويّ لمن يريده */}
@@ -320,9 +318,7 @@ export function MixtureBuilder({
               <span className="mr-2 text-base font-semibold text-zinc-400">ل.س</span>
             </p>
           </div>
-          <p className="text-left text-xs text-zinc-500">
-            مرطبان {size >= 1000 ? `${size / 1000} كغ` : `${size} غ`}
-          </p>
+          <p className="text-left text-xs text-zinc-500">مرطبان {sizeLabel(size)}</p>
         </div>
         <details className="group text-xs text-zinc-500">
           <summary className="cursor-pointer select-none list-none text-zinc-400 hover:text-zinc-200">
