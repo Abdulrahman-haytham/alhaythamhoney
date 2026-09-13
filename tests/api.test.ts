@@ -10,7 +10,9 @@ const mocks = vi.hoisted(() => ({
 }));
 vi.mock('@/lib/auth', () => ({ requireAdmin: mocks.admin, ADMIN_COOKIE: 'admin_session' }));
 vi.mock('@/lib/rate-limit', () => ({ rateLimit: mocks.limit }));
-vi.mock('next/headers', () => ({ cookies: async () => ({ set: mocks.cookie }) }));
+vi.mock('next/headers', () => ({
+  cookies: async () => ({ set: mocks.cookie, get: () => undefined }),
+}));
 vi.mock('@/lib/db', () => ({
   db: {
     product: {

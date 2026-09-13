@@ -16,12 +16,15 @@ import {
   Camera,
   Search,
   Megaphone,
+  UserRound,
+  Gift,
 } from 'lucide-react';
 import { SITE, getWhatsAppLink } from '@/lib/config';
 import { useCart } from '@/store/cartStore';
 import { useWishlist } from '@/store/wishlistStore';
 import { useSettings } from '@/components/SettingsProvider';
 import { SearchDialog } from '@/components/SearchDialog';
+import { useCustomer } from '@/components/CustomerProvider';
 
 function SkipLink() {
   return (
@@ -40,6 +43,7 @@ export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const settings = useSettings();
+  const customer = useCustomer();
   const mounted = useHydrated();
   const pathname = usePathname();
   const router = useRouter();
@@ -199,6 +203,13 @@ export default function Header() {
               <Link href="/custom-mixtures" className="hover:text-amber-500 transition-colors">
                 الخلطات الخاصة
               </Link>
+              <Link
+                href="/draw"
+                className="flex items-center gap-1.5 text-amber-400/90 hover:text-amber-300 transition-colors"
+              >
+                <Gift className="w-4 h-4" />
+                السحب
+              </Link>
               <Link href="/about-us" className="hover:text-amber-500 transition-colors">
                 قصتنا
               </Link>
@@ -221,6 +232,18 @@ export default function Header() {
               >
                 <Search className="w-5 h-5" />
               </button>
+
+              {/* الحساب */}
+              <Link
+                href={customer ? '/account' : '/account/login'}
+                className={`relative p-2.5 rounded-lg transition-colors hover:bg-zinc-900 ${customer ? 'text-amber-400' : 'text-zinc-400 hover:text-amber-500'}`}
+                aria-label={customer ? `حسابي (${customer.name})` : 'تسجيل الدخول'}
+              >
+                <UserRound className="w-5 h-5" />
+                {customer && (
+                  <span className="absolute bottom-1.5 right-1.5 h-2 w-2 rounded-full bg-green-400 ring-2 ring-zinc-950" />
+                )}
+              </Link>
 
               {/* المفضلة */}
               <Link
@@ -303,6 +326,24 @@ export default function Header() {
                     className="text-zinc-300 hover:text-amber-500 transition-colors py-3 text-lg border-b border-zinc-800/50"
                   >
                     الخلطات الخاصة
+                  </Link>
+                  <Link
+                    href="/draw"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center gap-4 text-amber-300 hover:text-amber-200 transition-colors py-3 text-lg border-b border-zinc-800/50"
+                  >
+                    <Gift className="w-6 h-6 text-amber-500" />
+                    <span className="font-medium">السحب الأسبوعي</span>
+                  </Link>
+                  <Link
+                    href={customer ? '/account' : '/account/login'}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center gap-4 text-zinc-300 hover:text-amber-500 transition-colors py-3 text-lg border-b border-zinc-800/50"
+                  >
+                    <UserRound className="w-6 h-6 text-amber-500" />
+                    <span className="font-medium">
+                      {customer ? `حسابي — ${customer.name}` : 'تسجيل الدخول'}
+                    </span>
                   </Link>
                   <Link
                     href="/about-us"

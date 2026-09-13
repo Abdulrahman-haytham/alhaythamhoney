@@ -19,6 +19,8 @@ const empty: Input = {
   startsAt: null,
   expiresAt: null,
   note: null,
+  requiresLogin: false,
+  oncePerCustomer: false,
 };
 const inputClass =
   'mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-base text-white placeholder:text-zinc-600 focus:border-amber-500/50 focus:outline-none disabled:text-zinc-500';
@@ -161,6 +163,25 @@ function Editor({ coupon, onDone }: { coupon?: Row; onDone?: () => void }) {
           />
           مفعّل
         </label>
+        <label className="flex items-center gap-2 self-end pb-2">
+          <input
+            type="checkbox"
+            checked={form.requiresLogin || form.oncePerCustomer}
+            disabled={form.oncePerCustomer}
+            onChange={(e) => set('requiresLogin', e.target.checked)}
+            className="h-4 w-4 accent-amber-500"
+          />
+          للأعضاء المسجّلين فقط
+        </label>
+        <label className="flex items-center gap-2 self-end pb-2">
+          <input
+            type="checkbox"
+            checked={form.oncePerCustomer}
+            onChange={(e) => set('oncePerCustomer', e.target.checked)}
+            className="h-4 w-4 accent-amber-500"
+          />
+          مرة واحدة لكل حساب
+        </label>
       </div>
       <div className="flex flex-wrap items-center gap-4">
         <button
@@ -228,6 +249,7 @@ export function CouponsPanel({ coupons }: { coupons: Row[] }) {
                 {c.type === 'PERCENT' ? `${c.value}%` : `${fmt(c.value)} ل.س`}
                 {c.minOrder > 0 && ` · من ${fmt(c.minOrder)} ل.س`}
                 {c.expiresAt && ` · حتى ${c.expiresAt}`}
+                {c.oncePerCustomer ? ' · مرة لكل حساب' : c.requiresLogin ? ' · للأعضاء' : ''}
               </span>
               <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold ${status.cls}`}>
                 {status.label}

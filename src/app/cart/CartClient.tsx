@@ -19,7 +19,8 @@ import { useCart } from '@/store/cartStore';
 import { getWhatsAppLink } from '@/lib/config';
 import { useSettings } from '@/components/SettingsProvider';
 import { trackBeginCheckout } from '@/lib/analytics';
-import { normalizeCouponCode, type CouponResult } from '@/lib/coupons';
+import { normalizeCouponCode, LOGIN_REQUIRED_REASON, type CouponResult } from '@/lib/coupons';
+import { useCustomer } from '@/components/CustomerProvider';
 
 const fmt = (n: number) => new Intl.NumberFormat('en-US').format(n);
 
@@ -150,7 +151,19 @@ function CouponField({
           {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : 'تطبيق'}
         </button>
       </div>
-      {result && !result.ok && <p className="text-xs text-red-400">{result.reason}</p>}
+      {result && !result.ok && (
+        <p className="text-xs text-red-400">
+          {result.reason}
+          {result.reason === LOGIN_REQUIRED_REASON && (
+            <>
+              {' '}
+              <Link href="/account/login?next=/cart" className="font-bold text-amber-400 underline">
+                تسجيل الدخول
+              </Link>
+            </>
+          )}
+        </p>
+      )}
     </form>
   );
 }
@@ -160,6 +173,7 @@ export function CartClient() {
   const { items, removeItem, updateQuantity, clearCart, getTotalPrice, getTotalItems } = useCart();
   const { shippingCost, freeShippingThreshold, couponsEnabled } = useSettings();
   const couponCode = useCart((s) => s.couponCode);
+  const customer = useCustomer();
   const [couponResult, setCouponResult] = useState<CouponResult | null>(null);
   // نتيجة التحقق تُعتمد فقط ما دام الكود محفوظاً في السلة (إفراغ السلة يلغيه)
   const coupon = couponCode || (couponResult && !couponResult.ok) ? couponResult : null;
@@ -348,7 +362,15 @@ export function CartClient() {
             href={getWhatsAppLink(waMessage)}
             target="_blank"
             rel="noopener noreferrer"
-            onClick={() =>
+            onClick={() => {
+              // كوبون «مرة لكل حساب» يُسجَّل استخدامه لحظة إرسال الطلب
+              if (coupon?.ok && customer)
+                void fetch('/api/coupons', {
+                  method: 'PUT',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ code: coupon.code, subtotal }),
+                  keepalive: true,
+                }).catch(() => null);
               trackBeginCheckout(
                 total,
                 items.map((i) => ({
@@ -357,8 +379,8 @@ export function CartClient() {
                   price: i.price ?? 0,
                   quantity: i.quantity,
                 })),
-              )
-            }
+              );
+            }}
             className="mt-6 flex h-13 w-full items-center justify-center gap-2.5 rounded-xl bg-green-600 py-4 font-bold text-white shadow-lg shadow-green-600/20 transition-colors hover:bg-green-500"
           >
             <MessageCircle className="h-5 w-5" />

@@ -3,6 +3,7 @@ import { db } from '@/lib/db';
 import { checkOrigin, readJson } from '@/lib/request-security';
 import { rateLimit } from '@/lib/rate-limit';
 import { reviewInput } from '@/lib/validation';
+import { currentCustomer } from '@/lib/customer-auth';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -26,8 +27,17 @@ export async function POST(request: Request) {
     if (!product) return NextResponse.json({ error: 'المنتج غير موجود.' }, { status: 400 });
     productId = product.id;
   }
-  // WhatsApp checkout has no verified order identity. Never award a verified-purchase badge.
-  await db.review.create({ data: { ...data, productId, orderRef: null, status: 'PENDING' } });
+  // لا هوية طلب موثّقة (الطلب عبر واتساب) — لكن الحساب المسجّل يمنح شارة «حساب موثّق»
+  const customer = await currentCustomer();
+  await db.review.create({
+    data: {
+      ...data,
+      productId,
+      orderRef: null,
+      status: 'PENDING',
+      customerId: customer?.id ?? null,
+    },
+  });
   return NextResponse.json(
     { ok: true, message: 'شكراً لك! سيظهر رأيك بعد المراجعة.' },
     { status: 201 },

@@ -53,7 +53,7 @@ export default async function CustomerReviews() {
                   {review.verified && (
                     <span className="inline-flex items-center gap-1 rounded-full bg-green-600/15 px-2 py-0.5 text-[11px] font-medium text-green-400">
                       <BadgeCheck className="h-3.5 w-3.5" />
-                      شراء موثّق
+                      حساب موثّق
                     </span>
                   )}
                 </div>

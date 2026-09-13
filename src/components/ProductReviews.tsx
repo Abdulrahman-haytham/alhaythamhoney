@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useCustomer } from '@/components/CustomerProvider';
 import { Star, BadgeCheck, MessageSquarePlus } from 'lucide-react';
 import type { PublicReview, RatingSummary } from '@/lib/reviews.server';
 
@@ -28,8 +29,10 @@ export function ProductReviews({
   rating: RatingSummary | null;
 }) {
   const [open, setOpen] = useState(false);
-  const [name, setName] = useState('');
-  const [city, setCity] = useState('');
+  const customer = useCustomer();
+  // العضو المسجّل لا يعيد كتابة اسمه ومدينته
+  const [name, setName] = useState(customer?.name ?? '');
+  const [city, setCity] = useState(customer?.city ?? '');
   const [stars, setStars] = useState(5);
   const [body, setBody] = useState('');
   const [state, setState] = useState<'idle' | 'sending' | 'done'>('idle');
@@ -190,7 +193,7 @@ export function ProductReviews({
                 {r.verified && (
                   <span className="inline-flex items-center gap-1 rounded-full bg-green-600/15 px-2 py-0.5 text-[11px] font-medium text-green-400">
                     <BadgeCheck className="h-3.5 w-3.5" />
-                    شراء موثّق
+                    حساب موثّق
                   </span>
                 )}
               </div>

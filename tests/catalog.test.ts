@@ -6,7 +6,19 @@ import {
   articleInput,
   couponInput,
   settingsInput,
+  jarCodeInput,
+  profileInput,
+  drawInput,
 } from '@/lib/validation';
+import {
+  createSessionToken,
+  readSessionToken,
+  createCustomerToken,
+  readCustomerToken,
+  createVerifiedEmailToken,
+  readVerifiedEmailToken,
+} from '@/lib/session';
+import { randomJarCode } from '@/lib/draws.server';
 import { applyCoupon } from '@/lib/coupons';
 import { DEFAULT_SETTINGS, lowStockLabel, isAvailable } from '@/lib/settings';
 import { applyRuntimeSettings, getWhatsAppLink, SHIPPING } from '@/lib/config';
@@ -218,7 +230,14 @@ describe('coupons and store settings', () => {
     ).toMatchObject({ ok: true, discount: 200_000 });
   });
   it('validates coupon and settings input', () => {
-    const coupon = { ...base, startsAt: null, expiresAt: null, note: null };
+    const coupon = {
+      ...base,
+      startsAt: null,
+      expiresAt: null,
+      note: null,
+      requiresLogin: false,
+      oncePerCustomer: false,
+    };
     expect(couponInput.safeParse(coupon).success).toBe(true);
     expect(couponInput.safeParse({ ...coupon, code: 'كود عربي' }).success).toBe(false);
     expect(couponInput.safeParse({ ...coupon, value: 150 }).success).toBe(false);
@@ -248,5 +267,64 @@ describe('coupons and store settings', () => {
     expect(SHIPPING.cost).toBe(1);
     applyRuntimeSettings(DEFAULT_SETTINGS);
     expect(getContact('haytham')?.phone).toBe('+963947931959');
+  });
+});
+describe('customer accounts and draws', () => {
+  it('keeps admin and customer sessions cryptographically separate', () => {
+    const admin = createSessionToken('a1');
+    const customer = createCustomerToken('c1');
+    expect(readSessionToken(admin)).toBe('a1');
+    expect(readCustomerToken(customer)).toBe('c1');
+    expect(readCustomerToken(admin)).toBeNull();
+    expect(readSessionToken(customer)).toBeNull();
+    const t = createVerifiedEmailToken('Someone@Example.com');
+    expect(readVerifiedEmailToken(t)).toBe('Someone@Example.com');
+    expect(readVerifiedEmailToken(t.slice(0, -2) + 'zz')).toBeNull();
+  });
+  it('normalizes jar codes however the customer types them', () => {
+    expect(jarCodeInput.parse(' hy 7k3m 9q2x ')).toBe('HY-7K3M-9Q2X');
+    expect(jarCodeInput.parse('HY-7K3M-9Q2X')).toBe('HY-7K3M-9Q2X');
+    expect(jarCodeInput.safeParse('HY-7K3M-9Q2').success).toBe(false);
+    expect(jarCodeInput.safeParse('XX-7K3M-9Q2X').success).toBe(false);
+    for (let i = 0; i < 50; i++) expect(jarCodeInput.safeParse(randomJarCode()).success).toBe(true);
+  });
+  it('validates profiles and draws', () => {
+    expect(
+      profileInput.parse({ name: 'أحمد', phone: '0947 931 959', city: '', marketingOptIn: true }),
+    ).toMatchObject({ phone: '0947931959', city: null });
+    expect(
+      profileInput.safeParse({ name: 'أ', phone: '09', city: null, marketingOptIn: true }).success,
+    ).toBe(false);
+    const draw = {
+      title: 'سحب',
+      prize: 'عسل',
+      description: null,
+      startsAt: '2026-09-13',
+      endsAt: '2026-09-20',
+      status: 'OPEN',
+      maxEntries: 0,
+    };
+    expect(drawInput.safeParse(draw).success).toBe(true);
+    expect(drawInput.safeParse({ ...draw, endsAt: '2026-09-01' }).success).toBe(false);
+  });
+  it('gates member-only coupons and once-per-account use', () => {
+    const c = {
+      code: 'VIP',
+      type: 'PERCENT' as const,
+      value: 10,
+      minOrder: 0,
+      maxDiscount: null,
+      active: true,
+      startsAt: null,
+      expiresAt: null,
+      oncePerCustomer: true,
+    };
+    expect(applyCoupon(c, 1000).ok).toBe(false);
+    expect(applyCoupon(c, 1000, new Date(), { loggedIn: true, alreadyRedeemed: false }).ok).toBe(
+      true,
+    );
+    expect(applyCoupon(c, 1000, new Date(), { loggedIn: true, alreadyRedeemed: true }).ok).toBe(
+      false,
+    );
   });
 });

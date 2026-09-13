@@ -8,6 +8,8 @@ import SiteShell from '@/components/SiteShell';
 import Footer from '@/components/Footer';
 import { SettingsProvider } from '@/components/SettingsProvider';
 import { getSettings } from '@/lib/settings.server';
+import { CustomerProvider } from '@/components/CustomerProvider';
+import { currentCustomer } from '@/lib/customer-auth';
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE.url),
@@ -34,7 +36,7 @@ export const viewport: Viewport = { themeColor: '#09090b', viewportFit: 'cover' 
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   // إعدادات لوحة التحكم (واتساب، الشحن، الإعلان…) تُقرأ هنا وتُوزَّع على الخادم والمتصفح
-  const settings = await getSettings();
+  const [settings, customer] = await Promise.all([getSettings(), currentCustomer()]);
   return (
     <html lang="ar" dir="rtl">
       <head>
@@ -47,7 +49,21 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <Script src="/haytham-loader.js" strategy="beforeInteractive" />
         <StructuredData />
         <SettingsProvider settings={settings}>
-          <SiteShell footer={<Footer />}>{children}</SiteShell>
+          <CustomerProvider
+            customer={
+              customer
+                ? {
+                    id: customer.id,
+                    name: customer.name,
+                    email: customer.email,
+                    phone: customer.phone,
+                    city: customer.city,
+                  }
+                : null
+            }
+          >
+            <SiteShell footer={<Footer />}>{children}</SiteShell>
+          </CustomerProvider>
         </SettingsProvider>
         <ServiceWorkerRegistrar />
       </body>

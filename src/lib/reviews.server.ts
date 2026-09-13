@@ -23,6 +23,7 @@ function toPublic(r: {
   rating: number;
   body: string;
   orderRef: string | null;
+  customerId: string | null;
   createdAt: Date;
 }): PublicReview {
   return {
@@ -31,7 +32,8 @@ function toPublic(r: {
     authorCity: r.authorCity,
     rating: r.rating,
     body: r.body,
-    verified: false, // WhatsApp-only orders cannot be verified by this application.
+    // «موثّق» = كُتب من حساب مسجّل ببريد متحقق منه (لا يثبت الشراء نفسه)
+    verified: r.customerId !== null,
     createdAt: r.createdAt.toISOString(),
   };
 }

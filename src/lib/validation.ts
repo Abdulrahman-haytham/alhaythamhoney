@@ -130,6 +130,8 @@ export const couponInput = z
     startsAt: isoDay.nullable(),
     expiresAt: isoDay.nullable(),
     note: text(200).nullable(),
+    requiresLogin: z.boolean(),
+    oncePerCustomer: z.boolean(),
   })
   .strict()
   .refine((c) => c.type !== 'PERCENT' || c.value <= 100, 'النسبة المئوية بين 1 و100.')
@@ -177,5 +179,68 @@ export const settingsInput = z
     cartReminderEnabled: z.boolean(),
     cartReminderHours: z.number().int().min(1).max(720),
     couponsEnabled: z.boolean(),
+  })
+  .strict();
+
+// ---- حسابات الزبائن ----
+export const emailInput = z.string().trim().toLowerCase().email('بريد غير صالح.').max(120);
+const phone = z
+  .string()
+  .trim()
+  .regex(/^\+?[0-9 ()-]{8,20}$/, 'رقم هاتف غير صالح.')
+  .transform((v) => v.replace(/[^\d+]/g, ''));
+
+export const requestCodeInput = z.object({ email: emailInput }).strict();
+export const verifyCodeInput = z
+  .object({
+    email: emailInput,
+    code: z
+      .string()
+      .trim()
+      .regex(/^\d{6}$/, 'الرمز 6 أرقام.'),
+  })
+  .strict();
+export const profileInput = z
+  .object({
+    name: text(80).min(2, 'الاسم قصير.'),
+    phone,
+    city: text(40)
+      .transform((v) => (v.length ? v : null))
+      .nullable(),
+    marketingOptIn: z.boolean(),
+  })
+  .strict();
+export const registerInput = profileInput.extend({ token: z.string().min(10).max(2000) }).strict();
+
+// ---- السحب ورموز المرطبانات ----
+export const JAR_CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+/** يقبل الرمز بأي صيغة يكتبها الزبون (مسافات/شرطات/أحرف صغيرة) ويطبّعه إلى HY-XXXX-XXXX */
+export const jarCodeInput = z
+  .string()
+  .trim()
+  .transform((v) => v.toUpperCase().replace(/[^A-Z0-9]/g, ''))
+  .refine((v) => /^HY[A-Z2-9]{8}$/.test(v), 'رمز المرطبان غير صحيح — تأكد من الملصق.')
+  .transform((v) => `HY-${v.slice(2, 6)}-${v.slice(6, 10)}`);
+export const enterDrawInput = z.object({ code: jarCodeInput }).strict();
+
+export const drawInput = z
+  .object({
+    title: text(120).min(3),
+    prize: text(200).min(2),
+    description: text(1000)
+      .transform((v) => (v.length ? v : null))
+      .nullable(),
+    startsAt: isoDay,
+    endsAt: isoDay,
+    status: z.enum(['DRAFT', 'OPEN', 'CLOSED', 'DRAWN']),
+    maxEntries: z.number().int().min(0).max(1000),
+  })
+  .strict()
+  .refine((d) => d.startsAt <= d.endsAt, 'تاريخ الانتهاء قبل البداية.');
+
+export const generateCodesInput = z
+  .object({
+    batch: text(60).min(1, 'اسم الدفعة مطلوب.'),
+    count: z.number().int().min(1).max(5000),
   })
   .strict();

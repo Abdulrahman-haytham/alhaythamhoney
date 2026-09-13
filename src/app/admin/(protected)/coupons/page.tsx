@@ -25,6 +25,8 @@ export default async function AdminCouponsPage() {
           startsAt: c.startsAt ? toIsoDay(c.startsAt) : null,
           expiresAt: c.expiresAt ? toIsoDay(c.expiresAt) : null,
           note: c.note,
+          requiresLogin: c.requiresLogin,
+          oncePerCustomer: c.oncePerCustomer,
         }))}
       />
     </>

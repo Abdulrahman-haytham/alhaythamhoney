@@ -8,6 +8,8 @@ export interface CouponRule {
   active: boolean;
   startsAt: Date | null;
   expiresAt: Date | null;
+  requiresLogin?: boolean;
+  oncePerCustomer?: boolean;
 }
 
 export type CouponResult =
@@ -19,12 +21,22 @@ export const normalizeCouponCode = (raw: string) =>
     .toUpperCase()
     .replace(/[^A-Z0-9-]/g, '');
 
+export const LOGIN_REQUIRED_REASON = 'هذا الكوبون للأعضاء — سجّل الدخول لاستخدامه.';
+
 export function applyCoupon(
   coupon: CouponRule | null,
   subtotal: number,
   now = new Date(),
+  context: { loggedIn: boolean; alreadyRedeemed: boolean } = {
+    loggedIn: false,
+    alreadyRedeemed: false,
+  },
 ): CouponResult {
   if (!coupon || !coupon.active) return { ok: false, reason: 'الكوبون غير صالح.' };
+  if ((coupon.requiresLogin || coupon.oncePerCustomer) && !context.loggedIn)
+    return { ok: false, reason: LOGIN_REQUIRED_REASON };
+  if (coupon.oncePerCustomer && context.alreadyRedeemed)
+    return { ok: false, reason: 'استخدمت هذا الكوبون من قبل.' };
   if (coupon.startsAt && coupon.startsAt > now)
     return { ok: false, reason: 'الكوبون لم يبدأ بعد.' };
   if (coupon.expiresAt && coupon.expiresAt < now)
