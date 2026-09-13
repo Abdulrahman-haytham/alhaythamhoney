@@ -23,6 +23,23 @@ import { applyCoupon } from '@/lib/coupons';
 import { DEFAULT_SETTINGS, lowStockLabel, isAvailable } from '@/lib/settings';
 import { applyRuntimeSettings, getWhatsAppLink, SHIPPING } from '@/lib/config';
 import { renderMarkdown } from '@/lib/markdown';
+
+describe('article body formats', () => {
+  it('renders indented raw HTML as HTML, not as a code block', () => {
+    const html = renderMarkdown(
+      '<h2>عنوان</h2>\n        <p>فقرة <strong>مهمة</strong></p>\n\n        <ul>\n          <li>بند</li>\n        </ul>',
+    );
+    expect(html).toContain('<h2>عنوان</h2>');
+    expect(html).toContain('<li>بند</li>');
+    expect(html).not.toContain('<pre>');
+    expect(html).not.toContain('&lt;');
+  });
+  it('renders GFM tables from markdown', () => {
+    const html = renderMarkdown('| أ | ب |\n| --- | --- |\n| 1 | 2 |');
+    expect(html).toContain('<table>');
+    expect(html).toContain('<td>2</td>');
+  });
+});
 import {
   computePrice,
   normalizeSizes,

@@ -434,8 +434,19 @@ async function main() {
 
   // المقالات الأصلية تُزرع مرة واحدة، ثم تُكتب وتُعدَّل من /admin/articles فقط
   for (const article of SEED_ARTICLES) {
-    const exists = await db.article.findUnique({ where: { slug: article.slug } });
-    if (exists) continue;
+    const exists = await db.article.findUnique({
+      where: { slug: article.slug },
+      select: { id: true, body: true },
+    });
+    if (exists) {
+      // نسخة قديمة زُرعت بجسم HTML خام؛ نرقّيها إلى Markdown ما دام الأدمن لم يعد كتابتها
+      if (/^\s*</.test(exists.body))
+        await db.article.update({
+          where: { id: exists.id },
+          data: { body: await readSeedArticleBody(article.slug) },
+        });
+      continue;
+    }
     await db.article.create({
       data: {
         ...article,

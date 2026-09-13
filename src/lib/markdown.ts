@@ -42,9 +42,19 @@ const ALLOWED_TAGS = [
 
 marked.setOptions({ gfm: true, breaks: false });
 
+/** جسم يبدأ بوسم كتلة HTML (مقال منسوخ من محرّر آخر) — يُعامل كـ HTML لا Markdown. */
+const HTML_BLOCK_START = /^\s*<(h[2-6]|p|div|ul|ol|table|blockquote|figure|section|article)\b/i;
+
+export function isHtmlBody(source: string) {
+  return HTML_BLOCK_START.test(source);
+}
+
 export function renderMarkdown(source: string): string {
-  // h1 محجوز لعنوان الصفحة — أي # في الجسم يُنزَّل إلى h2 حفاظاً على بنية SEO سليمة
-  const html = marked.parse(source, { async: false }) as string;
+  // HTML خام: لا نمرّره على Markdown حتى لا تتحوّل الأسطر المُزاحة إلى كتل كود تُظهر الوسوم كنص
+  const html = isHtmlBody(source)
+    ? source
+    : // h1 محجوز لعنوان الصفحة — أي # في الجسم يُنزَّل إلى h2 حفاظاً على بنية SEO سليمة
+      (marked.parse(source, { async: false }) as string);
   return sanitizeHtml(html.replace(/<(\/?)h1\b/g, '<$1h2'), {
     allowedTags: ALLOWED_TAGS,
     allowedAttributes: {

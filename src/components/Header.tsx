@@ -186,7 +186,7 @@ export default function Header() {
             </Link>
 
             {/* روابط سطح المكتب */}
-            <div className="hidden md:flex gap-6 xl:gap-8 text-sm font-medium text-zinc-400">
+            <div className="hidden md:flex gap-5 xl:gap-8 text-sm font-medium text-zinc-400 whitespace-nowrap">
               <Link
                 href="/shop"
                 className="flex items-center gap-2 hover:text-amber-500 transition-colors"
@@ -194,7 +194,10 @@ export default function Header() {
                 <Store className="w-4 h-4" />
                 المتجر
               </Link>
-              <Link href="/studio" className="hover:text-amber-500 transition-colors">
+              <Link
+                href="/studio"
+                className="hidden lg:block hover:text-amber-500 transition-colors"
+              >
                 الاستديو
               </Link>
               <Link href="/articles" className="hover:text-amber-500 transition-colors">
@@ -213,7 +216,10 @@ export default function Header() {
               <Link href="/about-us" className="hover:text-amber-500 transition-colors">
                 قصتنا
               </Link>
-              <Link href="/quality-standards" className="hover:text-amber-500 transition-colors">
+              <Link
+                href="/quality-standards"
+                className="hidden lg:block hover:text-amber-500 transition-colors"
+              >
                 الجودة
               </Link>
               <Link href="/faq" className="hover:text-amber-500 transition-colors">
