@@ -12,8 +12,7 @@ const trustIcons = [
   { icon: <Truck className="w-5 h-5" />, text: 'شحن آمن داخل سوريا' },
 ];
 
-const DEFAULT_HERO_IMAGE =
-  'https://res.cloudinary.com/dkbvnupge/image/upload/f_auto,q_auto/v1767958674/my-app-uploads/kromozksoa3vpcwrnvtw.jpg';
+const DEFAULT_HERO_IMAGE = '/images/hero.webp';
 
 /** النصوص وصورة الخلفية تُحرَّر من /admin/settings. */
 export default function Hero() {
@@ -32,8 +31,8 @@ export default function Hero() {
           alt="عسل طبيعي 100% من مراعي سوريا - الهيثم — نحل وعسل"
           fetchPriority="high"
           loading="eager"
-          width={1920}
-          height={1080}
+          width={1280}
+          height={1280}
           className="w-full h-full object-cover grayscale-[10%] brightness-[0.3]"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/60 to-transparent"></div>

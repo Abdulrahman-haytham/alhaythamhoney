@@ -58,8 +58,8 @@ export default function Footer() {
           <div className="hidden lg:block relative text-center">
             <div className="absolute inset-0 bg-amber-500/10 blur-3xl rounded-full"></div>
             <img
-              src="https://res.cloudinary.com/dkbvnupge/image/upload/f_auto,q_auto/v1767958674/my-app-uploads/kromozksoa3vpcwrnvtw.jpg"
-              alt="Golden Honey Legacy"
+              src="/images/story.webp"
+              alt="الأخوان مؤسسا الهيثم بين خلايا النحل في المنحل"
               loading="lazy"
               className="relative w-full max-w-xs mx-auto object-contain brightness-110 drop-shadow-[0_0_18px_rgba(212,175,55,0.18)] rounded-2xl"
             />
@@ -70,8 +70,8 @@ export default function Footer() {
         <div className="pt-12 sm:pt-16 md:pt-20 border-t border-zinc-900 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 sm:gap-10 md:gap-12 text-zinc-500 text-xs sm:text-sm text-right">
           <div className="col-span-1 sm:col-span-2 md:col-span-1 flex flex-col items-start md:items-end">
             <img
-              src="https://res.cloudinary.com/dkbvnupge/image/upload/f_auto,q_auto/v1767958674/my-app-uploads/kromozksoa3vpcwrnvtw.jpg"
-              alt="Logo"
+              src="/images/logo.webp"
+              alt="شعار الهيثم — نحل وعسل"
               loading="lazy"
               className="h-12 sm:h-14 md:h-16 mb-3 sm:mb-4 brightness-110 rounded-lg"
             />

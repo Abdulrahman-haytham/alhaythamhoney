@@ -10,6 +10,9 @@ export const metadata: Metadata = {
   description:
     'تعرف على حكاية عسل الهيثم. إرث عائلي في تربية النحل وإنتاج العسل الطبيعي في سوريا منذ عام 1997، بإدارة أبناء الوالد المؤسس.',
   alternates: { canonical: '/about-us' },
+  openGraph: {
+    images: [{ url: '/og-story.jpg', width: 1200, height: 630, alt: 'الأخوان في منحل الهيثم' }],
+  },
 };
 
 export default function AboutPage() {

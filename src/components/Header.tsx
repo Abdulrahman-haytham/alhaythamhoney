@@ -163,7 +163,7 @@ export default function Header() {
               aria-label="الهيثم — نحل وعسل - الصفحة الرئيسية"
             >
               <img
-                src="https://res.cloudinary.com/dkbvnupge/image/upload/f_auto,q_auto/v1767958674/my-app-uploads/kromozksoa3vpcwrnvtw.jpg"
+                src="/images/logo.webp"
                 alt="لوغو الهيثم"
                 width={64}
                 height={64}

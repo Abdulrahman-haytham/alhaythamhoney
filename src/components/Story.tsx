@@ -20,10 +20,12 @@ export default function Story() {
         >
           <div className="relative z-10 rounded-2xl sm:rounded-[2.5rem] md:rounded-[3rem] overflow-hidden luxury-shadow border border-amber-500/10 aspect-square">
             <img
-              src="https://res.cloudinary.com/dkbvnupge/image/upload/f_auto,q_auto/v1768231269/my-app-uploads/jo3ljfxuqemiwep7wjkc.jpg"
-              alt="الهيثم — نحل وعسل - إرث عائلي منذ 1997 في سوريا"
+              src="/images/story.webp"
+              alt="الأخوان في منحل الهيثم — الجيل الثاني من إرث عائلي منذ 1997"
               loading="lazy"
-              className="w-full h-full object-cover grayscale-[30%] hover:grayscale-0 transition-all duration-700"
+              width={1280}
+              height={853}
+              className="w-full h-full object-cover object-top transition-transform duration-700 hover:scale-[1.03]"
             />
           </div>
           <div className="absolute -bottom-10 -left-10 w-full h-full border border-amber-500/10 rounded-[3rem] -z-0 translate-x-4 translate-y-4"></div>
