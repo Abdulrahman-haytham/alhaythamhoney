@@ -17,7 +17,13 @@ export const metadata: Metadata = {
 };
 export const dynamic = 'force-dynamic';
 
-export default async function DrawPage() {
+export default async function DrawPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ code?: string }>;
+}) {
+  const { code: prefill } = await searchParams;
+  const next = prefill ? `/draw?code=${encodeURIComponent(prefill)}` : '/draw';
   const [draw, winners, customer] = await Promise.all([
     getOpenDraw(),
     getPastWinners(),
@@ -71,14 +77,18 @@ export default async function DrawPage() {
             </div>
             <div className="p-6 sm:p-8">
               {customer ? (
-                <EnterDrawForm initialEntries={myEntries} maxEntries={draw.maxEntries} />
+                <EnterDrawForm
+                  initialEntries={myEntries}
+                  maxEntries={draw.maxEntries}
+                  initialCode={prefill ?? ''}
+                />
               ) : (
                 <div className="text-center">
                   <p className="mb-4 text-zinc-300">
                     المشاركة تحتاج حساباً — يستغرق إنشاؤه دقيقة واحدة وبلا كلمة مرور.
                   </p>
                   <Link
-                    href="/account/login?next=/draw"
+                    href={`/account/login?next=${encodeURIComponent(next)}`}
                     className="inline-flex items-center gap-2 rounded-xl bg-amber-500 px-6 py-3 font-bold text-zinc-950 hover:bg-amber-400"
                   >
                     <LogIn className="h-5 w-5" /> سجّل الدخول للمشاركة

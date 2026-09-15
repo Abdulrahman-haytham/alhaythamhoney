@@ -11,13 +11,17 @@ export function randomJarCode() {
 }
 
 /** يولّد دفعة رموز فريدة (يعيد المحاولة عند التصادم النادر). */
-export async function generateJarCodes(batch: string, count: number): Promise<number> {
+export async function generateJarCodes(
+  batch: string,
+  count: number,
+  batchId: string | null = null,
+): Promise<number> {
   let created = 0;
   while (created < count) {
     const codes = new Set<string>();
     while (codes.size < count - created) codes.add(randomJarCode());
     const result = await db.jarCode.createMany({
-      data: [...codes].map((code) => ({ code, batch })),
+      data: [...codes].map((code) => ({ code, batch, batchId })),
       skipDuplicates: true,
     });
     created += result.count;

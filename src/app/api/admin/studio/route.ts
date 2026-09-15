@@ -27,6 +27,10 @@ export async function POST(request: Request) {
     caption = typeof rawCaption === 'string' ? rawCaption.trim().slice(0, 500) || null : null;
     if (!(file instanceof File)) throw new Error('لم يرفق ملف.');
     media = await saveMedia(file);
+    if (media.type === 'FILE') {
+      await removeMedia(media.url).catch(() => {});
+      throw new Error('الاستديو للصور والفيديو فقط.');
+    }
   } catch (error) {
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'ملف غير صالح.' },
@@ -35,7 +39,7 @@ export async function POST(request: Request) {
   }
   try {
     const photo = await db.studioPhoto.create({
-      data: { url: media.url, type: media.type, caption },
+      data: { url: media.url, type: media.type === 'VIDEO' ? 'VIDEO' : 'IMAGE', caption },
     });
     return NextResponse.json({ photo }, { status: 201 });
   } catch (error) {

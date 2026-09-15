@@ -10,18 +10,20 @@ export const MEDIA_TYPES: Record<string, string> = {
   mp4: 'video/mp4',
   webm: 'video/webm',
   mov: 'video/quicktime',
+  pdf: 'application/pdf',
 };
 export const MAX_UPLOAD_BYTES = 64 * 1024 * 1024;
 export const mediaDirectory = () =>
   path.resolve(process.env.UPLOAD_DIR || path.join(process.cwd(), 'data', 'uploads'), 'studio');
 export const isMediaFilename = (name: string) =>
-  /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}\.(jpg|png|webp|avif|mp4|webm|mov)$/.test(
+  /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}\.(jpg|png|webp|avif|mp4|webm|mov|pdf)$/.test(
     name,
   );
 
 /** Check file bytes, not only the user-supplied MIME label. SVG/HTML are never served. */
 export function detectMedia(bytes: Buffer): string | null {
   if (bytes.length < 12) return null;
+  if (bytes.toString('ascii', 0, 5) === '%PDF-') return 'pdf';
   if (bytes.subarray(0, 3).equals(Buffer.from([255, 216, 255]))) return 'jpg';
   if (bytes.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]))) return 'png';
   if (bytes.toString('ascii', 0, 4) === 'RIFF' && bytes.toString('ascii', 8, 12) === 'WEBP')
@@ -68,18 +70,18 @@ export async function readUploadForm(request: Request) {
 export async function saveMedia(file: File) {
   const isVideo = file.type.startsWith('video/');
   if (file.size === 0 || file.size > (isVideo ? 60 : 8) * 1024 * 1024)
-    throw new Error('الحد الأقصى 8MB للصورة و60MB للفيديو.');
+    throw new Error('الحد الأقصى 8MB للصورة أو الملف و60MB للفيديو.');
   const bytes = Buffer.from(await file.arrayBuffer());
   const ext = detectMedia(bytes);
   if (!ext || MEDIA_TYPES[ext] !== file.type)
-    throw new Error('محتوى الملف لا يطابق نوع صورة أو فيديو مسموح.');
+    throw new Error('محتوى الملف لا يطابق نوع صورة أو فيديو أو PDF مسموح.');
   const filename = `${randomUUID()}.${ext}`;
   await mkdir(mediaDirectory(), { recursive: true });
   await writeFile(path.join(mediaDirectory(), filename), bytes, { flag: 'wx', mode: 0o640 });
   return {
     filename,
     url: `/uploads/studio/${filename}`,
-    type: isVideo ? ('VIDEO' as const) : ('IMAGE' as const),
+    type: ext === 'pdf' ? ('FILE' as const) : isVideo ? ('VIDEO' as const) : ('IMAGE' as const),
   };
 }
 

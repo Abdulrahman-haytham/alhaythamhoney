@@ -8,6 +8,9 @@ describe('VPS media safety', () => {
       expect(isMediaFilename(name)).toBe(false);
     expect(detectMedia(Buffer.from('<html><script>alert(1)</script></html>'))).toBeNull();
     expect(detectMedia(Buffer.from('RIFF1234WEBPpayload'))).toBe('webp');
+    // PDF لتقارير المخبر — يُكتشف من الترويسة لا من الامتداد
+    expect(detectMedia(Buffer.from('%PDF-1.7 some content here'))).toBe('pdf');
+    expect(isMediaFilename('00000000-0000-4000-8000-000000000001.pdf')).toBe(true);
   });
   it('supports bounded, open-ended and suffix video ranges', () => {
     expect(parseRange('bytes=0-49', 100)).toEqual({ start: 0, end: 49 });

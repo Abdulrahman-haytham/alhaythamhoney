@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { ArrowLeft, BookOpen, Sparkles } from 'lucide-react';
 import { getProductBySlug, getRelatedProducts, getProductArticles } from '@/lib/products.server';
 import { getProductPromotionLabels } from '@/lib/promotions.server';
+import { getProductBatches } from '@/lib/batches.server';
+import { formatArticleDate, toIsoDay } from '@/lib/articles';
 import { priceFrom } from '@/lib/variants';
 import { bundleComponentsValue, catalogAvailable, componentAvailable } from '@/lib/bundles';
 import { fmtSyp } from '@/lib/pricing';
@@ -57,12 +59,13 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   if (!product) notFound();
 
   const settings = await getSettings();
-  const [reviews, rating, related, articles, promotionLabels] = await Promise.all([
+  const [reviews, rating, related, articles, promotionLabels, batches] = await Promise.all([
     getApprovedReviews(product.slug),
     getRatingSummary(product.slug),
     getRelatedProducts(product.id, product.category, settings.autoRelatedProducts),
     getProductArticles(product.id),
     settings.promotionsEnabled ? getProductPromotionLabels(product.id) : Promise.resolve([]),
+    getProductBatches(product.id),
   ]);
 
   const available = catalogAvailable(product);
@@ -318,6 +321,46 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             <div className="grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-4">
               {related.map((p) => (
                 <ProductCard key={p.id} product={p} />
+              ))}
+            </div>
+          </section>
+        )}
+
+        {batches.length > 0 && (
+          <section aria-labelledby="batches-heading" className="mt-16">
+            <h2
+              id="batches-heading"
+              className="mb-2 flex items-center gap-2 font-amiri text-2xl font-bold text-white"
+            >
+              <ShieldCheck className="h-5 w-5 text-amber-500" />
+              جوازات الدفعات
+            </h2>
+            <p className="mb-5 text-sm text-zinc-400">
+              كل قطاف له جواز: المنحل، التاريخ، وتقرير الفحص — امسح QR مرطبانك أو تصفّحها هنا.
+            </p>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+              {batches.map((b) => (
+                <Link
+                  key={b.code}
+                  href={`/batch/${b.code}`}
+                  className="group rounded-2xl border border-zinc-800 bg-zinc-900/40 p-4 transition hover:border-amber-500/40"
+                >
+                  <p className="font-mono text-xs text-amber-400" dir="ltr">
+                    {b.code}
+                  </p>
+                  <h3 className="mt-1 font-amiri text-lg font-bold text-white group-hover:text-amber-400">
+                    {b.title}
+                  </h3>
+                  <p className="mt-1 text-xs text-zinc-500">
+                    {[
+                      b.harvestDate && formatArticleDate(toIsoDay(b.harvestDate)),
+                      b.region,
+                      b.labReportUrl && 'فحص مخبري ✓',
+                    ]
+                      .filter(Boolean)
+                      .join(' · ')}
+                  </p>
+                </Link>
               ))}
             </div>
           </section>

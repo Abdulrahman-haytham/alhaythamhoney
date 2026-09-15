@@ -345,6 +345,12 @@ export function SettingsForm({ initial }: { initial: SiteSettingsData }) {
           onChange={(v) => set('stockAlertsEnabled', v)}
         />
         <Toggle
+          label="صفحة الجملة والمحلات"
+          hint="نموذج طلب عرض سعر في /wholesale يصل إلى «الجملة» في اللوحة وبريدك."
+          checked={s.wholesaleEnabled}
+          onChange={(v) => set('wholesaleEnabled', v)}
+        />
+        <Toggle
           label="مغذّي المنتجات لفيسبوك/إنستغرام وغوغل"
           hint="رابط /feeds/products.xml يُلصق في Meta Commerce Manager أو Google Merchant ليتحدّث الكتالوج والأسعار تلقائياً."
           checked={s.productFeedEnabled}

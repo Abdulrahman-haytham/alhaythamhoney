@@ -7,12 +7,15 @@ import { Ticket, Loader2, PartyPopper } from 'lucide-react';
 export function EnterDrawForm({
   initialEntries,
   maxEntries,
+  initialCode = '',
 }: {
   initialEntries: number;
   maxEntries: number;
+  /** رمز جاهز من QR المرطبان (/j/…) */
+  initialCode?: string;
 }) {
   const router = useRouter();
-  const [code, setCode] = useState('');
+  const [code, setCode] = useState(initialCode);
   const [entries, setEntries] = useState(initialEntries);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ text: string; ok: boolean } | null>(null);

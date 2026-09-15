@@ -18,6 +18,9 @@ import {
   pointsAdjustInput,
   campaignInput,
   cartSyncInput,
+  batchInput,
+  leadInput,
+  leadStatusInput,
 } from '@/lib/validation';
 import {
   createSessionToken,
@@ -957,5 +960,52 @@ describe('campaigns and cart sync', () => {
       }).success,
     ).toBe(true);
     expect(cartSyncInput.safeParse({ items: [{ id: 'p', quantity: 0 }] }).success).toBe(false);
+  });
+});
+
+describe('batch passports and wholesale leads', () => {
+  it('validates batch input and normalizes the code', () => {
+    const base = {
+      code: 'b-2026-sdr-01',
+      title: 'قطاف السدر',
+      productId: null,
+      region: '',
+      harvestDate: '2026-09-01',
+      floralSource: 'سدر',
+      moisture: null,
+      labReportUrl: '/uploads/studio/00000000-0000-4000-8000-000000000001.pdf',
+      videoUrl: '/uploads/studio/00000000-0000-4000-8000-000000000002.mp4',
+      notes: '',
+      published: true,
+    };
+    const ok = batchInput.safeParse(base);
+    expect(ok.success).toBe(true);
+    expect(ok.data?.code).toBe('B-2026-SDR-01');
+    expect(ok.data?.region).toBeNull();
+    expect(ok.data?.notes).toBeNull();
+    expect(batchInput.safeParse({ ...base, labReportUrl: '/etc/passwd' }).success).toBe(false);
+    expect(batchInput.safeParse({ ...base, videoUrl: 'javascript:x' }).success).toBe(false);
+    expect(batchInput.safeParse({ ...base, videoUrl: 'https://youtu.be/x' }).success).toBe(true);
+    expect(batchInput.safeParse({ ...base, code: 'bad code!' }).success).toBe(false);
+  });
+  it('validates wholesale leads and normalizes phone/email', () => {
+    const lead = leadInput.safeParse({
+      name: 'أبو أحمد',
+      business: 'سوبرماركت النور',
+      phone: '0947 931 959',
+      email: ' Shop@Example.com ',
+      city: 'حماة',
+      quantity: '',
+      message: 'نحتاج 20 كغ سدر شهرياً بعبوات 500 غرام',
+    });
+    expect(lead.success).toBe(true);
+    expect(lead.data?.phone).toBe('0947931959');
+    expect(lead.data?.email).toBe('shop@example.com');
+    expect(lead.data?.quantity).toBeNull();
+    expect(
+      leadInput.safeParse({ name: 'x', business: 'y', phone: '1', city: '', message: 'short' })
+        .success,
+    ).toBe(false);
+    expect(leadStatusInput.safeParse({ status: 'WON', notes: '' }).data?.notes).toBeNull();
   });
 });

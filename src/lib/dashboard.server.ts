@@ -61,6 +61,8 @@ export async function getDashboard() {
     redemptionsMonth,
     openDraw,
     recentAudit,
+    newLeads,
+    waitingAlerts,
   ] = await Promise.all([
     countEvents('WHATSAPP_CLICK', today),
     countEvents('WHATSAPP_CLICK', week),
@@ -98,6 +100,8 @@ export async function getDashboard() {
       select: { title: true, endsAt: true, _count: { select: { entries: true } } },
     }),
     db.auditLog.findMany({ orderBy: { createdAt: 'desc' }, take: 8 }),
+    db.lead.count({ where: { status: 'NEW' } }),
+    db.stockAlert.count({ where: { notifiedAt: null } }),
   ]);
 
   // أسماء المنتجات للمفاتيح (المفتاح = معرّف المنتج)
@@ -128,6 +132,8 @@ export async function getDashboard() {
     redemptionsMonth,
     openDraw,
     recentAudit,
+    newLeads,
+    waitingAlerts,
   };
 }
 

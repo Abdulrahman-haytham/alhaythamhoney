@@ -9,12 +9,16 @@ const inputClass =
 
 export function JarCodesPanel({
   batches,
+  passports,
 }: {
-  batches: { batch: string; total: number; unused: number }[];
+  batches: { batch: string; total: number; unused: number; passport: string | null }[];
+  /** جوازات الدفعات لربط الرموز بها */
+  passports: { id: string; code: string; title: string }[];
 }) {
   const router = useRouter();
   const [batch, setBatch] = useState('');
   const [count, setCount] = useState(100);
+  const [batchId, setBatchId] = useState('');
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState('');
 
@@ -25,7 +29,7 @@ export function JarCodesPanel({
     const res = await fetch('/api/admin/jar-codes', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ batch, count }),
+      body: JSON.stringify({ batch, count, batchId: batchId || null }),
     }).catch(() => null);
     const data = res ? await res.json().catch(() => ({})) : {};
     setBusy(false);
@@ -42,9 +46,13 @@ export function JarCodesPanel({
       </h2>
       <p className="mb-4 text-xs text-zinc-500">
         كل رمز بصيغة HY-XXXX-XXXX ويُستخدم مرة واحدة إلى الأبد. سمِّ الدفعة باسم يذكّرك بها (مثل
-        «تموز 2026 — حبة البركة 500غ»).
+        «تموز 2026 — حبة البركة 500غ»). عمود url في الـ CSV هو رابط QR المرطبان: يفتح جواز الدفعة إن
+        ربطتها هنا، وإلا صفحة السحب.
       </p>
-      <form onSubmit={generate} className="grid gap-3 sm:grid-cols-[1fr_140px_auto] sm:items-end">
+      <form
+        onSubmit={generate}
+        className="grid gap-3 sm:grid-cols-[1fr_1fr_120px_auto] sm:items-end"
+      >
         <label className="text-sm text-zinc-300">
           اسم الدفعة
           <input
@@ -54,6 +62,21 @@ export function JarCodesPanel({
             required
             maxLength={60}
           />
+        </label>
+        <label className="text-sm text-zinc-300">
+          جواز الدفعة (اختياري)
+          <select
+            className={inputClass}
+            value={batchId}
+            onChange={(e) => setBatchId(e.target.value)}
+          >
+            <option value="">— بلا جواز —</option>
+            {passports.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.code} — {p.title}
+              </option>
+            ))}
+          </select>
         </label>
         <label className="text-sm text-zinc-300">
           العدد
@@ -83,7 +106,14 @@ export function JarCodesPanel({
         <ul className="mt-4 divide-y divide-zinc-800 rounded-xl border border-zinc-800">
           {batches.map((b) => (
             <li key={b.batch} className="flex flex-wrap items-center gap-3 p-3 text-sm">
-              <span className="flex-1 font-bold text-zinc-200">{b.batch}</span>
+              <span className="flex-1 font-bold text-zinc-200">
+                {b.batch}
+                {b.passport && (
+                  <span className="mr-2 font-mono text-xs font-normal text-amber-300" dir="ltr">
+                    {b.passport}
+                  </span>
+                )}
+              </span>
               <span className="text-zinc-500">
                 {b.total} رمز · <span className="text-green-400">{b.unused} غير مستخدم</span>
               </span>
