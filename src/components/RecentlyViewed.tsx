@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { History } from 'lucide-react';
 import { useRecentlyViewed } from '@/store/recentlyViewedStore';
 import { useHydrated } from '@/lib/useHydrated';
+import { trackViewItem } from '@/lib/analytics';
 import { useSettings } from '@/components/SettingsProvider';
 
 const fmt = (n: number) => new Intl.NumberFormat('en-US').format(n);
@@ -18,6 +19,7 @@ export function RecentlyViewedTracker({
   const push = useRecentlyViewed((s) => s.push);
   useEffect(() => {
     push(product);
+    trackViewItem({ id: product.id, name: product.name, price: product.price ?? undefined });
     // نسجّل مرة واحدة لكل تحميل صفحة
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [product.id]);

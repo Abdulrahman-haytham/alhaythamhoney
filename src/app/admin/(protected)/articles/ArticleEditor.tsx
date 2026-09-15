@@ -16,6 +16,7 @@ import {
   PenLine,
   Upload,
   ExternalLink,
+  History,
 } from 'lucide-react';
 
 export interface ArticleForm {
@@ -71,13 +72,23 @@ async function uploadImage(file: File): Promise<string> {
   return data.url as string;
 }
 
+export interface RevisionMeta {
+  id: string;
+  title: string;
+  createdAt: string;
+  size: number;
+}
+
 export function ArticleEditor({
   article,
   products,
+  revisions = [],
 }: {
   article?: ArticleForm & { id: string };
   /** المنتجات المنشورة لربطها بالمقال */
   products: { id: string; name: string }[];
+  /** النسخ السابقة (بلا نص) — يُجلب النص عند الاستعادة فقط */
+  revisions?: RevisionMeta[];
 }) {
   const router = useRouter();
   const [form, setForm] = useState<ArticleForm>(() => {
@@ -109,6 +120,21 @@ export function ArticleEditor({
     window.addEventListener('beforeunload', onBeforeUnload);
     return () => window.removeEventListener('beforeunload', onBeforeUnload);
   }, [dirty]);
+
+  /** يستبدل العنوان والنص بنسخة سابقة في المحرّر فقط — لا يُحفظ حتى تضغط «حفظ التعديلات» */
+  async function restoreRevision(revisionId: string) {
+    if (!article) return;
+    setMessage(null);
+    const res = await fetch(`/api/admin/articles/${article.id}/revisions/${revisionId}`).catch(
+      () => null,
+    );
+    const data = res ? await res.json().catch(() => ({})) : {};
+    if (!res?.ok) return setMessage({ text: data.error || 'تعذّر جلب النسخة.', ok: false });
+    setForm((f) => ({ ...f, title: data.title, body: data.body }));
+    setDirty(true);
+    setTab('write');
+    setMessage({ text: 'استُعيدت النسخة في المحرّر — احفظ لتثبيتها.', ok: true });
+  }
 
   async function showPreview() {
     setTab('preview');
@@ -461,6 +487,37 @@ export function ArticleEditor({
           </button>
         )}
       </div>
+
+      {article && revisions.length > 0 && (
+        <details className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-4">
+          <summary className="flex cursor-pointer items-center gap-2 text-sm font-bold text-zinc-200">
+            <History className="h-4 w-4 text-amber-500" />
+            النسخ السابقة ({revisions.length})
+          </summary>
+          <p className="mt-1 mb-3 text-xs text-zinc-500">
+            تُحفظ نسخة تلقائياً قبل كل تعديل يمسّ العنوان أو النص. الاستعادة تضع النسخة في المحرّر
+            ولا تُحفظ حتى تضغط «حفظ التعديلات».
+          </p>
+          <ul className="divide-y divide-zinc-800">
+            {revisions.map((r) => (
+              <li key={r.id} className="flex flex-wrap items-center gap-3 py-2 text-sm">
+                <time className="text-xs text-zinc-500 tabular-nums">
+                  {new Date(r.createdAt).toLocaleString('ar-SY')}
+                </time>
+                <span className="min-w-0 flex-1 truncate text-zinc-300">{r.title}</span>
+                <span className="text-xs text-zinc-600">{Math.round(r.size / 1024)} ك.ب</span>
+                <button
+                  type="button"
+                  onClick={() => restoreRevision(r.id)}
+                  className="rounded-lg border border-amber-500/40 px-3 py-1 text-xs font-bold text-amber-300 hover:bg-amber-500/10"
+                >
+                  استعادة
+                </button>
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
     </form>
   );
 }

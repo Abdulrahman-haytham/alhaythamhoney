@@ -9,6 +9,7 @@ import {
   jarCodeInput,
   profileInput,
   drawInput,
+  orderInput,
 } from '@/lib/validation';
 import {
   createSessionToken,
@@ -23,6 +24,9 @@ import { applyCoupon } from '@/lib/coupons';
 import { DEFAULT_SETTINGS, lowStockLabel, isAvailable } from '@/lib/settings';
 import { applyRuntimeSettings, getWhatsAppLink, SHIPPING } from '@/lib/config';
 import { renderMarkdown } from '@/lib/markdown';
+import { generateOrderReference, normalizeOrderReference } from '@/lib/orders';
+import { buildQuote, whatsappOrderMessage } from '@/lib/pricing';
+import { diffRecords } from '@/lib/audit.server';
 
 describe('article body formats', () => {
   it('renders indented raw HTML as HTML, not as a code block', () => {
@@ -343,5 +347,98 @@ describe('customer accounts and draws', () => {
     expect(applyCoupon(c, 1000, new Date(), { loggedIn: true, alreadyRedeemed: true }).ok).toBe(
       false,
     );
+  });
+});
+
+describe('orders and pricing engine', () => {
+  const lines = [
+    {
+      cartId: 'p1',
+      productId: 'p1',
+      name: 'عسل سدر',
+      unitPrice: 200_000,
+      quantity: 2,
+      weight: '500 غرام',
+      image: '/images/a.webp',
+      recipe: null,
+    },
+    {
+      cartId: 'mix:x:500:sidr:10',
+      productId: null,
+      name: 'خلطة',
+      unitPrice: 150_000,
+      quantity: 1,
+      weight: '500 غرام',
+      image: '/images/b.webp',
+      recipe: '500غ — سدر + غذاء ملكات 10غ',
+    },
+  ];
+
+  it('generates and normalizes unambiguous order references', () => {
+    const ref = generateOrderReference();
+    expect(ref).toMatch(/^HY-[A-Z2-9]{6}$/);
+    expect(ref).not.toMatch(/[O0I1]/);
+    expect(normalizeOrderReference(' hy-abcd23 ')).toBe('HY-ABCD23');
+    expect(normalizeOrderReference('abcd23')).toBe('HY-ABCD23');
+    expect(normalizeOrderReference('HY-ABC')).toBeNull();
+    expect(
+      orderInput.safeParse({ reference: 'HY-ABCD23', items: [], couponCode: null }).success,
+    ).toBe(false);
+    expect(
+      orderInput.safeParse({
+        reference: 'HY-ABCD23',
+        items: [{ id: 'p1', quantity: 2 }],
+        couponCode: null,
+      }).success,
+    ).toBe(true);
+  });
+
+  it('quotes subtotal, coupon, shipping and free-shipping hints', () => {
+    const q = buildQuote({
+      lines,
+      coupon: { ok: true, code: 'TEN', discount: 55_000, label: 'خصم 10%' },
+      shippingCost: 25_000,
+      freeShippingThreshold: 600_000,
+    });
+    expect(q.subtotal).toBe(550_000);
+    expect(q.discount).toBe(55_000);
+    expect(q.freeShipping).toBe(false);
+    expect(q.shipping).toBe(25_000);
+    expect(q.total).toBe(520_000);
+    expect(q.hints[0]).toContain('105,000');
+    const free = buildQuote({
+      lines,
+      coupon: null,
+      shippingCost: 25_000,
+      freeShippingThreshold: 500_000,
+    });
+    expect(free.freeShipping).toBe(true);
+    expect(free.total).toBe(550_000);
+    const empty = buildQuote({
+      lines: [],
+      coupon: null,
+      shippingCost: 25_000,
+      freeShippingThreshold: 0,
+    });
+    expect(empty.total).toBe(0);
+    expect(empty.shipping).toBe(0);
+  });
+
+  it('writes the WhatsApp message from the quote with reference and recipe', () => {
+    const q = buildQuote({ lines, coupon: null, shippingCost: 25_000, freeShippingThreshold: 0 });
+    const msg = whatsappOrderMessage(q, 'HY-ABCD23', 'https://example.com/orders/HY-ABCD23');
+    expect(msg).toContain('HY-ABCD23');
+    expect(msg).toContain('الوصفة: 500غ — سدر');
+    expect(msg).toContain('الإجمالي: 575,000');
+    expect(msg).toContain('https://example.com/orders/HY-ABCD23');
+  });
+
+  it('keeps only changed fields in audit diffs', () => {
+    const changes = diffRecords(
+      { name: 'a', price: 1, tags: ['x'], updatedAt: new Date(1), inner: { k: 1 } },
+      { name: 'a', price: 2, tags: ['x'], updatedAt: new Date(2), inner: { k: 2 } },
+    );
+    expect(Object.keys(changes).sort()).toEqual(['inner', 'price']);
+    expect(changes.price).toEqual({ from: 1, to: 2 });
   });
 });

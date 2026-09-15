@@ -4,6 +4,8 @@ import type { articleInput } from '@/lib/validation';
 
 /** الجسم قد يكون طويلاً (Markdown + HTML) فنسمح بحد أعلى من بقية الـ JSON. */
 export const ARTICLE_BODY_LIMIT = 512 * 1024;
+/** عدد النسخ السابقة المحفوظة لكل مقال */
+export const REVISION_LIMIT = 15;
 
 export function toArticleData(input: z.infer<typeof articleInput>) {
   const { productIds, ...rest } = input;

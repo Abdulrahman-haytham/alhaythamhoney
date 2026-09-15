@@ -83,25 +83,35 @@ model ProductRelation {
   @@map("product_relations")
 }
 
+/// طلب مسجَّل لحظة ضغط «أكمل الطلب عبر واتساب». الدفع والتأكيد يتمّان خارج الموقع،
+/// فيبدأ بحالة PENDING ويحدّثها الأدمن من اللوحة؛ الأسعار محسوبة على الخادم لا من المتصفح.
 model Order {
-  id              String      @id @default(cuid())
-  reference       String      @unique
-  customerName    String
-  customerPhone   String
-  customerAddress String
-  customerCity    String
-  notes           String?
-  status          OrderStatus @default(PENDING)
-  totalAmount     Int
-  discountAmount  Int         @default(0)
-  couponCode      String?
-  paymentMethod   String      @default("cash-on-delivery")
-  items           OrderItem[]
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
+  id            String      @id @default(cuid())
+  /// مرجع قصير يظهر في رسالة واتساب وصفحة التتبع (HY-XXXXXX)
+  reference     String      @unique
+  status        OrderStatus @default(PENDING)
+  customerId    String?
+  customer      Customer?   @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  customerName  String?
+  customerPhone String?
+  customerCity  String?
+  subtotal      Int
+  discount      Int         @default(0)
+  shipping      Int         @default(0)
+  total         Int
+  couponCode    String?
+  /// تفصيل الحساب كما عُرض للزبون (خصومات، عروض، شحن) — للمراجعة لا لإعادة الحساب
+  breakdown     Json?
+  /// ملاحظات داخلية للأدمن
+  notes         String?
+  confirmedAt   DateTime?
+  items         OrderItem[]
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
 
-  @@index([customerPhone])
+  @@index([customerId, createdAt])
   @@index([status, createdAt])
+  @@index([createdAt])
   @@map("orders")
 }
 
@@ -111,11 +121,15 @@ model OrderItem {
   order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
   productId String?
   product   Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  /// معرّف البند في السلة (مثلاً mix:… للخلطات) — للتشخيص فقط
+  cartId    String?
   name      String
   price     Int
   quantity  Int
   weight    String?
   image     String?
+  /// وصفة الخلطة المخصّصة كما وصلت من السلة
+  recipe    String?
 
   @@index([orderId])
   @@map("order_items")
@@ -210,22 +224,36 @@ model StudioPhoto {
 /// مقال في المدونة — يكتبه الأدمن بصيغة Markdown (مع السماح بـ HTML بسيط)،
 /// ويُحوَّل إلى HTML مُعقَّم عند العرض. المسودّات لا تظهر إلا للأدمن.
 model Article {
-  id          String    @id @default(cuid())
-  slug        String    @unique
+  id          String            @id @default(cuid())
+  slug        String            @unique
   title       String
   description String
-  keywords    String[]  @default([])
+  keywords    String[]          @default([])
   image       String?
   body        String
-  published   Boolean   @default(false)
-  publishedAt DateTime  @default(now())
+  published   Boolean           @default(false)
+  publishedAt DateTime          @default(now())
   /// المنتجات المذكورة في المقال — تُعرض كبطاقات شراء داخله وتربط المنتج بمقالاته
   products    Product[]
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  revisions   ArticleRevision[]
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
 
   @@index([published, publishedAt])
   @@map("articles")
+}
+
+/// نسخة سابقة من المقال تُحفظ عند كل تعديل يمسّ العنوان أو النص — للاستعادة عند الخطأ.
+model ArticleRevision {
+  id        String   @id @default(cuid())
+  articleId String
+  article   Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  title     String
+  body      String
+  createdAt DateTime @default(now())
+
+  @@index([articleId, createdAt])
+  @@map("article_revisions")
 }
 
 enum CouponType {
@@ -288,6 +316,7 @@ model Customer {
   entries        DrawEntry[]
   redemptions    CouponRedemption[]
   jarCodes       JarCode[]
+  orders         Order[]
 
   @@index([phone])
   @@index([createdAt])
@@ -404,4 +433,43 @@ model RateLimit {
 
   @@index([expiresAt])
   @@map("rate_limits")
+}
+
+enum EventType {
+  PRODUCT_VIEW
+  ADD_TO_CART
+  WHATSAPP_CLICK
+  CHECKOUT
+  SEARCH
+}
+
+/// حدث سلوكي مجهول الهوية يغذّي لوحة المؤشرات (لا IP ولا كوكي). يُحذف بعد 90 يوماً.
+model Event {
+  id        String    @id @default(cuid())
+  type      EventType
+  /// معرّف المنتج، أو عبارة البحث، أو سياق نقرة واتساب
+  key       String?
+  /// عدد نتائج البحث مثلاً — صفر يعني «بحث بلا نتيجة»
+  value     Int?
+  createdAt DateTime  @default(now())
+
+  @@index([type, createdAt])
+  @@index([createdAt])
+  @@map("events")
+}
+
+/// سجلّ تغييرات اللوحة (Odoo chatter): من غيّر ماذا ومتى، مع القيم قبل وبعد للحقول المتغيّرة فقط.
+model AuditLog {
+  id        String   @id @default(cuid())
+  entity    String
+  entityId  String
+  action    String
+  label     String?
+  changes   Json?
+  actor     String
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([entity, entityId])
+  @@map("audit_logs")
 }

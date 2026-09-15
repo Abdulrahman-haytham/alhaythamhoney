@@ -26,6 +26,35 @@ function send(gaEvent: string, metaEvent: string | null, params: Params = {}) {
 
 const SYP = 'SYP';
 
+type EventType = 'PRODUCT_VIEW' | 'ADD_TO_CART' | 'WHATSAPP_CLICK' | 'CHECKOUT' | 'SEARCH';
+
+/**
+ * حدث داخلي للوحة مؤشرات الأدمن — مستقل عن GA/Meta ويعمل حتى بلا أي منهما.
+ * sendBeacon يضمن الوصول حتى عند مغادرة الصفحة (نقرة واتساب تفتح تبويباً جديداً).
+ */
+export function recordEvent(type: EventType, key?: string | null, value?: number | null) {
+  const win = w();
+  if (!win) return;
+  try {
+    const body = JSON.stringify({ type, key: key ?? null, value: value ?? null });
+    const blob = new Blob([body], { type: 'application/json' });
+    if (!navigator.sendBeacon?.('/api/events', blob))
+      void fetch('/api/events', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body,
+        keepalive: true,
+      }).catch(() => null);
+  } catch {
+    // لا تعطيل للواجهة
+  }
+}
+
+/** بحث في الموقع — يُسجَّل بعد توقف الكتابة لالتقاط ما يبحث عنه الزوار ولا يجدونه */
+export function trackSearch(term: string, results: number) {
+  recordEvent('SEARCH', term.trim().slice(0, 120), results);
+}
+
 export function trackAddToCart(item: {
   id: string;
   name: string;
@@ -33,6 +62,7 @@ export function trackAddToCart(item: {
   quantity?: number;
 }) {
   const value = (item.price ?? 0) * (item.quantity ?? 1);
+  recordEvent('ADD_TO_CART', item.id);
   send('add_to_cart', 'AddToCart', {
     currency: SYP,
     value,
@@ -53,6 +83,7 @@ export function trackBeginCheckout(
   value: number,
   items: { id: string; name: string; price?: number; quantity: number }[],
 ) {
+  recordEvent('CHECKOUT', null, value);
   send('begin_checkout', 'InitiateCheckout', {
     currency: SYP,
     value,
@@ -68,6 +99,7 @@ export function trackBeginCheckout(
 }
 
 export function trackViewItem(item: { id: string; name: string; price?: number }) {
+  recordEvent('PRODUCT_VIEW', item.id);
   send('view_item', 'ViewContent', {
     currency: SYP,
     value: item.price ?? 0,
@@ -78,5 +110,6 @@ export function trackViewItem(item: { id: string; name: string; price?: number }
 
 /** نقر واتساب — أهم تحويل غير مباشر في هذا المتجر. */
 export function trackWhatsAppClick(context: string) {
+  recordEvent('WHATSAPP_CLICK', context);
   send('contact', 'Contact', { method: 'whatsapp', context });
 }

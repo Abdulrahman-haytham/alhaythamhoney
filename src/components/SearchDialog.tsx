@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { trackSearch } from '@/lib/analytics';
 import Link from 'next/link';
 import { Search, X, FileText, Package, SlidersHorizontal, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -93,6 +94,14 @@ export function SearchDialog({ open, onClose }: { open: boolean; onClose: () => 
       .map((x) => x.d)
       .slice(0, 10);
   }, [docs, query]);
+
+  // يُسجَّل البحث بعد توقف الكتابة (لا مع كل حرف) — «بحث بلا نتيجة» يذهب إلى لوحة المؤشرات
+  useEffect(() => {
+    const term = query.trim();
+    if (term.length < 2 || !docs) return;
+    const id = setTimeout(() => trackSearch(term, results.length), 900);
+    return () => clearTimeout(id);
+  }, [query, docs, results.length]);
 
   const groups: { kind: SearchDoc['kind']; title: string; icon: React.ReactNode }[] = [
     { kind: 'product', title: 'المنتجات', icon: <Package className="w-3.5 h-3.5" /> },

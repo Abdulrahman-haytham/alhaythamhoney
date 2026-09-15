@@ -14,13 +14,16 @@ import {
   TicketPercent,
   X,
   Loader2,
+  PackageCheck,
+  AlertTriangle,
 } from 'lucide-react';
 import { useCart } from '@/store/cartStore';
 import { getWhatsAppLink } from '@/lib/config';
 import { useSettings } from '@/components/SettingsProvider';
-import { trackBeginCheckout } from '@/lib/analytics';
-import { normalizeCouponCode, LOGIN_REQUIRED_REASON, type CouponResult } from '@/lib/coupons';
-import { useCustomer } from '@/components/CustomerProvider';
+import { trackBeginCheckout, trackWhatsAppClick } from '@/lib/analytics';
+import { normalizeCouponCode, LOGIN_REQUIRED_REASON } from '@/lib/coupons';
+import { buildQuote, whatsappOrderMessage, type Quote } from '@/lib/pricing';
+import { generateOrderReference } from '@/lib/orders';
 
 const fmt = (n: number) => new Intl.NumberFormat('en-US').format(n);
 
@@ -60,53 +63,17 @@ function FreeShippingProgress({ subtotal, threshold }: { subtotal: number; thres
   );
 }
 
-/** حقل الكوبون — يتحقق من الخادم ويحفظ الكود في السلة ليُعاد تطبيقه تلقائياً. */
-function CouponField({
-  subtotal,
-  result,
-  onResult,
-}: {
-  subtotal: number;
-  result: CouponResult | null;
-  onResult: (r: CouponResult | null) => void;
-}) {
+/** حقل الكوبون — الكود يُحفظ في السلة ويتحقق منه الخادم ضمن عرض السعر. */
+function CouponField({ quote, busy }: { quote: Quote; busy: boolean }) {
   const couponCode = useCart((s) => s.couponCode);
   const setCoupon = useCart((s) => s.setCoupon);
   const [code, setCode] = useState('');
-  const [busy, setBusy] = useState(false);
-  const [tick, setTick] = useState(0);
-
-  // التحقق يتم دائماً في الخادم: عند الإدخال، وعند فتح السلة، وعند تغيّر المجموع
-  useEffect(() => {
-    if (!couponCode) return;
-    let cancelled = false;
-    fetch('/api/coupons', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code: couponCode, subtotal }),
-    })
-      .then((r) => r.json() as Promise<CouponResult>)
-      .catch((): CouponResult => ({ ok: false, reason: 'تعذّر التحقق. حاول مجدداً.' }))
-      .then((data) => {
-        if (cancelled) return;
-        onResult(data);
-        // كود غير صالح يُحذف؛ أما «لم يبلغ الحد الأدنى» فيبقى ليُطبَّق تلقائياً حين يزيد الطلب
-        if (!data.ok && !data.reason.startsWith('الحد الأدنى')) setCoupon(null);
-        setBusy(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [couponCode, subtotal, tick]);
+  const result = quote.coupon;
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
     const normalized = normalizeCouponCode(code);
-    if (!normalized) return;
-    setBusy(true);
-    if (normalized === couponCode) setTick((t) => t + 1);
-    else setCoupon(normalized);
+    if (normalized) setCoupon(normalized);
   }
 
   if (result?.ok) {
@@ -120,7 +87,6 @@ function CouponField({
           type="button"
           onClick={() => {
             setCoupon(null);
-            onResult(null);
             setCode('');
           }}
           aria-label="إزالة الكوبون"
@@ -148,7 +114,7 @@ function CouponField({
           disabled={busy || !code.trim()}
           className="h-10 rounded-xl border border-amber-500/40 px-4 text-sm font-bold text-amber-300 hover:bg-amber-500/10 disabled:opacity-50"
         >
-          {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : 'تطبيق'}
+          {busy && couponCode ? <Loader2 className="h-4 w-4 animate-spin" /> : 'تطبيق'}
         </button>
       </div>
       {result && !result.ok && (
@@ -168,15 +134,86 @@ function CouponField({
   );
 }
 
+/** ما يُعرض بعد الضغط على واتساب: رقم الطلب ورابط المتابعة. */
+function OrderPlaced({ reference, onClear }: { reference: string; onClear: () => void }) {
+  return (
+    <div className="rounded-2xl border border-green-500/30 bg-green-500/10 p-5">
+      <p className="flex items-center gap-2 font-bold text-green-300">
+        <PackageCheck className="h-5 w-5" />
+        سُجّل طلبك برقم <b dir="ltr">{reference}</b>
+      </p>
+      <p className="mt-1 text-sm text-zinc-300">
+        أرسل الرسالة في واتساب لنؤكده معك. يمكنك متابعة حالته في أي وقت من صفحة التتبع.
+      </p>
+      <div className="mt-3 flex flex-wrap gap-2">
+        <Link
+          href={`/orders/${reference}`}
+          className="rounded-xl bg-green-600 px-4 py-2 text-sm font-bold text-white hover:bg-green-500"
+        >
+          تتبّع الطلب
+        </Link>
+        <button
+          type="button"
+          onClick={onClear}
+          className="rounded-xl border border-zinc-700 px-4 py-2 text-sm text-zinc-300 hover:border-zinc-500"
+        >
+          إفراغ السلة
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export function CartClient() {
   const mounted = useHydrated();
-  const { items, removeItem, updateQuantity, clearCart, getTotalPrice, getTotalItems } = useCart();
-  const { shippingCost, freeShippingThreshold, couponsEnabled } = useSettings();
+  const { items, removeItem, updateQuantity, clearCart, getTotalItems } = useCart();
+  const settings = useSettings();
   const couponCode = useCart((s) => s.couponCode);
-  const customer = useCustomer();
-  const [couponResult, setCouponResult] = useState<CouponResult | null>(null);
-  // نتيجة التحقق تُعتمد فقط ما دام الكود محفوظاً في السلة (إفراغ السلة يلغيه)
-  const coupon = couponCode || (couponResult && !couponResult.ok) ? couponResult : null;
+  const setCoupon = useCart((s) => s.setCoupon);
+  const [serverQuote, setServerQuote] = useState<Quote | null>(null);
+  const [quoting, setQuoting] = useState(false);
+  const [quoteError, setQuoteError] = useState<string | null>(null);
+  const [placed, setPlaced] = useState<string | null>(null);
+
+  // توقيع السلة: أي تغيير في البنود أو الكميات أو الكوبون يعيد التسعير من الخادم
+  const signature = items.map((i) => `${i.id}:${i.quantity}`).join('|');
+  useEffect(() => {
+    if (!mounted || !signature) return;
+    let cancelled = false;
+    const timer = setTimeout(() => {
+      setQuoting(true);
+      fetch('/api/cart/quote', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          items: items.map(({ id, quantity }) => ({ id, quantity })),
+          couponCode,
+        }),
+      })
+        .then((r) => (r.ok ? (r.json() as Promise<Quote>) : Promise.reject(new Error())))
+        .then((q) => {
+          if (cancelled) return;
+          setServerQuote(q);
+          setQuoteError(null);
+          // ما لم يعد متاحاً يُحذف من السلة بدل أن يبقى بسعر قديم
+          for (const d of q.dropped) removeItem(d.cartId);
+          // كود غير صالح يُحذف؛ أما «لم يبلغ الحد الأدنى» فيبقى ليُطبَّق حين يزيد الطلب
+          if (q.coupon && !q.coupon.ok && !q.coupon.reason.startsWith('الحد الأدنى'))
+            setCoupon(null);
+        })
+        .catch(() => {
+          if (!cancelled) setQuoteError('تعذّر تحديث الأسعار من الخادم — تُعرض الأسعار المحفوظة.');
+        })
+        .finally(() => {
+          if (!cancelled) setQuoting(false);
+        });
+    }, 250);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mounted, signature, couponCode]);
 
   if (!mounted) {
     return (
@@ -193,47 +230,84 @@ export function CartClient() {
 
   if (items.length === 0) {
     return (
-      <div className="rounded-3xl border border-zinc-800/60 bg-zinc-900/30 py-20 text-center">
-        <ShoppingCart className="mx-auto mb-6 h-16 w-16 text-zinc-700" strokeWidth={1.5} />
-        <p className="mb-2 text-xl text-zinc-300">سلتك فارغة</p>
-        <p className="mb-8 text-zinc-500">أضف ما يعجبك من العسل والخلطات لتراه هنا.</p>
-        <Link
-          href="/shop"
-          className="inline-flex items-center gap-2 rounded-xl bg-amber-500 px-6 py-3 font-bold text-zinc-950 shadow-lg shadow-amber-500/20 transition-colors hover:bg-amber-400"
-        >
-          <Store className="h-5 w-5" />
-          تصفّح المتجر
-        </Link>
+      <div className="space-y-6">
+        {placed && <OrderPlaced reference={placed} onClear={() => setPlaced(null)} />}
+        <div className="rounded-3xl border border-zinc-800/60 bg-zinc-900/30 py-20 text-center">
+          <ShoppingCart className="mx-auto mb-6 h-16 w-16 text-zinc-700" strokeWidth={1.5} />
+          <p className="mb-2 text-xl text-zinc-300">سلتك فارغة</p>
+          <p className="mb-8 text-zinc-500">أضف ما يعجبك من العسل والخلطات لتراه هنا.</p>
+          <Link
+            href="/shop"
+            className="inline-flex items-center gap-2 rounded-xl bg-amber-500 px-6 py-3 font-bold text-zinc-950 shadow-lg shadow-amber-500/20 transition-colors hover:bg-amber-400"
+          >
+            <Store className="h-5 w-5" />
+            تصفّح المتجر
+          </Link>
+        </div>
       </div>
     );
   }
 
-  const subtotal = getTotalPrice();
-  const discount = coupon?.ok ? coupon.discount : 0;
-  const afterDiscount = subtotal - discount;
-  const freeShipping = freeShippingThreshold > 0 && afterDiscount >= freeShippingThreshold;
-  const shipping = freeShipping ? 0 : shippingCost;
-  const total = afterDiscount + shipping;
+  // عرض الخادم هو المعتمد؛ وقبل وصوله (أو عند انقطاع الشبكة) نحسب محلياً بالمحرّك نفسه
+  const localQuote = buildQuote({
+    lines: items.map((i) => ({
+      cartId: i.id,
+      productId: i.recipe ? null : i.id,
+      name: i.name,
+      unitPrice: i.price ?? 0,
+      quantity: i.quantity,
+      weight: i.weight ?? null,
+      image: i.image,
+      recipe: i.recipe ?? null,
+    })),
+    coupon: null,
+    shippingCost: settings.shippingCost,
+    freeShippingThreshold: settings.freeShippingThreshold,
+  });
+  const stale =
+    !serverQuote ||
+    serverQuote.lines.map((l) => `${l.cartId}:${l.quantity}`).join('|') !== signature;
+  const quote = stale ? { ...localQuote, coupon: serverQuote?.coupon ?? null } : serverQuote;
+  const afterDiscount = quote.subtotal - quote.discount;
 
-  const waMessage = [
-    'مرحباً عسل الهيثم، أود تأكيد هذا الطلب:',
-    '',
-    ...items.map((i) => {
-      const line = `• ${i.name} × ${i.quantity}${i.weight ? ` (${i.weight})` : ''} — ${fmt((i.price ?? 0) * i.quantity)} ل.س`;
-      return i.recipe ? `${line}\n   الوصفة: ${i.recipe}` : line;
-    }),
-    '',
-    `المجموع: ${fmt(subtotal)} ل.س`,
-    ...(coupon?.ok ? [`كوبون ${coupon.code} (${coupon.label}): -${fmt(discount)} ل.س`] : []),
-    `الشحن: ${freeShipping ? 'مجاني' : `${fmt(shipping)} ل.س`}`,
-    `الإجمالي: ${fmt(total)} ل.س`,
-    '',
-    'هذه الأسعار من السلة المحفوظة. أرجو تأكيد السعر النهائي والشحن والتوفر ومدة التوصيل.',
-  ].join('\n');
+  function placeOrder() {
+    const reference = generateOrderReference();
+    const trackUrl = `${window.location.origin}/orders/${reference}`;
+    // فتح واتساب متزامن مع النقرة (سفاري يحجبه بعد أي انتظار)، والتسجيل يلحق في الخلفية
+    window.open(
+      getWhatsAppLink(whatsappOrderMessage(quote, reference, trackUrl)),
+      '_blank',
+      'noopener,noreferrer',
+    );
+    void fetch('/api/orders', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        reference,
+        items: items.map(({ id, quantity }) => ({ id, quantity })),
+        couponCode: quote.coupon?.ok ? quote.coupon.code : null,
+      }),
+      keepalive: true,
+    }).catch(() => null);
+    trackWhatsAppClick('cart-order');
+    trackBeginCheckout(
+      quote.total,
+      items.map((i) => ({ id: i.id, name: i.name, price: i.price ?? 0, quantity: i.quantity })),
+    );
+    setPlaced(reference);
+  }
 
   return (
     <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
       <div className="space-y-4 lg:col-span-2">
+        {placed && (
+          <OrderPlaced
+            reference={placed}
+            onClear={() => {
+              clearCart();
+            }}
+          />
+        )}
         <div className="flex items-center justify-between">
           <p className="text-sm text-zinc-400">{getTotalItems()} قطعة في السلة</p>
           <button
@@ -246,146 +320,161 @@ export function CartClient() {
         </div>
 
         <ul className="space-y-3">
-          {items.map((item) => (
-            <li
-              key={item.id}
-              className="flex gap-4 rounded-2xl border border-zinc-800 bg-zinc-900/40 p-3 sm:p-4"
-            >
-              {}
-              <img
-                src={item.image}
-                alt={item.name}
-                className="h-24 w-24 flex-shrink-0 rounded-xl object-cover sm:h-28 sm:w-28"
-              />
-              <div className="flex min-w-0 flex-1 flex-col">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <h3 className="font-amiri text-lg font-bold leading-snug text-white">
-                      {item.name}
-                    </h3>
-                    {item.recipe ? (
-                      <p className="mt-1 text-xs leading-relaxed text-amber-500/90">
-                        {item.recipe}
-                      </p>
-                    ) : (
-                      item.weight && <p className="mt-0.5 text-xs text-zinc-500">{item.weight}</p>
-                    )}
+          {items.map((item) => {
+            const line = quote.lines.find((l) => l.cartId === item.id);
+            const lineTotal = line?.lineTotal ?? (item.price ?? 0) * item.quantity;
+            return (
+              <li
+                key={item.id}
+                className="flex gap-4 rounded-2xl border border-zinc-800 bg-zinc-900/40 p-3 sm:p-4"
+              >
+                {}
+                <img
+                  src={item.image}
+                  alt={item.name}
+                  className="h-24 w-24 flex-shrink-0 rounded-xl object-cover sm:h-28 sm:w-28"
+                />
+                <div className="flex min-w-0 flex-1 flex-col">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <h3 className="font-amiri text-lg font-bold leading-snug text-white">
+                        {item.name}
+                      </h3>
+                      {item.recipe ? (
+                        <p className="mt-1 text-xs leading-relaxed text-amber-500/90">
+                          {item.recipe}
+                        </p>
+                      ) : (
+                        item.weight && <p className="mt-0.5 text-xs text-zinc-500">{item.weight}</p>
+                      )}
+                      {line?.lineDiscountLabel && (
+                        <p className="mt-1 text-xs font-bold text-green-400">
+                          {line.lineDiscountLabel}
+                        </p>
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => removeItem(item.id)}
+                      aria-label={`إزالة ${item.name}`}
+                      className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg text-zinc-500 transition-colors hover:bg-red-500/10 hover:text-red-400"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => removeItem(item.id)}
-                    aria-label={`إزالة ${item.name}`}
-                    className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg text-zinc-500 transition-colors hover:bg-red-500/10 hover:text-red-400"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </div>
 
-                <div className="mt-auto flex items-end justify-between gap-3 pt-3">
-                  <div className="inline-flex items-center rounded-xl border border-zinc-700 bg-zinc-950">
-                    <button
-                      type="button"
-                      onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                      aria-label="تقليل الكمية"
-                      className="flex h-9 w-9 items-center justify-center text-zinc-300 transition-colors hover:text-amber-400"
-                    >
-                      <Minus className="h-4 w-4" />
-                    </button>
-                    <span className="w-8 text-center text-sm font-bold tabular-nums text-white">
-                      {item.quantity}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                      aria-label="زيادة الكمية"
-                      className="flex h-9 w-9 items-center justify-center text-zinc-300 transition-colors hover:text-amber-400"
-                    >
-                      <Plus className="h-4 w-4" />
-                    </button>
+                  <div className="mt-auto flex items-end justify-between gap-3 pt-3">
+                    <div className="inline-flex items-center rounded-xl border border-zinc-700 bg-zinc-950">
+                      <button
+                        type="button"
+                        onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                        aria-label="تقليل الكمية"
+                        className="flex h-9 w-9 items-center justify-center text-zinc-300 transition-colors hover:text-amber-400"
+                      >
+                        <Minus className="h-4 w-4" />
+                      </button>
+                      <span className="w-8 text-center text-sm font-bold tabular-nums text-white">
+                        {item.quantity}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                        aria-label="زيادة الكمية"
+                        className="flex h-9 w-9 items-center justify-center text-zinc-300 transition-colors hover:text-amber-400"
+                      >
+                        <Plus className="h-4 w-4" />
+                      </button>
+                    </div>
+                    <p className="text-left leading-none">
+                      {line && line.lineDiscount > 0 && (
+                        <span className="ml-2 text-xs text-zinc-500 line-through tabular-nums">
+                          {fmt(line.unitPrice * line.quantity)}
+                        </span>
+                      )}
+                      <span className="gold-text text-lg font-bold tabular-nums">
+                        {fmt(lineTotal)}
+                      </span>
+                      <span className="mr-1 text-xs text-zinc-500">ل.س</span>
+                    </p>
                   </div>
-                  <p className="text-left leading-none">
-                    <span className="gold-text text-lg font-bold tabular-nums">
-                      {fmt((item.price ?? 0) * item.quantity)}
-                    </span>
-                    <span className="mr-1 text-xs text-zinc-500">ل.س</span>
-                  </p>
                 </div>
-              </div>
-            </li>
-          ))}
+              </li>
+            );
+          })}
         </ul>
       </div>
 
       <aside className="lg:col-span-1">
         <div className="sticky top-32 rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5 sm:p-6">
-          <h2 className="mb-5 font-amiri text-xl font-bold text-white">ملخّص الطلب</h2>
+          <h2 className="mb-5 flex items-center justify-between font-amiri text-xl font-bold text-white">
+            ملخّص الطلب
+            {quoting && <Loader2 className="h-4 w-4 animate-spin text-zinc-500" />}
+          </h2>
+          {quoteError && (
+            <p className="mb-3 flex items-start gap-1.5 rounded-lg border border-amber-500/30 bg-amber-500/10 p-2 text-xs text-amber-200">
+              <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+              {quoteError}
+            </p>
+          )}
           <dl className="space-y-3 text-sm">
             <div className="flex justify-between text-zinc-300">
               <dt>المجموع</dt>
-              <dd className="tabular-nums">{fmt(subtotal)} ل.س</dd>
+              <dd className="tabular-nums">{fmt(quote.subtotal)} ل.س</dd>
             </div>
-            {coupon?.ok && (
-              <div className="flex justify-between text-green-400">
-                <dt>الخصم ({coupon.label})</dt>
-                <dd className="tabular-nums">-{fmt(discount)} ل.س</dd>
+            {quote.adjustments.map((a) => (
+              <div key={a.kind + a.label} className="flex justify-between gap-3 text-green-400">
+                <dt className="min-w-0 truncate">{a.label}</dt>
+                <dd className="shrink-0 tabular-nums">-{fmt(a.amount)} ل.س</dd>
               </div>
-            )}
+            ))}
             <div className="flex justify-between text-zinc-300">
               <dt className="flex items-center gap-1.5">
                 <Truck className="h-4 w-4 text-zinc-500" />
-                الشحن
+                الشحن{quote.shippingLabel ? ` — ${quote.shippingLabel}` : ''}
               </dt>
               <dd className="tabular-nums">
-                {freeShipping ? (
+                {quote.freeShipping ? (
                   <span className="text-green-400">مجاني</span>
                 ) : (
-                  `${fmt(shipping)} ل.س`
+                  `${fmt(quote.shipping)} ل.س`
                 )}
               </dd>
             </div>
-            {freeShippingThreshold > 0 && (
-              <FreeShippingProgress subtotal={afterDiscount} threshold={freeShippingThreshold} />
+            {settings.freeShippingThreshold > 0 && (
+              <FreeShippingProgress
+                subtotal={afterDiscount}
+                threshold={settings.freeShippingThreshold}
+              />
             )}
-            {couponsEnabled && (
-              <CouponField subtotal={subtotal} result={coupon} onResult={setCouponResult} />
-            )}
+            {quote.hints
+              .filter((h) => !h.includes('التوصيل مجانياً'))
+              .map((h) => (
+                <p
+                  key={h}
+                  className="rounded-lg border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-xs text-amber-200/90"
+                >
+                  {h}
+                </p>
+              ))}
+            {settings.couponsEnabled && <CouponField quote={quote} busy={quoting} />}
             <div className="flex justify-between border-t border-zinc-800 pt-3 text-base font-bold text-white">
               <dt>الإجمالي</dt>
               <dd className="tabular-nums">
-                <span className="gold-text">{fmt(total)}</span>{' '}
+                <span className="gold-text">{fmt(quote.total)}</span>{' '}
                 <span className="text-xs font-normal text-zinc-500">ل.س</span>
               </dd>
             </div>
           </dl>
 
-          <a
-            href={getWhatsAppLink(waMessage)}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={() => {
-              // كوبون «مرة لكل حساب» يُسجَّل استخدامه لحظة إرسال الطلب
-              if (coupon?.ok && customer)
-                void fetch('/api/coupons', {
-                  method: 'PUT',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ code: coupon.code, subtotal }),
-                  keepalive: true,
-                }).catch(() => null);
-              trackBeginCheckout(
-                total,
-                items.map((i) => ({
-                  id: i.id,
-                  name: i.name,
-                  price: i.price ?? 0,
-                  quantity: i.quantity,
-                })),
-              );
-            }}
-            className="mt-6 flex h-13 w-full items-center justify-center gap-2.5 rounded-xl bg-green-600 py-4 font-bold text-white shadow-lg shadow-green-600/20 transition-colors hover:bg-green-500"
+          <button
+            type="button"
+            onClick={placeOrder}
+            disabled={quote.lines.length === 0}
+            className="mt-6 flex h-13 w-full items-center justify-center gap-2.5 rounded-xl bg-green-600 py-4 font-bold text-white shadow-lg shadow-green-600/20 transition-colors hover:bg-green-500 disabled:opacity-50"
           >
             <MessageCircle className="h-5 w-5" />
             أكمل الطلب عبر واتساب
-          </a>
+          </button>
           <p className="mt-3 text-center text-xs leading-relaxed text-zinc-500">
             الأسعار في السلة تقديرية وقد تتغير. نؤكد السعر النهائي والشحن والتوفر على واتساب قبل
             إتمام الطلب، ولا يتم دفع إلكتروني هنا.

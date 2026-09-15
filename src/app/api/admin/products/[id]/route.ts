@@ -4,6 +4,7 @@ import { db } from '@/lib/db';
 import { guardAdmin } from '@/lib/admin-request';
 import { readJson } from '@/lib/request-security';
 import { productInput } from '@/lib/validation';
+import { logAudit } from '@/lib/audit.server';
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const denied = await guardAdmin(request);
@@ -23,7 +24,12 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   const { relatedIds, ...data } = parsed.data;
   // المنتج لا يقترح نفسه؛ وتُستبدل القائمة كاملة بما اختاره الأدمن بالترتيب
   const related = relatedIds.filter((rid) => rid !== id);
-  await db.product.update({
+  const before = await db.productRelation.findMany({
+    where: { productId: id },
+    orderBy: { sortOrder: 'asc' },
+    select: { relatedId: true },
+  });
+  const updated = await db.product.update({
     where: { id },
     data: {
       ...data,
@@ -33,6 +39,14 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         create: related.map((relatedId, sortOrder) => ({ relatedId, sortOrder })),
       },
     },
+  });
+  await logAudit({
+    entity: 'product',
+    entityId: id,
+    action: 'update',
+    label: updated.name,
+    before: { ...product, relatedIds: before.map((r) => r.relatedId) },
+    after: { ...updated, relatedIds: related },
   });
   return NextResponse.json({ ok: true });
 }

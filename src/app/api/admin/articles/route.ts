@@ -5,6 +5,7 @@ import { guardAdmin } from '@/lib/admin-request';
 import { readJson } from '@/lib/request-security';
 import { articleInput } from '@/lib/validation';
 import { ARTICLE_BODY_LIMIT, toArticleData } from '@/lib/articles.admin';
+import { logAudit } from '@/lib/audit.server';
 
 export async function POST(request: Request) {
   const denied = await guardAdmin(request);
@@ -20,6 +21,12 @@ export async function POST(request: Request) {
     const { products, ...data } = toArticleData(parsed.data);
     const article = await db.article.create({
       data: { ...data, products: { connect: products.set } },
+    });
+    await logAudit({
+      entity: 'article',
+      entityId: article.id,
+      action: 'create',
+      label: article.title,
     });
     return NextResponse.json({ id: article.id }, { status: 201 });
   } catch (error) {

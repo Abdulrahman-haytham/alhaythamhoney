@@ -7,6 +7,7 @@ const mocks = vi.hoisted(() => ({
   create: vi.fn(),
   update: vi.fn(),
   cookie: vi.fn(),
+  audit: vi.fn(),
 }));
 vi.mock('@/lib/auth', () => ({ requireAdmin: mocks.admin, ADMIN_COOKIE: 'admin_session' }));
 vi.mock('@/lib/rate-limit', () => ({ rateLimit: mocks.limit }));
@@ -21,8 +22,9 @@ vi.mock('@/lib/db', () => ({
       create: mocks.create,
       update: mocks.update,
     },
-    review: { create: mocks.create, updateMany: mocks.update },
+    review: { create: mocks.create, updateMany: mocks.update, findUnique: mocks.find },
     admin: { findUnique: mocks.find },
+    auditLog: { create: mocks.audit },
   },
 }));
 const { POST: submitReview } = await import('@/app/api/reviews/route');
@@ -56,14 +58,26 @@ it('blocks cross-site admin requests', async () => {
   mocks.admin.mockResolvedValue({ id: 'admin' });
   expect((await createProduct(request({}, 'https://evil.example'))).status).toBe(403);
 });
-it('publishes reviews only through an authenticated admin', async () => {
-  mocks.admin.mockResolvedValue({ id: 'admin' });
+it('publishes reviews only through an authenticated admin and logs the change', async () => {
+  mocks.admin.mockResolvedValue({ id: 'admin', name: 'المدير' });
+  mocks.find.mockResolvedValue({ status: 'PENDING', authorName: 'زبون' });
   mocks.update.mockResolvedValue({ count: 1 });
+  mocks.audit.mockResolvedValue({});
   expect(
     (await editReview(request({ status: 'APPROVED' }), { params: Promise.resolve({ id: 'r' }) }))
       .status,
   ).toBe(200);
   expect(mocks.update).toHaveBeenCalledWith({ where: { id: 'r' }, data: { status: 'APPROVED' } });
+  expect(mocks.audit).toHaveBeenCalledWith(
+    expect.objectContaining({
+      data: expect.objectContaining({
+        entity: 'review',
+        action: 'status',
+        actor: 'المدير',
+        changes: { status: { from: 'PENDING', to: 'APPROVED' } },
+      }),
+    }),
+  );
 });
 it('stores new reviews as pending without a verified order', async () => {
   mocks.find.mockResolvedValue({ id: 'product' });

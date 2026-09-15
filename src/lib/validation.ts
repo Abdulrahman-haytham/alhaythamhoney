@@ -244,3 +244,43 @@ export const generateCodesInput = z
     count: z.number().int().min(1).max(5000),
   })
   .strict();
+
+// ---- السلة والطلبات ----
+const cartLine = z
+  .object({
+    id: text(300).min(1),
+    quantity: z.number().int().min(1).max(999),
+  })
+  .strict();
+export const quoteInput = z
+  .object({
+    items: z.array(cartLine).max(60),
+    couponCode: couponCode.nullable(),
+  })
+  .strict();
+export const orderInput = quoteInput
+  .extend({
+    reference: z.string().regex(/^HY-[A-Z2-9]{6}$/, 'مرجع الطلب غير صالح.'),
+  })
+  .strict()
+  .refine((o) => o.items.length > 0, 'السلة فارغة.');
+export const orderStatusInput = z
+  .object({
+    status: z.enum(['PENDING', 'CONFIRMED', 'PREPARING', 'SHIPPED', 'DELIVERED', 'CANCELLED']),
+    notes: text(2000)
+      .transform((v) => (v.length ? v : null))
+      .nullable(),
+  })
+  .strict();
+
+// ---- أحداث لوحة المؤشرات ----
+export const eventInput = z
+  .object({
+    type: z.enum(['PRODUCT_VIEW', 'ADD_TO_CART', 'WHATSAPP_CLICK', 'CHECKOUT', 'SEARCH']),
+    key: text(120)
+      .transform((v) => (v.length ? v : null))
+      .nullable()
+      .optional(),
+    value: z.number().int().min(0).max(1_000_000).nullable().optional(),
+  })
+  .strict();

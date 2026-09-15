@@ -5,6 +5,7 @@ import { guardAdmin } from '@/lib/admin-request';
 import { readJson } from '@/lib/request-security';
 import { couponInput } from '@/lib/validation';
 import { toCouponData } from '@/lib/coupons.server';
+import { logAudit } from '@/lib/audit.server';
 
 export async function POST(request: Request) {
   const denied = await guardAdmin(request);
@@ -17,6 +18,7 @@ export async function POST(request: Request) {
     );
   try {
     const coupon = await db.coupon.create({ data: toCouponData(parsed.data) });
+    await logAudit({ entity: 'coupon', entityId: coupon.id, action: 'create', label: coupon.code });
     return NextResponse.json({ id: coupon.id }, { status: 201 });
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002')

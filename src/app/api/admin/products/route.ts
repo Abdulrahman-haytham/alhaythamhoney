@@ -4,6 +4,7 @@ import { db } from '@/lib/db';
 import { guardAdmin } from '@/lib/admin-request';
 import { readJson } from '@/lib/request-security';
 import { productInput } from '@/lib/validation';
+import { logAudit } from '@/lib/audit.server';
 
 export async function POST(request: Request) {
   const denied = await guardAdmin(request);
@@ -19,6 +20,12 @@ export async function POST(request: Request) {
         detailedInfo: data.detailedInfo ?? Prisma.DbNull,
         related: { create: relatedIds.map((relatedId, sortOrder) => ({ relatedId, sortOrder })) },
       },
+    });
+    await logAudit({
+      entity: 'product',
+      entityId: product.id,
+      action: 'create',
+      label: product.name,
     });
     return NextResponse.json({ id: product.id }, { status: 201 });
   } catch (error) {

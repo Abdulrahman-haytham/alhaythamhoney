@@ -4,6 +4,8 @@ import { requireAdmin } from '@/lib/auth';
 import AdminLogout from '@/components/AdminLogout';
 
 const TABS = [
+  { href: '/admin', label: 'المؤشرات' },
+  { href: '/admin/orders', label: 'الطلبات' },
   { href: '/admin/products', label: 'المنتجات' },
   { href: '/admin/reviews', label: 'التقييمات' },
   { href: '/admin/mixtures', label: 'الخلطات' },
@@ -12,7 +14,8 @@ const TABS = [
   { href: '/admin/draws', label: 'السحب' },
   { href: '/admin/customers', label: 'الزبائن' },
   { href: '/admin/settings', label: 'الإعدادات' },
-  { href: '/admin/studio', label: 'استديو الهيثم' },
+  { href: '/admin/studio', label: 'الاستديو' },
+  { href: '/admin/activity', label: 'السجل' },
 ];
 
 export default async function ProtectedAdminLayout({ children }: { children: React.ReactNode }) {
@@ -34,7 +37,7 @@ export default async function ProtectedAdminLayout({ children }: { children: Rea
             <Link
               key={tab.href}
               href={tab.href}
-              className="rounded-t-lg border-b-2 border-transparent px-4 py-2 text-sm text-zinc-400 transition hover:border-amber-500/50 hover:text-white"
+              className="whitespace-nowrap rounded-t-lg border-b-2 border-transparent px-3 py-2 text-sm text-zinc-400 transition hover:border-amber-500/50 hover:text-white"
             >
               {tab.label}
             </Link>
