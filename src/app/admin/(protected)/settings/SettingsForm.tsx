@@ -481,6 +481,28 @@ export function SettingsForm({ initial }: { initial: SiteSettingsData }) {
       </Section>
 
       <Section
+        title="بريد السلة المتروكة"
+        hint="للحسابات المسجّلة الموافقة على الرسائل: سلة تُركت دون طلب تصلها رسالة واحدة بمحتواها. تحتاج مهمة cron على الخادم (راجع README)."
+      >
+        <Toggle
+          label="إرسال «سلتك بانتظارك» بالبريد"
+          checked={s.abandonedCartEmailEnabled}
+          onChange={(v) => set('abandonedCartEmailEnabled', v)}
+        />
+        <label>
+          بعد كم ساعة من آخر تعديل
+          <input
+            className={inputClass}
+            type="number"
+            min={1}
+            max={720}
+            value={s.abandonedCartHours}
+            onChange={(e) => set('abandonedCartHours', Math.max(1, num(e.target.value)))}
+          />
+        </label>
+      </Section>
+
+      <Section
         title="كوبون الترحيب"
         hint="يُرسل بالبريد تلقائياً لكل حساب جديد — أرخص طريقة لتحويل زائر إلى زبون مسجّل."
       >

@@ -242,6 +242,8 @@ export const settingsInput = z
     referralMaxDiscount: amount,
     referralCouponDays: z.number().int().min(1).max(365),
     referralMonthlyCap: z.number().int().min(0).max(100_000),
+    abandonedCartEmailEnabled: z.boolean(),
+    abandonedCartHours: z.number().int().min(1).max(720),
     welcomeCouponEnabled: z.boolean(),
     welcomePercent: z.number().int().min(1).max(100),
     welcomeMaxDiscount: amount,
@@ -429,5 +431,35 @@ export const pointsAdjustInput = z
       .max(1_000_000)
       .refine((d) => d !== 0, 'الفرق صفر.'),
     note: text(200).min(2, 'اكتب سبباً.'),
+  })
+  .strict();
+
+// ---- الحملات البريدية ومزامنة السلة ----
+export const campaignInput = z
+  .object({
+    subject: text(150).min(3, 'العنوان قصير.'),
+    /** Markdown — يُحوَّل إلى HTML آمن عند الإرسال */
+    body: z
+      .string()
+      .max(100_000)
+      .refine((b) => b.trim().length >= 10, 'النص قصير جداً.'),
+  })
+  .strict();
+export const campaignTestInput = z.object({ email: emailInput }).strict();
+export const cartSyncInput = z
+  .object({
+    items: z
+      .array(
+        z
+          .object({
+            id: text(300).min(1),
+            name: text(200).min(1),
+            quantity: z.number().int().min(1).max(999),
+            price: amount.nullable(),
+            image: text(500).nullable(),
+          })
+          .strict(),
+      )
+      .max(60),
   })
   .strict();

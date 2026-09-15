@@ -414,29 +414,30 @@ model CouponRedemption {
 
 /// حساب زبون بلا كلمة مرور: الدخول برمز يُرسل إلى البريد. الهاتف للتوصيل والرسائل الجماعية.
 model Customer {
-  id             String              @id @default(cuid())
-  email          String              @unique
-  name           String
-  phone          String
-  city           String?
-  marketingOptIn Boolean             @default(true)
-  lastLoginAt    DateTime?
+  id                 String              @id @default(cuid())
+  email              String              @unique
+  name               String
+  phone              String
+  city               String?
+  marketingOptIn     Boolean             @default(true)
+  lastLoginAt        DateTime?
   /// رصيد نقاط الولاء الحالي (مجموع الحركات)
-  points         Int                 @default(0)
+  points             Int                 @default(0)
   /// رمز الإحالة الشخصي (يُولَّد عند أول حاجة)
-  referralCode   String?             @unique
-  referredById   String?
-  referredBy     Customer?           @relation("Referrals", fields: [referredById], references: [id], onDelete: SetNull)
-  referrals      Customer[]          @relation("Referrals")
-  createdAt      DateTime            @default(now())
-  updatedAt      DateTime            @updatedAt
-  reviews        Review[]
-  entries        DrawEntry[]
-  redemptions    CouponRedemption[]
-  jarCodes       JarCode[]
-  orders         Order[]
-  pointsHistory  PointsTransaction[]
-  coupons        Coupon[]
+  referralCode       String?             @unique
+  referredById       String?
+  referredBy         Customer?           @relation("Referrals", fields: [referredById], references: [id], onDelete: SetNull)
+  referrals          Customer[]          @relation("Referrals")
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  reviews            Review[]
+  entries            DrawEntry[]
+  redemptions        CouponRedemption[]
+  jarCodes           JarCode[]
+  orders             Order[]
+  pointsHistory      PointsTransaction[]
+  coupons            Coupon[]
+  campaignRecipients CampaignRecipient[]
 
   @@index([phone])
   @@index([createdAt])
@@ -541,69 +542,73 @@ model JarCode {
 
 /// إعدادات الموقع — صف واحد (id = "site") يحرّره الأدمن بلا نشر جديد.
 model SiteSettings {
-  id                    String   @id @default("site")
+  id                        String   @id @default("site")
   /// رقم واتساب بالصيغة الدولية بلا + (مثال 963947931959)
-  whatsappNumber        String   @default("963947931959")
-  phoneDisplay          String   @default("+963947931959")
-  email                 String?
-  workingHours          String   @default("يومياً من 9 صباحاً حتى 9 مساءً")
-  shippingCost          Int      @default(25000)
+  whatsappNumber            String   @default("963947931959")
+  phoneDisplay              String   @default("+963947931959")
+  email                     String?
+  workingHours              String   @default("يومياً من 9 صباحاً حتى 9 مساءً")
+  shippingCost              Int      @default(25000)
   /// 0 = لا توصيل مجاني
-  freeShippingThreshold Int      @default(500000)
-  heroBadge             String   @default("إرث عائلي موثوق منذ 1997")
-  heroTitle             String   @default("عسل طبيعي 100% من مراعي سوريا")
-  heroHighlight         String   @default("الهيثم — نحل وعسل – منذ 1997")
-  heroSubtitle          String   @default("نقدّم عسلًا 100% طبيعي، مفحوصًا مخبريًا، من الخلية إلى مائدتك بلا أي إضافات.")
-  heroImage             String?
-  announcementEnabled   Boolean  @default(false)
-  announcementText      String?
-  announcementLink      String?
-  lowStockThreshold     Int      @default(3)
-  showRecentlyViewed    Boolean  @default(true)
-  autoRelatedProducts   Boolean  @default(true)
-  cartReminderEnabled   Boolean  @default(true)
+  freeShippingThreshold     Int      @default(500000)
+  heroBadge                 String   @default("إرث عائلي موثوق منذ 1997")
+  heroTitle                 String   @default("عسل طبيعي 100% من مراعي سوريا")
+  heroHighlight             String   @default("الهيثم — نحل وعسل – منذ 1997")
+  heroSubtitle              String   @default("نقدّم عسلًا 100% طبيعي، مفحوصًا مخبريًا، من الخلية إلى مائدتك بلا أي إضافات.")
+  heroImage                 String?
+  announcementEnabled       Boolean  @default(false)
+  announcementText          String?
+  announcementLink          String?
+  lowStockThreshold         Int      @default(3)
+  showRecentlyViewed        Boolean  @default(true)
+  autoRelatedProducts       Boolean  @default(true)
+  cartReminderEnabled       Boolean  @default(true)
   /// بعد كم ساعة من آخر تعديل تُعتبر السلة «متروكة»
-  cartReminderHours     Int      @default(12)
-  couponsEnabled        Boolean  @default(true)
+  cartReminderHours         Int      @default(12)
+  couponsEnabled            Boolean  @default(true)
   /// خصومات الكمية على المنتجات (تُعرّف لكل منتج)
-  tieredPricingEnabled  Boolean  @default(true)
+  tieredPricingEnabled      Boolean  @default(true)
   /// العروض التلقائية في السلة
-  promotionsEnabled     Boolean  @default(true)
+  promotionsEnabled         Boolean  @default(true)
   /// الشحن حسب المحافظة (وإلا تكلفة واحدة)
-  shippingZonesEnabled  Boolean  @default(false)
+  shippingZonesEnabled      Boolean  @default(false)
   /// «أعلمني عند التوفر» بالبريد بدل رسالة واتساب
-  stockAlertsEnabled    Boolean  @default(true)
+  stockAlertsEnabled        Boolean  @default(true)
   /// مغذّي المنتجات /feeds/products.xml لكتالوج فيسبوك/غوغل
-  productFeedEnabled    Boolean  @default(true)
+  productFeedEnabled        Boolean  @default(true)
   // ---- الولاء ----
-  loyaltyEnabled        Boolean  @default(false)
+  loyaltyEnabled            Boolean  @default(false)
   /// كل كم ليرة من الطلب المؤكَّد تُمنح نقطة (مثال 10000 → طلب 300 ألف = 30 نقطة)
-  pointsPerSyp          Int      @default(10000)
+  pointsPerSyp              Int      @default(10000)
   /// قيمة النقطة بالليرة عند الاستبدال
-  pointValue            Int      @default(500)
+  pointValue                Int      @default(500)
   /// أقل رصيد يسمح بالاستبدال
-  minRedeemPoints       Int      @default(20)
+  minRedeemPoints           Int      @default(20)
   /// أقصى نسبة من الطلب تُدفع بالنقاط
-  maxRedeemPercent      Int      @default(30)
+  maxRedeemPercent          Int      @default(30)
   /// سقف قيمة النقاط المستبدَلة شهرياً بالليرة (0 = بلا سقف)
-  loyaltyMonthlyBudget  Int      @default(0)
+  loyaltyMonthlyBudget      Int      @default(0)
   // ---- الإحالة ----
-  referralEnabled       Boolean  @default(false)
+  referralEnabled           Boolean  @default(false)
   /// نسبة كوبون الإحالة للطرفين
-  referralPercent       Int      @default(10)
-  referralMaxDiscount   Int      @default(50000)
-  referralCouponDays    Int      @default(30)
+  referralPercent           Int      @default(10)
+  referralMaxDiscount       Int      @default(50000)
+  referralCouponDays        Int      @default(30)
   /// أقصى عدد إحالات مكافأة في الشهر (0 = بلا سقف)
-  referralMonthlyCap    Int      @default(0)
+  referralMonthlyCap        Int      @default(0)
+  // ---- بريد السلة المتروكة ----
+  abandonedCartEmailEnabled Boolean  @default(false)
+  /// بعد كم ساعة من آخر تعديل تُرسل رسالة «سلتك بانتظارك» للمسجّلين
+  abandonedCartHours        Int      @default(24)
   // ---- كوبون الترحيب ----
-  welcomeCouponEnabled  Boolean  @default(false)
-  welcomePercent        Int      @default(10)
-  welcomeMaxDiscount    Int      @default(50000)
-  welcomeMinOrder       Int      @default(0)
-  welcomeCouponDays     Int      @default(7)
+  welcomeCouponEnabled      Boolean  @default(false)
+  welcomePercent            Int      @default(10)
+  welcomeMaxDiscount        Int      @default(50000)
+  welcomeMinOrder           Int      @default(0)
+  welcomeCouponDays         Int      @default(7)
   /// أقصى عدد كوبونات ترحيب في الشهر (0 = بلا سقف)
-  welcomeMonthlyCap     Int      @default(0)
-  updatedAt             DateTime @updatedAt
+  welcomeMonthlyCap         Int      @default(0)
+  updatedAt                 DateTime @updatedAt
 
   @@map("site_settings")
 }
@@ -720,4 +725,47 @@ model AuditLog {
   @@index([createdAt])
   @@index([entity, entityId])
   @@map("audit_logs")
+}
+
+enum CampaignStatus {
+  DRAFT
+  SENDING
+  SENT
+}
+
+/// حملة بريدية (Odoo Email Marketing): نص Markdown يُرسل لمن وافق على العروض،
+/// مع تتبّع الفتح بصورة شفافة ورابط إلغاء اشتراك في كل رسالة.
+model Campaign {
+  id              String              @id @default(cuid())
+  subject         String
+  body            String
+  status          CampaignStatus      @default(DRAFT)
+  recipientsCount Int                 @default(0)
+  sentCount       Int                 @default(0)
+  failedCount     Int                 @default(0)
+  openCount       Int                 @default(0)
+  sentAt          DateTime?
+  recipients      CampaignRecipient[]
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  @@index([status, createdAt])
+  @@map("campaigns")
+}
+
+model CampaignRecipient {
+  id         String    @id @default(cuid())
+  campaignId String
+  campaign   Campaign  @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  customerId String
+  customer   Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  /// رمز صورة التتبّع الشفافة
+  token      String    @unique
+  sentAt     DateTime?
+  openedAt   DateTime?
+  error      String?
+
+  @@unique([campaignId, customerId])
+  @@index([campaignId, sentAt])
+  @@map("campaign_recipients")
 }

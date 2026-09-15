@@ -15,6 +15,7 @@ const TABS = [
   { href: '/admin/promotions', label: 'العروض' },
   { href: '/admin/draws', label: 'السحب' },
   { href: '/admin/customers', label: 'الزبائن' },
+  { href: '/admin/campaigns', label: 'الحملات' },
   { href: '/admin/settings', label: 'الإعدادات' },
   { href: '/admin/studio', label: 'الاستديو' },
   { href: '/admin/activity', label: 'السجل' },

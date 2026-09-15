@@ -39,6 +39,8 @@ export interface SiteSettingsData {
   referralMaxDiscount: number;
   referralCouponDays: number;
   referralMonthlyCap: number;
+  abandonedCartEmailEnabled: boolean;
+  abandonedCartHours: number;
   welcomeCouponEnabled: boolean;
   welcomePercent: number;
   welcomeMaxDiscount: number;
@@ -85,6 +87,8 @@ export const DEFAULT_SETTINGS: SiteSettingsData = {
   referralMaxDiscount: 50000,
   referralCouponDays: 30,
   referralMonthlyCap: 0,
+  abandonedCartEmailEnabled: false,
+  abandonedCartHours: 24,
   welcomeCouponEnabled: false,
   welcomePercent: 10,
   welcomeMaxDiscount: 50000,
