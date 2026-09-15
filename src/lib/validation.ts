@@ -231,6 +231,23 @@ export const settingsInput = z
     shippingZonesEnabled: z.boolean(),
     stockAlertsEnabled: z.boolean(),
     productFeedEnabled: z.boolean(),
+    loyaltyEnabled: z.boolean(),
+    pointsPerSyp: z.number().int().min(1).max(1_000_000_000),
+    pointValue: z.number().int().min(1).max(1_000_000),
+    minRedeemPoints: z.number().int().min(1).max(100_000),
+    maxRedeemPercent: z.number().int().min(1).max(100),
+    loyaltyMonthlyBudget: amount,
+    referralEnabled: z.boolean(),
+    referralPercent: z.number().int().min(1).max(100),
+    referralMaxDiscount: amount,
+    referralCouponDays: z.number().int().min(1).max(365),
+    referralMonthlyCap: z.number().int().min(0).max(100_000),
+    welcomeCouponEnabled: z.boolean(),
+    welcomePercent: z.number().int().min(1).max(100),
+    welcomeMaxDiscount: amount,
+    welcomeMinOrder: amount,
+    welcomeCouponDays: z.number().int().min(1).max(365),
+    welcomeMonthlyCap: z.number().int().min(0).max(100_000),
   })
   .strict();
 
@@ -262,7 +279,19 @@ export const profileInput = z
     marketingOptIn: z.boolean(),
   })
   .strict();
-export const registerInput = profileInput.extend({ token: z.string().min(10).max(2000) }).strict();
+export const registerInput = profileInput
+  .extend({
+    token: z.string().min(10).max(2000),
+    /** رمز إحالة صديق (اختياري) */
+    ref: z
+      .string()
+      .trim()
+      .toUpperCase()
+      .regex(/^[A-Z2-9]{6}$/)
+      .nullable()
+      .optional(),
+  })
+  .strict();
 
 // ---- السحب ورموز المرطبانات ----
 export const JAR_CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -309,6 +338,8 @@ export const quoteInput = z
     items: z.array(cartLine).max(60),
     couponCode: couponCode.nullable(),
     zoneId: text(50).nullable().optional(),
+    /** استبدال نقاط الولاء (للحساب المسجّل) */
+    usePoints: z.boolean().optional(),
   })
   .strict();
 export const orderInput = quoteInput
@@ -387,3 +418,16 @@ export const attributeInput = z
   .refine((a) => new Set(a.values.map((v) => v.trim())).size === a.values.length, 'قيم مكررة.');
 
 export const stockAlertInput = z.object({ productId: text(50).min(1), email: emailInput }).strict();
+
+/** تعديل يدوي لنقاط زبون من اللوحة */
+export const pointsAdjustInput = z
+  .object({
+    delta: z
+      .number()
+      .int()
+      .min(-1_000_000)
+      .max(1_000_000)
+      .refine((d) => d !== 0, 'الفرق صفر.'),
+    note: text(200).min(2, 'اكتب سبباً.'),
+  })
+  .strict();

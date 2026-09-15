@@ -22,7 +22,11 @@ export async function checkCoupon(
     coupon && customerId
       ? (await db.couponRedemption.count({ where: { couponId: coupon.id, customerId } })) > 0
       : false;
-  return applyCoupon(coupon, subtotal, new Date(), { loggedIn: !!customerId, alreadyRedeemed });
+  return applyCoupon(coupon, subtotal, new Date(), {
+    loggedIn: !!customerId,
+    alreadyRedeemed,
+    customerId,
+  });
 }
 
 /** يسجّل استخدام الكوبون لحساب لحظة إرسال الطلب إلى واتساب (لـ«مرة لكل حساب»). */

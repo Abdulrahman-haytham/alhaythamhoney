@@ -7,7 +7,7 @@ import type { z } from 'zod';
 import type { couponInput } from '@/lib/validation';
 
 type Input = z.infer<typeof couponInput>;
-type Row = Input & { id: string };
+type Row = Input & { id: string; owner: string | null; source: string | null };
 
 const empty: Input = {
   code: '',
@@ -30,7 +30,7 @@ function Editor({ coupon, onDone }: { coupon?: Row; onDone?: () => void }) {
   const router = useRouter();
   const [form, setForm] = useState<Input>(() => {
     if (!coupon) return empty;
-    const { id: _id, ...rest } = coupon;
+    const { id: _id, owner: _o, source: _s, ...rest } = coupon;
     return rest;
   });
   const [busy, setBusy] = useState(false);
@@ -254,6 +254,12 @@ export function CouponsPanel({ coupons }: { coupons: Row[] }) {
               <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold ${status.cls}`}>
                 {status.label}
               </span>
+              {c.owner && (
+                <span className="rounded-full bg-zinc-800 px-2 py-0.5 text-[11px] text-zinc-300">
+                  شخصي: {c.owner}
+                  {c.source === 'WELCOME' ? ' · ترحيب' : c.source === 'REFERRAL' ? ' · إحالة' : ''}
+                </span>
+              )}
               {c.note && <span className="text-xs text-zinc-500">— {c.note}</span>}
             </summary>
             <Editor coupon={c} />

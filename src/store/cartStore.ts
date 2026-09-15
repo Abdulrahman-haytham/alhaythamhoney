@@ -38,6 +38,8 @@ interface CartState {
   couponCode: string | null;
   /** منطقة الشحن المختارة (إن فعّل الأدمن الشحن حسب المحافظة) */
   zoneId: string | null;
+  /** استبدال نقاط الولاء في هذا الطلب */
+  usePoints: boolean;
   lastAdded: LastAdded | null;
   addItem: (product: CartProduct, quantity?: number) => void;
   removeItem: (id: string) => void;
@@ -45,6 +47,7 @@ interface CartState {
   clearCart: () => void;
   setCoupon: (code: string | null) => void;
   setZone: (zoneId: string | null) => void;
+  setUsePoints: (usePoints: boolean) => void;
   dismissLastAdded: () => void;
   getTotalItems: () => number;
   getTotalPrice: () => number;
@@ -57,6 +60,7 @@ export const useCart = create<CartState>()(
       updatedAt: null,
       couponCode: null,
       zoneId: null,
+      usePoints: false,
       lastAdded: null,
       addItem: (product, quantity = 1) =>
         set((state) => {
@@ -92,6 +96,7 @@ export const useCart = create<CartState>()(
       clearCart: () => set({ items: [], updatedAt: Date.now(), couponCode: null }),
       setCoupon: (couponCode) => set({ couponCode }),
       setZone: (zoneId) => set({ zoneId }),
+      setUsePoints: (usePoints) => set({ usePoints }),
       dismissLastAdded: () => set({ lastAdded: null }),
       getTotalItems: () => get().items.reduce((sum, item) => sum + item.quantity, 0),
       getTotalPrice: () =>
@@ -105,6 +110,7 @@ export const useCart = create<CartState>()(
         updatedAt: s.updatedAt,
         couponCode: s.couponCode,
         zoneId: s.zoneId,
+        usePoints: s.usePoints,
       }),
     },
   ),

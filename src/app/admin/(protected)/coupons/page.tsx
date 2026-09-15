@@ -5,13 +5,17 @@ import { CouponsPanel } from './CouponsPanel';
 export const dynamic = 'force-dynamic';
 
 export default async function AdminCouponsPage() {
-  const coupons = await db.coupon.findMany({ orderBy: { createdAt: 'desc' } });
+  const coupons = await db.coupon.findMany({
+    orderBy: { createdAt: 'desc' },
+    include: { customer: { select: { name: true } } },
+  });
   return (
     <>
       <h1 className="mb-1 font-amiri text-3xl font-bold">كوبونات الخصم</h1>
       <p className="mb-6 text-sm text-zinc-400">
         يكتب الزبون الكود في السلة فيُخصم فوراً ويصلك ضمن رسالة واتساب. لا عدّاد استخدام لأن الطلب
-        يُتمّ خارج الموقع — عطّل الكوبون يدوياً أو حدّد له تاريخ انتهاء.
+        يُتمّ خارج الموقع — عطّل الكوبون يدوياً أو حدّد له تاريخ انتهاء. الكوبونات «الشخصية» يولّدها
+        الموقع تلقائياً (ترحيب/إحالة) ولا يقبلها إلا صاحبها.
       </p>
       <CouponsPanel
         coupons={coupons.map((c) => ({
@@ -27,6 +31,8 @@ export default async function AdminCouponsPage() {
           note: c.note,
           requiresLogin: c.requiresLogin,
           oncePerCustomer: c.oncePerCustomer,
+          owner: c.customer?.name ?? null,
+          source: c.source,
         }))}
       />
     </>

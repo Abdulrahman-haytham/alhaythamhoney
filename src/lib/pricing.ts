@@ -78,6 +78,19 @@ export interface Quote {
   zoneId: string | null;
   /** العروض المطبَّقة وقيمتها — لتسجيل الاستخدام مقابل الميزانية */
   promotionsApplied: { id: string; amount: number }[];
+  /** نقاط الولاء للحساب المسجّل (إن فُعّلت) */
+  loyalty: QuoteLoyalty | null;
+}
+
+export interface QuoteLoyalty {
+  balance: number;
+  pointValue: number;
+  /** ما يمكن استبداله على هذا الطلب */
+  redeemablePoints: number;
+  redeemableAmount: number;
+  /** ما استُبدل فعلاً في هذا العرض */
+  pointsUsed: number;
+  blocked: string | null;
 }
 
 export interface DroppedLine {
@@ -118,6 +131,7 @@ export interface QuoteOptions {
   zoneId?: string | null;
   /** خصم النقاط (محسوب مسبقاً) */
   points?: { amount: number; label: string } | null;
+  loyalty?: QuoteLoyalty | null;
 }
 
 export const fmtSyp = (n: number) => new Intl.NumberFormat('en-US').format(n);
@@ -259,6 +273,7 @@ export function buildQuote(opts: QuoteOptions): Quote {
     zones: opts.zones ?? [],
     zoneId: opts.zoneId ?? null,
     promotionsApplied,
+    loyalty: opts.loyalty ?? null,
   };
 }
 

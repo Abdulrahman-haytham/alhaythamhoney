@@ -18,6 +18,7 @@ import {
   AlertTriangle,
   Gift,
   MapPin,
+  Coins,
 } from 'lucide-react';
 import { useCart } from '@/store/cartStore';
 import { getWhatsAppLink } from '@/lib/config';
@@ -174,6 +175,8 @@ export function CartClient() {
   const setCoupon = useCart((s) => s.setCoupon);
   const zoneId = useCart((s) => s.zoneId);
   const setZone = useCart((s) => s.setZone);
+  const usePoints = useCart((s) => s.usePoints);
+  const setUsePoints = useCart((s) => s.setUsePoints);
   const [serverQuote, setServerQuote] = useState<Quote | null>(null);
   const [quoting, setQuoting] = useState(false);
   const [quoteError, setQuoteError] = useState<string | null>(null);
@@ -193,6 +196,7 @@ export function CartClient() {
           items: items.map(({ id, quantity }) => ({ id, quantity })),
           couponCode,
           zoneId,
+          usePoints,
         }),
       })
         .then((r) => (r.ok ? (r.json() as Promise<Quote>) : Promise.reject(new Error())))
@@ -218,7 +222,7 @@ export function CartClient() {
       clearTimeout(timer);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mounted, signature, couponCode, zoneId]);
+  }, [mounted, signature, couponCode, zoneId, usePoints]);
 
   if (!mounted) {
     return (
@@ -279,6 +283,7 @@ export function CartClient() {
         coupon: serverQuote?.coupon ?? null,
         zones: serverQuote?.zones ?? [],
         zoneId: serverQuote?.zoneId ?? zoneId,
+        loyalty: serverQuote?.loyalty ?? null,
       }
     : serverQuote;
   const afterDiscount = quote.subtotal - quote.discount;
@@ -300,6 +305,7 @@ export function CartClient() {
         items: items.map(({ id, quantity }) => ({ id, quantity })),
         couponCode: quote.coupon?.ok ? quote.coupon.code : null,
         zoneId: quote.zoneId,
+        usePoints: (quote.loyalty?.pointsUsed ?? 0) > 0,
       }),
       keepalive: true,
     }).catch(() => null);
@@ -514,6 +520,31 @@ export function CartClient() {
                 </p>
               ))}
             {settings.couponsEnabled && <CouponField quote={quote} busy={quoting} />}
+            {quote.loyalty && (
+              <label
+                className={`flex items-start gap-2 rounded-xl border p-3 text-xs ${
+                  quote.loyalty.redeemablePoints > 0
+                    ? 'border-amber-500/30 bg-amber-500/5'
+                    : 'border-zinc-800'
+                }`}
+              >
+                <input
+                  type="checkbox"
+                  checked={usePoints && quote.loyalty.redeemablePoints > 0}
+                  disabled={quote.loyalty.redeemablePoints === 0}
+                  onChange={(e) => setUsePoints(e.target.checked)}
+                  className="mt-0.5 accent-amber-500"
+                />
+                <span className="text-zinc-300">
+                  <span className="flex items-center gap-1 font-bold text-amber-300">
+                    <Coins className="h-3.5 w-3.5" /> نقاطك: {fmt(quote.loyalty.balance)}
+                  </span>
+                  {quote.loyalty.redeemablePoints > 0
+                    ? `استبدل ${fmt(quote.loyalty.redeemablePoints)} نقطة = خصم ${fmt(quote.loyalty.redeemableAmount)} ل.س`
+                    : (quote.loyalty.blocked ?? 'لا نقاط قابلة للاستبدال على هذا الطلب')}
+                </span>
+              </label>
+            )}
             <div className="flex justify-between border-t border-zinc-800 pt-3 text-base font-bold text-white">
               <dt>الإجمالي</dt>
               <dd className="tabular-nums">

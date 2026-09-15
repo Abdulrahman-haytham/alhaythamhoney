@@ -14,6 +14,8 @@ import {
   zoneInput,
   attributeInput,
   stockAlertInput,
+  registerInput,
+  pointsAdjustInput,
 } from '@/lib/validation';
 import {
   createSessionToken,
@@ -44,6 +46,7 @@ import {
   variantCartId,
 } from '@/lib/variants';
 import { diffRecords } from '@/lib/audit.server';
+import { pointsForAmount, redeemablePoints } from '@/lib/loyalty';
 import {
   bundleAvailable,
   bundleComponentsValue,
@@ -820,5 +823,112 @@ describe('bundles and catalog availability', () => {
     expect(stockAlertInput.safeParse({ productId: 'p', email: ' A@B.co ' }).data?.email).toBe(
       'a@b.co',
     );
+  });
+});
+
+describe('loyalty, referral and personal coupons', () => {
+  const rules = {
+    loyaltyEnabled: true,
+    pointsPerSyp: 10_000,
+    pointValue: 500,
+    minRedeemPoints: 20,
+    maxRedeemPercent: 30,
+    loyaltyMonthlyBudget: 0,
+  };
+  it('earns points per confirmed amount and caps redemption by balance, percent and budget', () => {
+    expect(pointsForAmount(305_000, rules)).toBe(30);
+    expect(pointsForAmount(0, rules)).toBe(0);
+    expect(
+      redeemablePoints({ balance: 10, amount: 500_000, rules, remainingBudget: null }),
+    ).toEqual({
+      points: 0,
+      amount: 0,
+      blocked: 'تحتاج 20 نقطة على الأقل للاستبدال',
+    });
+    // 30% من 100,000 = 30,000 → 60 نقطة، والرصيد 40 فقط
+    expect(
+      redeemablePoints({ balance: 40, amount: 100_000, rules, remainingBudget: null }),
+    ).toEqual({ points: 40, amount: 20_000, blocked: null });
+    expect(
+      redeemablePoints({ balance: 400, amount: 100_000, rules, remainingBudget: null }).points,
+    ).toBe(60);
+    expect(
+      redeemablePoints({ balance: 400, amount: 100_000, rules, remainingBudget: 5_000 }).points,
+    ).toBe(10);
+    expect(
+      redeemablePoints({ balance: 400, amount: 100_000, rules, remainingBudget: 100 }).blocked,
+    ).toBe('استُنفدت حصة الاستبدال لهذا الشهر');
+    expect(
+      redeemablePoints({
+        balance: 400,
+        amount: 100_000,
+        rules: { ...rules, loyaltyEnabled: false },
+        remainingBudget: null,
+      }).points,
+    ).toBe(0);
+  });
+  it('accepts a personal coupon only from its owner', () => {
+    const coupon = {
+      code: 'WELCOME-AB2C3',
+      type: 'PERCENT' as const,
+      value: 10,
+      minOrder: 0,
+      maxDiscount: 50_000,
+      active: true,
+      startsAt: null,
+      expiresAt: null,
+      requiresLogin: true,
+      oncePerCustomer: true,
+      customerId: 'owner',
+    };
+    expect(applyCoupon(coupon, 100_000)).toMatchObject({ ok: false });
+    expect(
+      applyCoupon(coupon, 100_000, new Date(), {
+        loggedIn: true,
+        alreadyRedeemed: false,
+        customerId: 'other',
+      }),
+    ).toEqual({ ok: false, reason: 'هذا الكوبون شخصي لحساب آخر.' });
+    expect(
+      applyCoupon(coupon, 100_000, new Date(), {
+        loggedIn: true,
+        alreadyRedeemed: false,
+        customerId: 'owner',
+      }),
+    ).toMatchObject({ ok: true, discount: 10_000 });
+  });
+  it('applies points after promotions and coupon in the quote', () => {
+    const q = buildQuote({
+      lines: [
+        {
+          cartId: 'p',
+          productId: 'p',
+          name: 'x',
+          unitPrice: 100_000,
+          quantity: 1,
+          weight: null,
+          image: null,
+          recipe: null,
+        },
+      ],
+      coupon: { ok: true, code: 'TEN', discount: 10_000, label: 'خصم 10%' },
+      shippingCost: 0,
+      freeShippingThreshold: 0,
+      points: { amount: 20_000, label: 'استبدال 40 نقطة' },
+    });
+    expect(q.adjustments.map((a) => a.kind)).toEqual(['coupon', 'points']);
+    expect(q.total).toBe(70_000);
+    expect(
+      registerInput.safeParse({
+        name: 'زبون جديد',
+        phone: '0947931959',
+        city: null,
+        marketingOptIn: true,
+        token: 'x'.repeat(20),
+        ref: ' ab2c3d ',
+      }).data?.ref,
+    ).toBe('AB2C3D');
+    expect(pointsAdjustInput.safeParse({ delta: 0, note: 'تصحيح' }).success).toBe(false);
+    expect(pointsAdjustInput.safeParse({ delta: -5, note: 'تصحيح' }).success).toBe(true);
   });
 });

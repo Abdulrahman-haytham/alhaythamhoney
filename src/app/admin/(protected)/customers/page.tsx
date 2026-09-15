@@ -1,17 +1,30 @@
 import { Download, Users } from 'lucide-react';
 import { db } from '@/lib/db';
 import { formatArticleDate, toIsoDay } from '@/lib/articles';
+import { getSettings } from '@/lib/settings.server';
+import { PointsAdjust } from './PointsAdjust';
 
 export const dynamic = 'force-dynamic';
 
 export default async function AdminCustomersPage() {
-  const [customers, optIn] = await Promise.all([
+  const [customers, optIn, settings] = await Promise.all([
     db.customer.findMany({
       orderBy: { createdAt: 'desc' },
       take: 500,
-      include: { _count: { select: { entries: true, reviews: true, redemptions: true } } },
+      include: {
+        _count: {
+          select: {
+            entries: true,
+            reviews: true,
+            redemptions: true,
+            orders: { where: { confirmedAt: { not: null } } },
+            referrals: true,
+          },
+        },
+      },
     }),
     db.customer.count({ where: { marketingOptIn: true } }),
+    getSettings(),
   ]);
   return (
     <>
@@ -55,6 +68,9 @@ export default async function AdminCustomersPage() {
                   'البريد',
                   'المدينة',
                   'عروض',
+                  'طلبات مؤكَّدة',
+                  ...(settings.loyaltyEnabled ? ['نقاط'] : []),
+                  ...(settings.referralEnabled ? ['دعوات'] : []),
                   'مشاركات',
                   'تقييمات',
                   'كوبونات',
@@ -78,6 +94,15 @@ export default async function AdminCustomersPage() {
                   </td>
                   <td className="px-3 py-2 text-zinc-400">{c.city ?? '—'}</td>
                   <td className="px-3 py-2">{c.marketingOptIn ? '✅' : '—'}</td>
+                  <td className="px-3 py-2 tabular-nums text-zinc-300">{c._count.orders}</td>
+                  {settings.loyaltyEnabled && (
+                    <td className="px-3 py-2">
+                      <PointsAdjust customerId={c.id} points={c.points} />
+                    </td>
+                  )}
+                  {settings.referralEnabled && (
+                    <td className="px-3 py-2 tabular-nums text-zinc-300">{c._count.referrals}</td>
+                  )}
                   <td className="px-3 py-2 tabular-nums text-zinc-300">{c._count.entries}</td>
                   <td className="px-3 py-2 tabular-nums text-zinc-300">{c._count.reviews}</td>
                   <td className="px-3 py-2 tabular-nums text-zinc-300">{c._count.redemptions}</td>

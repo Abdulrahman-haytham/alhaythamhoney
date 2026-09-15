@@ -10,6 +10,8 @@ export interface CouponRule {
   expiresAt: Date | null;
   requiresLogin?: boolean;
   oncePerCustomer?: boolean;
+  /** كوبون شخصي: معرّف الحساب الوحيد الذي يقبله */
+  customerId?: string | null;
 }
 
 export type CouponResult =
@@ -27,14 +29,16 @@ export function applyCoupon(
   coupon: CouponRule | null,
   subtotal: number,
   now = new Date(),
-  context: { loggedIn: boolean; alreadyRedeemed: boolean } = {
+  context: { loggedIn: boolean; alreadyRedeemed: boolean; customerId?: string | null } = {
     loggedIn: false,
     alreadyRedeemed: false,
   },
 ): CouponResult {
   if (!coupon || !coupon.active) return { ok: false, reason: 'الكوبون غير صالح.' };
-  if ((coupon.requiresLogin || coupon.oncePerCustomer) && !context.loggedIn)
+  if ((coupon.requiresLogin || coupon.oncePerCustomer || coupon.customerId) && !context.loggedIn)
     return { ok: false, reason: LOGIN_REQUIRED_REASON };
+  if (coupon.customerId && coupon.customerId !== context.customerId)
+    return { ok: false, reason: 'هذا الكوبون شخصي لحساب آخر.' };
   if (coupon.oncePerCustomer && context.alreadyRedeemed)
     return { ok: false, reason: 'استخدمت هذا الكوبون من قبل.' };
   if (coupon.startsAt && coupon.startsAt > now)

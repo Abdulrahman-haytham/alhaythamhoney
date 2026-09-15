@@ -28,6 +28,23 @@ export interface SiteSettingsData {
   shippingZonesEnabled: boolean;
   stockAlertsEnabled: boolean;
   productFeedEnabled: boolean;
+  loyaltyEnabled: boolean;
+  pointsPerSyp: number;
+  pointValue: number;
+  minRedeemPoints: number;
+  maxRedeemPercent: number;
+  loyaltyMonthlyBudget: number;
+  referralEnabled: boolean;
+  referralPercent: number;
+  referralMaxDiscount: number;
+  referralCouponDays: number;
+  referralMonthlyCap: number;
+  welcomeCouponEnabled: boolean;
+  welcomePercent: number;
+  welcomeMaxDiscount: number;
+  welcomeMinOrder: number;
+  welcomeCouponDays: number;
+  welcomeMonthlyCap: number;
 }
 
 /** القيم الافتراضية — مطابقة لـ @default في schema.prisma وتُستخدم قبل أول حفظ. */
@@ -57,6 +74,23 @@ export const DEFAULT_SETTINGS: SiteSettingsData = {
   shippingZonesEnabled: false,
   stockAlertsEnabled: true,
   productFeedEnabled: true,
+  loyaltyEnabled: false,
+  pointsPerSyp: 10000,
+  pointValue: 500,
+  minRedeemPoints: 20,
+  maxRedeemPercent: 30,
+  loyaltyMonthlyBudget: 0,
+  referralEnabled: false,
+  referralPercent: 10,
+  referralMaxDiscount: 50000,
+  referralCouponDays: 30,
+  referralMonthlyCap: 0,
+  welcomeCouponEnabled: false,
+  welcomePercent: 10,
+  welcomeMaxDiscount: 50000,
+  welcomeMinOrder: 0,
+  welcomeCouponDays: 7,
+  welcomeMonthlyCap: 0,
 };
 
 /** الحقول التي يقرؤها المتصفح — كل شيء هنا عام (لا أسرار). */

@@ -5,12 +5,14 @@ import { checkCoupon } from '@/lib/coupons.server';
 import { getSettings } from '@/lib/settings.server';
 import { getActivePromotionRules } from '@/lib/promotions.server';
 import { buildQuote, type Quote, type QuoteZone } from '@/lib/pricing';
+import { addPoints, customerRedeemable } from '@/lib/loyalty.server';
 import type { CustomerInfo } from '@/lib/customer-auth';
 
 export interface QuoteRequest {
   items: CartLineInput[];
   couponCode: string | null;
   zoneId?: string | null;
+  usePoints?: boolean;
 }
 
 async function getZones(): Promise<QuoteZone[]> {
@@ -50,12 +52,31 @@ export async function quoteCart(req: QuoteRequest, customer: CustomerInfo | null
     settings.couponsEnabled && req.couponCode && lines.length
       ? await checkCoupon(req.couponCode, pre.subtotal - pre.discount, customer?.id ?? null)
       : null;
+  // النقاط تُستبدل على ما بقي بعد كل الخصومات الأخرى
+  let loyalty: Quote['loyalty'] = null;
+  let points: { amount: number; label: string } | null = null;
+  if (customer && settings.loyaltyEnabled && lines.length) {
+    const afterCoupon = pre.subtotal - pre.discount - (coupon?.ok ? coupon.discount : 0);
+    const r = await customerRedeemable(customer.id, Math.max(0, afterCoupon));
+    const use = req.usePoints && r.points > 0;
+    loyalty = {
+      balance: r.balance,
+      pointValue: settings.pointValue,
+      redeemablePoints: r.points,
+      redeemableAmount: r.amount,
+      pointsUsed: use ? r.points : 0,
+      blocked: r.blocked,
+    };
+    if (use) points = { amount: r.amount, label: `استبدال ${r.points} نقطة` };
+  }
   return buildQuote({
     ...base,
     coupon,
     shippingCost,
     freeShippingThreshold: settings.freeShippingThreshold,
     shippingLabel,
+    points,
+    loyalty,
   });
 }
 
@@ -79,6 +100,7 @@ export async function createOrder(
         customerPhone: customer?.phone ?? null,
         customerCity: zone?.name ?? customer?.city ?? null,
         zoneName: zone?.name ?? null,
+        pointsUsed: quote.loyalty?.pointsUsed ?? 0,
         subtotal: quote.subtotal,
         discount: quote.discount,
         shipping: quote.shipping,
@@ -123,6 +145,12 @@ export async function createOrder(
       },
       select: { id: true, reference: true },
     });
+    if (quote.loyalty && quote.loyalty.pointsUsed > 0 && customer) {
+      await addPoints(tx, customer.id, -quote.loyalty.pointsUsed, 'ORDER_REDEEM', {
+        orderId: created.id,
+        note: req.reference,
+      });
+    }
     if (quote.coupon?.ok && customer) {
       const coupon = await tx.coupon.findUnique({
         where: { code: quote.coupon.code },

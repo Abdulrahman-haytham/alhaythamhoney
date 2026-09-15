@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Mail, KeyRound, UserRound, Loader2, ArrowRight } from 'lucide-react';
+import { clearStoredReferral, storedReferral } from '@/components/ReferralCapture';
 
 type Step = 'email' | 'code' | 'profile';
 const inputClass =
@@ -179,7 +180,9 @@ export function LoginFlow({ next }: { next: string }) {
                 phone,
                 city: city || null,
                 marketingOptIn: optIn,
+                ref: storedReferral(),
               });
+              clearStoredReferral();
               finish();
             });
           }}

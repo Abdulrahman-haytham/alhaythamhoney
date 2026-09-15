@@ -352,6 +352,197 @@ export function SettingsForm({ initial }: { initial: SiteSettingsData }) {
         />
       </Section>
 
+      <Section
+        title="نقاط الولاء"
+        hint="يكسب الزبون المسجّل نقاطاً عند تأكيد طلبه من صفحة الطلبات ويستبدلها في السلة. كل الأرقام هنا تحكمها أنت — والسقف الشهري يحمي الميزانية."
+      >
+        <Toggle
+          label="تفعيل نقاط الولاء"
+          hint="معطّلاً: لا كسب ولا استبدال، وتبقى الأرصدة محفوظة."
+          checked={s.loyaltyEnabled}
+          onChange={(v) => set('loyaltyEnabled', v)}
+        />
+        <label>
+          نقطة واحدة لكل (ل.س) من الطلب المؤكَّد
+          <input
+            className={inputClass}
+            type="number"
+            min={1}
+            value={s.pointsPerSyp}
+            onChange={(e) => set('pointsPerSyp', Math.max(1, num(e.target.value)))}
+          />
+        </label>
+        <label>
+          قيمة النقطة عند الاستبدال (ل.س)
+          <input
+            className={inputClass}
+            type="number"
+            min={1}
+            value={s.pointValue}
+            onChange={(e) => set('pointValue', Math.max(1, num(e.target.value)))}
+          />
+        </label>
+        <label>
+          أقل رصيد يسمح بالاستبدال (نقطة)
+          <input
+            className={inputClass}
+            type="number"
+            min={1}
+            value={s.minRedeemPoints}
+            onChange={(e) => set('minRedeemPoints', Math.max(1, num(e.target.value)))}
+          />
+        </label>
+        <label>
+          أقصى نسبة من الطلب تُدفع بالنقاط (%)
+          <input
+            className={inputClass}
+            type="number"
+            min={1}
+            max={100}
+            value={s.maxRedeemPercent}
+            onChange={(e) =>
+              set('maxRedeemPercent', Math.min(100, Math.max(1, num(e.target.value))))
+            }
+          />
+        </label>
+        <label>
+          سقف قيمة الاستبدال شهرياً (ل.س) — 0 بلا سقف
+          <input
+            className={inputClass}
+            type="number"
+            min={0}
+            value={s.loyaltyMonthlyBudget}
+            onChange={(e) => set('loyaltyMonthlyBudget', num(e.target.value))}
+          />
+        </label>
+        <p className="text-xs text-zinc-500 sm:col-span-2">
+          مثال بالقيم الحالية: طلب مؤكَّد بـ 300,000 ل.س يمنح{' '}
+          {Math.floor(300000 / Math.max(1, s.pointsPerSyp))} نقطة ={' '}
+          {(Math.floor(300000 / Math.max(1, s.pointsPerSyp)) * s.pointValue).toLocaleString(
+            'en-US',
+          )}{' '}
+          ل.س خصماً في طلب لاحق.
+        </p>
+      </Section>
+
+      <Section
+        title="ادعُ صديقاً"
+        hint="رابط دعوة شخصي في حساب كل زبون. حين يُتمّ المدعوّ أول طلب مؤكَّد يحصل الطرفان على كوبون شخصي."
+      >
+        <Toggle
+          label="تفعيل الإحالة"
+          checked={s.referralEnabled}
+          onChange={(v) => set('referralEnabled', v)}
+        />
+        <label>
+          نسبة كوبون الإحالة (%)
+          <input
+            className={inputClass}
+            type="number"
+            min={1}
+            max={100}
+            value={s.referralPercent}
+            onChange={(e) =>
+              set('referralPercent', Math.min(100, Math.max(1, num(e.target.value))))
+            }
+          />
+        </label>
+        <label>
+          سقف الخصم للكوبون (ل.س) — 0 بلا سقف
+          <input
+            className={inputClass}
+            type="number"
+            min={0}
+            value={s.referralMaxDiscount}
+            onChange={(e) => set('referralMaxDiscount', num(e.target.value))}
+          />
+        </label>
+        <label>
+          صلاحية الكوبون (أيام)
+          <input
+            className={inputClass}
+            type="number"
+            min={1}
+            max={365}
+            value={s.referralCouponDays}
+            onChange={(e) => set('referralCouponDays', Math.max(1, num(e.target.value)))}
+          />
+        </label>
+        <label>
+          أقصى عدد إحالات مكافأة في الشهر — 0 بلا سقف
+          <input
+            className={inputClass}
+            type="number"
+            min={0}
+            value={s.referralMonthlyCap}
+            onChange={(e) => set('referralMonthlyCap', num(e.target.value))}
+          />
+        </label>
+      </Section>
+
+      <Section
+        title="كوبون الترحيب"
+        hint="يُرسل بالبريد تلقائياً لكل حساب جديد — أرخص طريقة لتحويل زائر إلى زبون مسجّل."
+      >
+        <Toggle
+          label="تفعيل كوبون الترحيب"
+          checked={s.welcomeCouponEnabled}
+          onChange={(v) => set('welcomeCouponEnabled', v)}
+        />
+        <label>
+          نسبة الخصم (%)
+          <input
+            className={inputClass}
+            type="number"
+            min={1}
+            max={100}
+            value={s.welcomePercent}
+            onChange={(e) => set('welcomePercent', Math.min(100, Math.max(1, num(e.target.value))))}
+          />
+        </label>
+        <label>
+          سقف الخصم (ل.س) — 0 بلا سقف
+          <input
+            className={inputClass}
+            type="number"
+            min={0}
+            value={s.welcomeMaxDiscount}
+            onChange={(e) => set('welcomeMaxDiscount', num(e.target.value))}
+          />
+        </label>
+        <label>
+          الحد الأدنى للطلب (ل.س)
+          <input
+            className={inputClass}
+            type="number"
+            min={0}
+            value={s.welcomeMinOrder}
+            onChange={(e) => set('welcomeMinOrder', num(e.target.value))}
+          />
+        </label>
+        <label>
+          صلاحية الكوبون (أيام)
+          <input
+            className={inputClass}
+            type="number"
+            min={1}
+            max={365}
+            value={s.welcomeCouponDays}
+            onChange={(e) => set('welcomeCouponDays', Math.max(1, num(e.target.value)))}
+          />
+        </label>
+        <label>
+          أقصى عدد كوبونات ترحيب في الشهر — 0 بلا سقف
+          <input
+            className={inputClass}
+            type="number"
+            min={0}
+            value={s.welcomeMonthlyCap}
+            onChange={(e) => set('welcomeMonthlyCap', num(e.target.value))}
+          />
+        </label>
+      </Section>
+
       <div className="sticky bottom-4 flex items-center gap-4 rounded-2xl border border-zinc-800 bg-zinc-900/95 p-4 backdrop-blur">
         <button
           disabled={state === 'saving'}

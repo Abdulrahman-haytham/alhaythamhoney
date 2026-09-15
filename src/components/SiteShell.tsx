@@ -1,5 +1,7 @@
 'use client';
+import { Suspense } from 'react';
 import { usePathname } from 'next/navigation';
+import ReferralCapture from '@/components/ReferralCapture';
 import Header from '@/components/Header';
 import BottomNav from '@/components/BottomNav';
 import BootLoader from '@/components/BootLoader';
@@ -18,6 +20,9 @@ export default function SiteShell({
   const minimal = pathname.startsWith('/admin') || pathname.startsWith('/q/');
   return (
     <>
+      <Suspense fallback={null}>
+        <ReferralCapture />
+      </Suspense>
       {!minimal && (
         <>
           <BootLoader />

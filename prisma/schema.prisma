@@ -198,6 +198,9 @@ model Order {
   couponCode    String?
   /// منطقة الشحن المختارة (اسم المحافظة) وقت الطلب
   zoneName      String?
+  /// نقاط استُخدمت في هذا الطلب (تُعاد عند الإلغاء) ونقاط مُنحت عند التأكيد
+  pointsUsed    Int            @default(0)
+  pointsEarned  Int            @default(0)
   promotionUses PromotionUse[]
   /// تفصيل الحساب كما عُرض للزبون (خصومات، عروض، شحن) — للمراجعة لا لإعادة الحساب
   breakdown     Json?
@@ -381,10 +384,17 @@ model Coupon {
   requiresLogin   Boolean            @default(false)
   /// مرة واحدة لكل حساب (يتطلب تسجيل الدخول ضمناً)
   oncePerCustomer Boolean            @default(false)
+  /// كوبون شخصي (ترحيب/إحالة): لا يقبله إلا هذا الحساب
+  customerId      String?
+  customer        Customer?          @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  /// مصدر الكوبون الآلي: WELCOME أو REFERRAL — لحساب السقف الشهري
+  source          String?
   redemptions     CouponRedemption[]
   createdAt       DateTime           @default(now())
   updatedAt       DateTime           @updatedAt
 
+  @@index([customerId])
+  @@index([source, createdAt])
   @@map("coupons")
 }
 
@@ -404,24 +414,57 @@ model CouponRedemption {
 
 /// حساب زبون بلا كلمة مرور: الدخول برمز يُرسل إلى البريد. الهاتف للتوصيل والرسائل الجماعية.
 model Customer {
-  id             String             @id @default(cuid())
-  email          String             @unique
+  id             String              @id @default(cuid())
+  email          String              @unique
   name           String
   phone          String
   city           String?
-  marketingOptIn Boolean            @default(true)
+  marketingOptIn Boolean             @default(true)
   lastLoginAt    DateTime?
-  createdAt      DateTime           @default(now())
-  updatedAt      DateTime           @updatedAt
+  /// رصيد نقاط الولاء الحالي (مجموع الحركات)
+  points         Int                 @default(0)
+  /// رمز الإحالة الشخصي (يُولَّد عند أول حاجة)
+  referralCode   String?             @unique
+  referredById   String?
+  referredBy     Customer?           @relation("Referrals", fields: [referredById], references: [id], onDelete: SetNull)
+  referrals      Customer[]          @relation("Referrals")
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
   reviews        Review[]
   entries        DrawEntry[]
   redemptions    CouponRedemption[]
   jarCodes       JarCode[]
   orders         Order[]
+  pointsHistory  PointsTransaction[]
+  coupons        Coupon[]
 
   @@index([phone])
   @@index([createdAt])
   @@map("customers")
+}
+
+enum PointsReason {
+  ORDER_EARN
+  ORDER_REDEEM
+  ORDER_REFUND
+  REFERRAL
+  ADMIN
+}
+
+/// حركة نقاط ولاء — الرصيد في Customer.points هو مجموعها
+model PointsTransaction {
+  id         String       @id @default(cuid())
+  customerId String
+  customer   Customer     @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  delta      Int
+  reason     PointsReason
+  orderId    String?
+  note       String?
+  createdAt  DateTime     @default(now())
+
+  @@index([customerId, createdAt])
+  @@index([reason, createdAt])
+  @@map("points_transactions")
 }
 
 /// رمز دخول لمرة واحدة (6 أرقام) — يُخزَّن مُجزَّأً وينتهي خلال دقائق.
@@ -532,6 +575,34 @@ model SiteSettings {
   stockAlertsEnabled    Boolean  @default(true)
   /// مغذّي المنتجات /feeds/products.xml لكتالوج فيسبوك/غوغل
   productFeedEnabled    Boolean  @default(true)
+  // ---- الولاء ----
+  loyaltyEnabled        Boolean  @default(false)
+  /// كل كم ليرة من الطلب المؤكَّد تُمنح نقطة (مثال 10000 → طلب 300 ألف = 30 نقطة)
+  pointsPerSyp          Int      @default(10000)
+  /// قيمة النقطة بالليرة عند الاستبدال
+  pointValue            Int      @default(500)
+  /// أقل رصيد يسمح بالاستبدال
+  minRedeemPoints       Int      @default(20)
+  /// أقصى نسبة من الطلب تُدفع بالنقاط
+  maxRedeemPercent      Int      @default(30)
+  /// سقف قيمة النقاط المستبدَلة شهرياً بالليرة (0 = بلا سقف)
+  loyaltyMonthlyBudget  Int      @default(0)
+  // ---- الإحالة ----
+  referralEnabled       Boolean  @default(false)
+  /// نسبة كوبون الإحالة للطرفين
+  referralPercent       Int      @default(10)
+  referralMaxDiscount   Int      @default(50000)
+  referralCouponDays    Int      @default(30)
+  /// أقصى عدد إحالات مكافأة في الشهر (0 = بلا سقف)
+  referralMonthlyCap    Int      @default(0)
+  // ---- كوبون الترحيب ----
+  welcomeCouponEnabled  Boolean  @default(false)
+  welcomePercent        Int      @default(10)
+  welcomeMaxDiscount    Int      @default(50000)
+  welcomeMinOrder       Int      @default(0)
+  welcomeCouponDays     Int      @default(7)
+  /// أقصى عدد كوبونات ترحيب في الشهر (0 = بلا سقف)
+  welcomeMonthlyCap     Int      @default(0)
   updatedAt             DateTime @updatedAt
 
   @@map("site_settings")
