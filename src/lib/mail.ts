@@ -1,5 +1,6 @@
 import 'server-only';
 import nodemailer from 'nodemailer';
+import type SMTPTransport from 'nodemailer/lib/smtp-transport';
 import { appendFile, mkdir } from 'node:fs/promises';
 import path from 'node:path';
 import { SITE } from '@/lib/config';
@@ -22,8 +23,17 @@ export async function sendMail(to: string, subject: string, text: string, html?:
     await appendFile(path.join(dir, 'outbox.log'), line);
     return;
   }
-  const transport = nodemailer.createTransport(url);
-  await transport.sendMail({ from, to, subject, text, html });
+  const transport = nodemailer.createTransport({
+    url,
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 15000,
+  } as SMTPTransport.Options);
+  try {
+    await transport.sendMail({ from, to, subject, text, html });
+  } finally {
+    transport.close();
+  }
 }
 
 export function loginCodeMail(code: string) {

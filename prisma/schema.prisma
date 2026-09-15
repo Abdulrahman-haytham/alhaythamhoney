@@ -56,6 +56,7 @@ model Product {
   detailedInfo Json?
   inStock      Boolean           @default(true)
   /// الكمية المتبقية — null تعني «غير متتبَّعة». تُظهر شارة «بقي X فقط» تحت عتبة الإعدادات.
+  /// Legacy only: never read or written as a physical stock balance.
   stockQty     Int?
   published    Boolean           @default(true)
   sortOrder    Int               @default(0)
@@ -182,37 +183,47 @@ model ProductRelation {
 /// طلب مسجَّل لحظة ضغط «أكمل الطلب عبر واتساب». الدفع والتأكيد يتمّان خارج الموقع،
 /// فيبدأ بحالة PENDING ويحدّثها الأدمن من اللوحة؛ الأسعار محسوبة على الخادم لا من المتصفح.
 model Order {
-  id            String         @id @default(cuid())
+  id                 String             @id @default(cuid())
   /// مرجع قصير يظهر في رسالة واتساب وصفحة التتبع (HY-XXXXXX)
-  reference     String         @unique
-  status        OrderStatus    @default(PENDING)
-  customerId    String?
-  customer      Customer?      @relation(fields: [customerId], references: [id], onDelete: SetNull)
-  customerName  String?
-  customerPhone String?
-  customerCity  String?
-  subtotal      Int
-  discount      Int            @default(0)
-  shipping      Int            @default(0)
-  total         Int
-  couponCode    String?
+  reference          String             @unique
+  /// بصمة محاولة الإنشاء ونسخة عرض السعر لإعادة المحاولة دون تكرار الطلب
+  requestHash        String?
+  quoteSnapshot      Json?
+  status             OrderStatus        @default(PENDING)
+  customerId         String?
+  customer           Customer?          @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  customerName       String?
+  customerPhone      String?
+  customerCity       String?
+  subtotal           Int
+  discount           Int                @default(0)
+  shipping           Int                @default(0)
+  total              Int
+  couponCode         String?
   /// منطقة الشحن المختارة (اسم المحافظة) وقت الطلب
-  zoneName      String?
+  zoneName           String?
   /// نقاط استُخدمت في هذا الطلب (تُعاد عند الإلغاء) ونقاط مُنحت عند التأكيد
-  pointsUsed    Int            @default(0)
-  pointsEarned  Int            @default(0)
-  promotionUses PromotionUse[]
+  pointsUsed         Int                @default(0)
+  pointsEarned       Int                @default(0)
+  pointsDiscount     Int                @default(0)
+  rewardCoupons      Coupon[]           @relation("OrderRewards")
+  promotionUses      PromotionUse[]
+  redemptions        CouponRedemption[]
   /// تفصيل الحساب كما عُرض للزبون (خصومات، عروض، شحن) — للمراجعة لا لإعادة الحساب
-  breakdown     Json?
+  breakdown          Json?
   /// ملاحظات داخلية للأدمن
-  notes         String?
-  confirmedAt   DateTime?
-  items         OrderItem[]
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  notes              String?
+  followUpAt         DateTime?
+  cancellationReason String?
+  deliveredAt        DateTime?
+  confirmedAt        DateTime?
+  items              OrderItem[]
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
 
   @@index([customerId, createdAt])
   @@index([status, createdAt])
+  @@index([status, followUpAt])
   @@index([createdAt])
   @@map("orders")
 }
@@ -389,6 +400,8 @@ model Coupon {
   customer        Customer?          @relation(fields: [customerId], references: [id], onDelete: Cascade)
   /// مصدر الكوبون الآلي: WELCOME أو REFERRAL — لحساب السقف الشهري
   source          String?
+  rewardOrderId   String?
+  rewardOrder     Order?             @relation("OrderRewards", fields: [rewardOrderId], references: [id], onDelete: SetNull)
   redemptions     CouponRedemption[]
   createdAt       DateTime           @default(now())
   updatedAt       DateTime           @updatedAt
@@ -406,9 +419,12 @@ model CouponRedemption {
   customerId String
   customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
   subtotal   Int
+  orderId    String?
+  order      Order?   @relation(fields: [orderId], references: [id], onDelete: SetNull)
   createdAt  DateTime @default(now())
 
   @@index([couponId, customerId])
+  @@index([orderId])
   @@map("coupon_redemptions")
 }
 
@@ -419,7 +435,12 @@ model Customer {
   name               String
   phone              String
   city               String?
-  marketingOptIn     Boolean             @default(true)
+  marketingOptIn     Boolean             @default(false)
+  cartJson           Json?
+  cartUpdatedAt      DateTime?
+  cartRemindedAt     DateTime?
+  unsubscribeToken   String?             @unique
+  referralRewardedAt DateTime?
   lastLoginAt        DateTime?
   /// رصيد نقاط الولاء الحالي (مجموع الحركات)
   points             Int                 @default(0)
@@ -461,6 +482,7 @@ model PointsTransaction {
   reason     PointsReason
   orderId    String?
   note       String?
+  eventKey   String?      @unique
   createdAt  DateTime     @default(now())
 
   @@index([customerId, createdAt])
@@ -559,7 +581,7 @@ model SiteSettings {
   announcementEnabled       Boolean  @default(false)
   announcementText          String?
   announcementLink          String?
-  lowStockThreshold         Int      @default(3)
+  lowStockThreshold         Int      @default(0)
   showRecentlyViewed        Boolean  @default(true)
   autoRelatedProducts       Boolean  @default(true)
   cartReminderEnabled       Boolean  @default(true)
@@ -573,9 +595,9 @@ model SiteSettings {
   /// الشحن حسب المحافظة (وإلا تكلفة واحدة)
   shippingZonesEnabled      Boolean  @default(false)
   /// «أعلمني عند التوفر» بالبريد بدل رسالة واتساب
-  stockAlertsEnabled        Boolean  @default(true)
+  stockAlertsEnabled        Boolean  @default(false)
   /// مغذّي المنتجات /feeds/products.xml لكتالوج فيسبوك/غوغل
-  productFeedEnabled        Boolean  @default(true)
+  productFeedEnabled        Boolean  @default(false)
   // ---- الولاء ----
   loyaltyEnabled            Boolean  @default(false)
   /// كل كم ليرة من الطلب المؤكَّد تُمنح نقطة (مثال 10000 → طلب 300 ألف = 30 نقطة)
@@ -764,6 +786,8 @@ model CampaignRecipient {
   sentAt     DateTime?
   openedAt   DateTime?
   error      String?
+  /// حجز دائم قبل SMTP: نتيجة غير مؤكدة لا تُعاد تلقائياً لتجنب تكرار الرسالة
+  claimedAt  DateTime?
 
   @@unique([campaignId, customerId])
   @@index([campaignId, sentAt])

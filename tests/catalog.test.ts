@@ -27,7 +27,7 @@ import {
 } from '@/lib/session';
 import { randomJarCode } from '@/lib/draws.server';
 import { applyCoupon } from '@/lib/coupons';
-import { DEFAULT_SETTINGS, lowStockLabel, isAvailable } from '@/lib/settings';
+import { DEFAULT_SETTINGS, isAvailable } from '@/lib/settings';
 import { applyRuntimeSettings, getWhatsAppLink, SHIPPING } from '@/lib/config';
 import { renderMarkdown } from '@/lib/markdown';
 import { generateOrderReference, normalizeOrderReference } from '@/lib/orders';
@@ -149,7 +149,6 @@ describe('pricing and validation', () => {
       weight: '500 غرام',
       category: 'HONEY',
       inStock: true,
-      stockQty: null,
       published: false,
       sortOrder: 0,
       relatedIds: [],
@@ -322,14 +321,12 @@ describe('coupons and store settings', () => {
       settingsInput.safeParse({ ...DEFAULT_SETTINGS, announcementLink: 'javascript:x' }).success,
     ).toBe(false);
   });
-  it('shows the low-stock badge only inside the admin threshold', () => {
-    expect(lowStockLabel(null, 3)).toBeNull();
-    expect(lowStockLabel(0, 3)).toBeNull();
-    expect(lowStockLabel(5, 3)).toBeNull();
-    expect(lowStockLabel(2, 3)).toBe('بقيت قطعتان فقط');
-    expect(lowStockLabel(3, 0)).toBeNull();
-    expect(isAvailable({ inStock: true, stockQty: 0 })).toBe(false);
+  it('ignores historical inventory counts and respects manual request acceptance', () => {
+    expect(isAvailable({ inStock: true, stockQty: 0 })).toBe(true);
     expect(isAvailable({ inStock: true, stockQty: null })).toBe(true);
+    expect(isAvailable({ inStock: false, stockQty: 100 })).toBe(false);
+    expect(DEFAULT_SETTINGS.stockAlertsEnabled).toBe(false);
+    expect(DEFAULT_SETTINGS.productFeedEnabled).toBe(false);
   });
   it('lets admin settings override contact and shipping constants at runtime', () => {
     applyRuntimeSettings({ ...DEFAULT_SETTINGS, whatsappNumber: '963900000000', shippingCost: 1 });
@@ -425,7 +422,7 @@ describe('orders and pricing engine', () => {
 
   it('generates and normalizes unambiguous order references', () => {
     const ref = generateOrderReference();
-    expect(ref).toMatch(/^HY-[A-Z2-9]{6}$/);
+    expect(ref).toMatch(/^HY-[A-Z2-9]{18}$/);
     expect(ref).not.toMatch(/[O0I1]/);
     expect(normalizeOrderReference(' hy-abcd23 ')).toBe('HY-ABCD23');
     expect(normalizeOrderReference('abcd23')).toBe('HY-ABCD23');
@@ -678,11 +675,11 @@ describe('variants, quantity tiers, promotions and zones', () => {
         sortOrder: 2,
       },
     ];
-    expect(defaultVariant(variants)?.id).toBe('b');
-    expect(priceFrom({ price: 1, variants })).toEqual({ price: 100_000, from: false });
+    expect(defaultVariant(variants)?.id).toBe('a');
+    expect(priceFrom({ price: 1, variants })).toEqual({ price: 60_000, from: true });
     expect(priceFrom({ price: 1, variants: [] })).toEqual({ price: 1, from: false });
     expect(productAvailable({ inStock: true, variants })).toBe(true);
-    expect(productAvailable({ inStock: true, variants: [variants[0]] })).toBe(false);
+    expect(productAvailable({ inStock: true, variants: [variants[0]] })).toBe(true);
     expect(parseCartId(variantCartId('p', 'v'))).toEqual({ productId: 'p', variantId: 'v' });
     expect(parseCartId('p')).toEqual({ productId: 'p', variantId: null });
   });
@@ -727,7 +724,6 @@ describe('variants, quantity tiers, promotions and zones', () => {
       weight: null,
       category: 'HONEY',
       inStock: true,
-      stockQty: null,
       published: true,
       sortOrder: 0,
       relatedIds: [],
@@ -738,7 +734,6 @@ describe('variants, quantity tiers, promotions and zones', () => {
           id: null,
           label: '500 غرام',
           price: 100000,
-          stockQty: null,
           inStock: true,
           isDefault: true,
         },
@@ -746,7 +741,6 @@ describe('variants, quantity tiers, promotions and zones', () => {
           id: null,
           label: '500 غرام',
           price: 190000,
-          stockQty: 2,
           inStock: true,
           isDefault: false,
         },
@@ -767,7 +761,6 @@ describe('variants, quantity tiers, promotions and zones', () => {
         weight: null,
         category: 'HONEY',
         inStock: true,
-        stockQty: null,
         published: true,
         sortOrder: 0,
         relatedIds: [],
@@ -804,11 +797,11 @@ describe('bundles and catalog availability', () => {
     const items = [component(), component({ id: 'd', price: 30_000 }, 2)];
     expect(bundleAvailable(items)).toBe(true);
     expect(bundleComponentsValue(items)).toBe(110_000);
-    expect(bundleAvailable([component(), component({ id: 'd', stockQty: 0 })])).toBe(false);
+    expect(bundleAvailable([component(), component({ id: 'd', stockQty: 0 })])).toBe(true);
     expect(bundleAvailable([component(), component({ id: 'd', published: false })])).toBe(false);
     expect(bundleComponentsValue([component({ price: null })])).toBeNull();
     expect(catalogAvailable({ category: 'BUNDLE', inStock: true, bundleItems: [] })).toBe(false);
-    expect(catalogAvailable({ category: 'HONEY', inStock: true, stockQty: 0 })).toBe(false);
+    expect(catalogAvailable({ category: 'HONEY', inStock: true, stockQty: 0 })).toBe(true);
     expect(catalogAvailable({ category: 'HONEY', inStock: true, stockQty: 3 })).toBe(true);
   });
   it('validates attributes and stock alerts', () => {

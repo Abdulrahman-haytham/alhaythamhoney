@@ -1,5 +1,6 @@
 import 'server-only';
 import { db } from '@/lib/db';
+import type { CommerceTx } from '@/lib/commerce.server';
 import { computePrice, parseGrams, type HoneyOption } from '@/lib/mixturePricing';
 import type { MixtureCardData } from '@/components/MixtureCard';
 
@@ -57,8 +58,8 @@ export async function getMixtureBySlug(slug: string) {
 }
 
 /** أنواع العسل المتاحة كقاعدة للخلطة — من المنتجات المنشورة ذات سعر ووزن صالحين. */
-export async function getHoneyOptions(): Promise<HoneyOption[]> {
-  const rows = await db.product.findMany({
+export async function getHoneyOptions(tx: CommerceTx = db): Promise<HoneyOption[]> {
+  const rows = await tx.product.findMany({
     where: { category: 'HONEY', published: true, inStock: true },
     orderBy: { sortOrder: 'asc' },
     select: { slug: true, name: true, image: true, price: true, weight: true },

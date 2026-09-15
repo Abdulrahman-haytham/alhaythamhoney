@@ -17,6 +17,7 @@ export default function BootLoader() {
 
   return (
     <haytham-loader
+      id="boot-loader"
       active
       overlay
       theme="dark"

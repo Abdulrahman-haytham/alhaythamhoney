@@ -281,17 +281,6 @@ export function SettingsForm({ initial }: { initial: SiteSettingsData }) {
 
       <Section title="تجربة المتجر" hint="سلوكيات مقتبسة من Odoo — فعّل ما يناسبك.">
         <label>
-          عتبة «بقي X فقط» (قطع) — 0 لتعطيلها
-          <input
-            className={inputClass}
-            type="number"
-            min={0}
-            max={1000}
-            value={s.lowStockThreshold}
-            onChange={(e) => set('lowStockThreshold', num(e.target.value))}
-          />
-        </label>
-        <label>
           اعتبار السلة «متروكة» بعد (ساعات)
           <input
             className={inputClass}
@@ -337,18 +326,6 @@ export function SettingsForm({ initial }: { initial: SiteSettingsData }) {
           hint="الهدايا والخصومات بلا كود من صفحة «العروض» — تعطيلها يوقفها كلها فوراً."
           checked={s.promotionsEnabled}
           onChange={(v) => set('promotionsEnabled', v)}
-        />
-        <Toggle
-          label="«أعلمني عند التوفر» بالبريد"
-          hint="الصنف النافد يعرض حقل بريد؛ حين ترفع كميته يُراسَل المنتظرون تلقائياً. معطّلاً يعود الزر إلى واتساب."
-          checked={s.stockAlertsEnabled}
-          onChange={(v) => set('stockAlertsEnabled', v)}
-        />
-        <Toggle
-          label="مغذّي المنتجات لفيسبوك/إنستغرام وغوغل"
-          hint="رابط /feeds/products.xml يُلصق في Meta Commerce Manager أو Google Merchant ليتحدّث الكتالوج والأسعار تلقائياً."
-          checked={s.productFeedEnabled}
-          onChange={(v) => set('productFeedEnabled', v)}
         />
       </Section>
 

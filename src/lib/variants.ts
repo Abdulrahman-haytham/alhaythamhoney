@@ -25,8 +25,7 @@ export function parseCartId(cartId: string): { productId: string; variantId: str
     : { productId: cartId.slice(0, idx), variantId: cartId.slice(idx + 1) };
 }
 
-export const variantAvailable = (v: { inStock: boolean; stockQty: number | null }) =>
-  v.inStock && v.stockQty !== 0;
+export const variantAvailable = (v: { inStock: boolean; stockQty: number | null }) => v.inStock;
 
 /** المتغيّر الافتراضي: ما حدده الأدمن، وإلا أول متغيّر متاح، وإلا الأول. */
 export function defaultVariant<T extends VariantLite>(variants: T[]): T | null {
@@ -53,6 +52,6 @@ export function productAvailable(product: {
   stockQty?: number | null;
   variants?: VariantLite[];
 }) {
-  if (!product.inStock || product.stockQty === 0) return false;
+  if (!product.inStock) return false;
   return !product.variants?.length || product.variants.some(variantAvailable);
 }

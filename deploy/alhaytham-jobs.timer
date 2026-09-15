@@ -1,0 +1,11 @@
+[Unit]
+Description=Run Alhaytham background jobs every minute
+
+[Timer]
+OnBootSec=2min
+OnUnitInactiveSec=1min
+Persistent=true
+Unit=alhaytham-jobs.service
+
+[Install]
+WantedBy=timers.target

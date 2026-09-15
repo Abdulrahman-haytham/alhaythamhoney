@@ -37,7 +37,7 @@ export default function AddToCartButton({
         {added ? <Check className="w-5 h-5" /> : <ShoppingCart className="w-5 h-5" />}
         <span>
           {!available
-            ? 'غير متوفر حالياً'
+            ? 'الطلب بالتواصل حالياً'
             : product.price == null
               ? 'تواصل لمعرفة السعر'
               : added

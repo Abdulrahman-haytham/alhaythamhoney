@@ -10,9 +10,9 @@ export default async function AdminProductsPage() {
       <h1 className="mb-3 font-amiri text-3xl font-bold">المنتجات</h1>
       <p className="mb-6 text-sm text-zinc-400">
         راجع الأسعار والمحتوى قبل النشر. يمكنك إخفاء المنتج دون حذفه أو تغيير رابطه. تُرفع الصور من
-        الاستديو ثم يُنسخ رابطها هنا. الكمية اختيارية: اتركها فارغة إن لم ترد تتبّعها، وحين تنخفض
-        تظهر شارة «بقي X فقط» تلقائياً. الأحجام (المتغيّرات) اختيارية: إن أضفتها صار السعر الأساسي
-        «يبدأ من» ويختار الزبون الحجم في صفحة المنتج.
+        الاستديو ثم يُنسخ رابطها هنا. لا يتتبّع الموقع أرصدة المنتجات؛ استقبال الطلبات خيار يدوي،
+        والتوفر وموعد التسليم يؤكدان عبر واتساب. الأحجام (المتغيّرات) اختيارية: إن أضفتها صار السعر
+        الأساسي «يبدأ من» ويختار الزبون الحجم في صفحة المنتج.
       </p>
       <ProductsPanel
         attributes={attributes}
@@ -25,19 +25,17 @@ export default async function AdminProductsPage() {
             tiers,
             bundleItems,
             attributes: attrs,
-            _count,
+            stockQty: _legacyStock,
             ...p
           }) => ({
             ...p,
             relatedIds: related.map((r) => r.relatedId),
             bundleItems,
             attributeValueIds: attrs.map((a) => a.id),
-            waitingAlerts: _count.stockAlerts,
             variants: variants.map((v) => ({
               id: v.id,
               label: v.label,
               price: v.price,
-              stockQty: v.stockQty,
               inStock: v.inStock,
               isDefault: v.isDefault,
             })),
