@@ -1,15 +1,16 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { CheckCircle2, Heart, Zap, Award, ShieldCheck, Truck, Leaf } from 'lucide-react';
+import { CheckCircle2, Heart, Zap, Award, ShieldCheck, Truck, Leaf, Package } from 'lucide-react';
 import Link from 'next/link';
 import { ArrowLeft, BookOpen, Sparkles } from 'lucide-react';
 import { getProductBySlug, getRelatedProducts, getProductArticles } from '@/lib/products.server';
 import { getProductPromotionLabels } from '@/lib/promotions.server';
-import { priceFrom, productAvailable } from '@/lib/variants';
+import { priceFrom } from '@/lib/variants';
+import { bundleComponentsValue, catalogAvailable, componentAvailable } from '@/lib/bundles';
+import { fmtSyp } from '@/lib/pricing';
 import { getApprovedReviews, getRatingSummary } from '@/lib/reviews.server';
 import { SITE } from '@/lib/config';
 import { getSettings } from '@/lib/settings.server';
-import { isAvailable } from '@/lib/settings';
 import { ProductReviews } from '@/components/ProductReviews';
 import ProductCard from '@/components/ProductCard';
 import RecentlyViewed, { RecentlyViewedTracker } from '@/components/RecentlyViewed';
@@ -64,7 +65,11 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     settings.promotionsEnabled ? getProductPromotionLabels(product.id) : Promise.resolve([]),
   ]);
 
-  const available = isAvailable(product) && productAvailable(product);
+  const available = catalogAvailable(product);
+  const bundleValue =
+    product.category === 'BUNDLE' ? bundleComponentsValue(product.bundleItems) : null;
+  const bundleSavings =
+    bundleValue != null && product.price != null ? Math.max(0, bundleValue - product.price) : 0;
   const display = priceFrom(product);
   const cartProduct = {
     id: product.id,
@@ -156,6 +161,41 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             <p className="text-lg text-zinc-300 leading-relaxed border-r-2 border-amber-500/30 pr-6">
               {product.desc}
             </p>
+
+            {product.category === 'BUNDLE' && product.bundleItems.length > 0 && (
+              <div className="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-4">
+                <h2 className="mb-3 flex items-center gap-2 font-amiri text-xl font-bold text-white">
+                  <Package className="h-5 w-5 text-amber-500" /> تحتوي الباقة على
+                </h2>
+                <ul className="space-y-2">
+                  {product.bundleItems.map((b) => {
+                    const ok = componentAvailable(b);
+                    return (
+                      <li key={b.product.id} className="flex items-center gap-3 text-sm">
+                        <img
+                          src={b.product.image}
+                          alt=""
+                          className="h-11 w-11 rounded-lg object-cover"
+                        />
+                        <Link
+                          href={`/product/${b.product.slug}`}
+                          className="min-w-0 flex-1 text-zinc-200 hover:text-amber-400"
+                        >
+                          {b.product.name}
+                          <span className="text-zinc-500"> × {b.quantity}</span>
+                        </Link>
+                        {!ok && <span className="text-xs text-red-300">نفد</span>}
+                      </li>
+                    );
+                  })}
+                </ul>
+                {bundleSavings > 0 && (
+                  <p className="mt-3 text-sm font-bold text-green-300">
+                    توفّر {fmtSyp(bundleSavings)} ل.س مقارنةً بشرائها منفصلة
+                  </p>
+                )}
+              </div>
+            )}
 
             <BuyBox
               product={cartProduct}

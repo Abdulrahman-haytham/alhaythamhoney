@@ -26,6 +26,8 @@ enum OrderStatus {
 enum ProductCategory {
   HONEY
   SUPPLEMENT
+  /// باقة من منتجات أخرى بسعر واحد
+  BUNDLE
 }
 
 model Admin {
@@ -69,9 +71,68 @@ model Product {
   variants     ProductVariant[]
   /// خصم الكمية: «3 فأكثر = خصم 10%»
   tiers        PriceTier[]
+  /// مكوّنات الباقة (إن كانت الفئة BUNDLE)
+  bundleItems  BundleItem[]      @relation("BundleOf")
+  /// الباقات التي يدخل فيها هذا المنتج
+  inBundles    BundleItem[]      @relation("BundleComponent")
+  /// خصائص الفلترة (نوع الزهرة، المنطقة، الموسم…)
+  attributes   AttributeValue[]
+  stockAlerts  StockAlert[]
 
   @@index([published, sortOrder])
   @@map("products")
+}
+
+/// مكوّن باقة: الباقة ← المنتج وكميته. توفر الباقة = توفر كل مكوّناتها.
+model BundleItem {
+  bundleId  String
+  bundle    Product @relation("BundleOf", fields: [bundleId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product @relation("BundleComponent", fields: [productId], references: [id], onDelete: Cascade)
+  quantity  Int     @default(1)
+  sortOrder Int     @default(0)
+
+  @@id([bundleId, productId])
+  @@index([productId])
+  @@map("bundle_items")
+}
+
+/// خاصية فلترة (Odoo attributes): «نوع الزهرة»، «المنطقة»، «الموسم»…
+model Attribute {
+  id        String           @id @default(cuid())
+  name      String           @unique
+  sortOrder Int              @default(0)
+  values    AttributeValue[]
+  createdAt DateTime         @default(now())
+
+  @@map("attributes")
+}
+
+model AttributeValue {
+  id          String    @id @default(cuid())
+  attributeId String
+  attribute   Attribute @relation(fields: [attributeId], references: [id], onDelete: Cascade)
+  value       String
+  sortOrder   Int       @default(0)
+  products    Product[]
+
+  @@unique([attributeId, value])
+  @@map("attribute_values")
+}
+
+/// «أعلمني عند التوفر»: بريد ينتظر عودة المنتج؛ يُرسَل مرة واحدة ثم يُعلَّم notifiedAt.
+model StockAlert {
+  id         String    @id @default(cuid())
+  productId  String
+  product    Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  email      String
+  customerId String?
+  createdAt  DateTime  @default(now())
+  notifiedAt DateTime?
+
+  @@unique([productId, email])
+  @@index([productId, notifiedAt])
+  @@map("stock_alerts")
 }
 
 /// متغيّر منتج (Odoo variants): حجم أو وزن بسعر ومخزون مستقلّين تحت الرابط نفسه.
@@ -467,6 +528,10 @@ model SiteSettings {
   promotionsEnabled     Boolean  @default(true)
   /// الشحن حسب المحافظة (وإلا تكلفة واحدة)
   shippingZonesEnabled  Boolean  @default(false)
+  /// «أعلمني عند التوفر» بالبريد بدل رسالة واتساب
+  stockAlertsEnabled    Boolean  @default(true)
+  /// مغذّي المنتجات /feeds/products.xml لكتالوج فيسبوك/غوغل
+  productFeedEnabled    Boolean  @default(true)
   updatedAt             DateTime @updatedAt
 
   @@map("site_settings")

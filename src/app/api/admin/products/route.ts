@@ -5,7 +5,7 @@ import { guardAdmin } from '@/lib/admin-request';
 import { readJson } from '@/lib/request-security';
 import { productInput } from '@/lib/validation';
 import { logAudit } from '@/lib/audit.server';
-import { syncTiers, syncVariants, toProductScalars } from '@/lib/products.admin';
+import { syncBundleItems, syncTiers, syncVariants, toProductScalars } from '@/lib/products.admin';
 
 export async function POST(request: Request) {
   const denied = await guardAdmin(request);
@@ -17,7 +17,7 @@ export async function POST(request: Request) {
       { status: 400 },
     );
   try {
-    const { relatedIds, variants, tiers } = parsed.data;
+    const { relatedIds, variants, tiers, bundleItems, attributeValueIds } = parsed.data;
     const product = await db.$transaction(async (tx) => {
       const created = await tx.product.create({
         data: {
@@ -25,10 +25,12 @@ export async function POST(request: Request) {
           related: {
             create: relatedIds.map((relatedId, sortOrder) => ({ relatedId, sortOrder })),
           },
+          attributes: { connect: attributeValueIds.map((id) => ({ id })) },
         },
       });
       await syncVariants(tx, created.id, variants);
       await syncTiers(tx, created.id, tiers);
+      await syncBundleItems(tx, created.id, parsed.data.category, bundleItems);
       return created;
     });
     await logAudit({

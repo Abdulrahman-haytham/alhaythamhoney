@@ -1,10 +1,10 @@
-import { getAdminProducts } from '@/lib/products.admin';
+import { getAdminProducts, getAttributeOptions } from '@/lib/products.admin';
 import { ProductsPanel } from './ProductsPanel';
 
 export const dynamic = 'force-dynamic';
 
 export default async function AdminProductsPage() {
-  const products = await getAdminProducts();
+  const [products, attributes] = await Promise.all([getAdminProducts(), getAttributeOptions()]);
   return (
     <>
       <h1 className="mb-3 font-amiri text-3xl font-bold">المنتجات</h1>
@@ -15,10 +15,24 @@ export default async function AdminProductsPage() {
         «يبدأ من» ويختار الزبون الحجم في صفحة المنتج.
       </p>
       <ProductsPanel
+        attributes={attributes}
         products={products.map(
-          ({ createdAt: _createdAt, updatedAt: _updatedAt, related, variants, tiers, ...p }) => ({
+          ({
+            createdAt: _createdAt,
+            updatedAt: _updatedAt,
+            related,
+            variants,
+            tiers,
+            bundleItems,
+            attributes: attrs,
+            _count,
+            ...p
+          }) => ({
             ...p,
             relatedIds: related.map((r) => r.relatedId),
+            bundleItems,
+            attributeValueIds: attrs.map((a) => a.id),
+            waitingAlerts: _count.stockAlerts,
             variants: variants.map((v) => ({
               id: v.id,
               label: v.label,

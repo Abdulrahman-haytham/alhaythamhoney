@@ -2,8 +2,9 @@ import 'server-only';
 import { db } from '@/lib/db';
 import { computePrice, describeRecipe } from '@/lib/mixturePricing';
 import { getHoneyOptions } from '@/lib/mixtures.server';
-import { isAvailable } from '@/lib/settings';
 import { parseCartId, variantAvailable } from '@/lib/variants';
+import { catalogAvailable } from '@/lib/bundles';
+import { productListInclude } from '@/lib/products.server';
 import type { PricingLine } from '@/lib/pricing';
 
 /** ما يرسله المتصفح: معرّف البند في السلة وكميته فقط — السعر يُحسب هنا. */
@@ -71,7 +72,7 @@ export async function resolveCartLines(items: CartLineInput[], tiersEnabled: boo
   const products = productIds.length
     ? await db.product.findMany({
         where: { id: { in: productIds }, published: true },
-        include: { variants: true, tiers: { orderBy: { minQty: 'asc' } } },
+        include: productListInclude,
       })
     : [];
   const lines: ResolvedLine[] = [];
@@ -85,7 +86,8 @@ export async function resolveCartLines(items: CartLineInput[], tiersEnabled: boo
     }
     const { productId, variantId } = parseCartId(item.id);
     const product = products.find((p) => p.id === productId);
-    if (!product || !isAvailable(product)) {
+    // الباقة تُسقَط إن نفد أحد مكوّناتها
+    if (!product || !catalogAvailable(product)) {
       dropped.push({ cartId: item.id, name: product?.name ?? 'منتج' });
       continue;
     }

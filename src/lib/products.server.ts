@@ -6,6 +6,26 @@ import { db } from '@/lib/db';
 export const productListInclude = {
   variants: { orderBy: { sortOrder: 'asc' } },
   tiers: { orderBy: { minQty: 'asc' } },
+  attributes: { select: { id: true, attributeId: true } },
+  bundleItems: {
+    orderBy: { sortOrder: 'asc' },
+    select: {
+      quantity: true,
+      product: {
+        select: {
+          id: true,
+          slug: true,
+          name: true,
+          image: true,
+          price: true,
+          inStock: true,
+          stockQty: true,
+          published: true,
+          variants: { orderBy: { sortOrder: 'asc' } },
+        },
+      },
+    },
+  },
 } satisfies Prisma.ProductInclude;
 
 export type CatalogProduct = Prisma.ProductGetPayload<{ include: typeof productListInclude }>;
@@ -34,7 +54,7 @@ export async function getProductBySlug(slug: string) {
  */
 export async function getRelatedProducts(
   productId: string,
-  category: 'HONEY' | 'SUPPLEMENT',
+  category: 'HONEY' | 'SUPPLEMENT' | 'BUNDLE',
   auto: boolean,
   limit = 4,
 ) {
@@ -71,4 +91,19 @@ export async function getProductArticles(productId: string) {
     select: { slug: true, title: true, description: true, image: true },
     take: 3,
   });
+}
+
+/** الخصائص التي لها قيم مرتبطة بمنتجات منشورة — لفلاتر المتجر */
+export async function getFilterAttributes() {
+  const attributes = await db.attribute.findMany({
+    orderBy: { sortOrder: 'asc' },
+    include: {
+      values: {
+        orderBy: { sortOrder: 'asc' },
+        where: { products: { some: { published: true } } },
+        select: { id: true, value: true },
+      },
+    },
+  });
+  return attributes.filter((a) => a.values.length > 0);
 }

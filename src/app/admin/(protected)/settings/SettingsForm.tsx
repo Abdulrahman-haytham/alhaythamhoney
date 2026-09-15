@@ -338,6 +338,18 @@ export function SettingsForm({ initial }: { initial: SiteSettingsData }) {
           checked={s.promotionsEnabled}
           onChange={(v) => set('promotionsEnabled', v)}
         />
+        <Toggle
+          label="«أعلمني عند التوفر» بالبريد"
+          hint="الصنف النافد يعرض حقل بريد؛ حين ترفع كميته يُراسَل المنتظرون تلقائياً. معطّلاً يعود الزر إلى واتساب."
+          checked={s.stockAlertsEnabled}
+          onChange={(v) => set('stockAlertsEnabled', v)}
+        />
+        <Toggle
+          label="مغذّي المنتجات لفيسبوك/إنستغرام وغوغل"
+          hint="رابط /feeds/products.xml يُلصق في Meta Commerce Manager أو Google Merchant ليتحدّث الكتالوج والأسعار تلقائياً."
+          checked={s.productFeedEnabled}
+          onChange={(v) => set('productFeedEnabled', v)}
+        />
       </Section>
 
       <div className="sticky bottom-4 flex items-center gap-4 rounded-2xl border border-zinc-800 bg-zinc-900/95 p-4 backdrop-blur">

@@ -1,7 +1,9 @@
 import type { Metadata } from 'next';
 import { ShoppingCart } from 'lucide-react';
-import { getProducts } from '@/lib/products.server';
+import { Suspense } from 'react';
+import { getProducts, getFilterAttributes } from '@/lib/products.server';
 import Products from '@/components/Products';
+import ShopBrowser from '@/components/ShopBrowser';
 
 // Query at request time: production builds do not need a live database.
 export const dynamic = 'force-dynamic';
@@ -14,7 +16,7 @@ export const metadata: Metadata = {
 };
 
 export default async function ShopPage() {
-  const products = await getProducts();
+  const [products, attributes] = await Promise.all([getProducts(), getFilterAttributes()]);
 
   return (
     <div className="pt-24 pb-16 bg-zinc-950">
@@ -34,7 +36,10 @@ export default async function ShopPage() {
         </div>
       </div>
 
-      <Products products={products} />
+      {/* الفلاتر تقرأ عنوان الصفحة في المتصفح؛ الخادم يقدّم القائمة كاملة كبديل فوري */}
+      <Suspense fallback={<Products products={products} />}>
+        <ShopBrowser products={products} attributes={attributes} />
+      </Suspense>
     </div>
   );
 }

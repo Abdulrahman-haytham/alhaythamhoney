@@ -26,6 +26,8 @@ export interface SiteSettingsData {
   tieredPricingEnabled: boolean;
   promotionsEnabled: boolean;
   shippingZonesEnabled: boolean;
+  stockAlertsEnabled: boolean;
+  productFeedEnabled: boolean;
 }
 
 /** القيم الافتراضية — مطابقة لـ @default في schema.prisma وتُستخدم قبل أول حفظ. */
@@ -53,6 +55,8 @@ export const DEFAULT_SETTINGS: SiteSettingsData = {
   tieredPricingEnabled: true,
   promotionsEnabled: true,
   shippingZonesEnabled: false,
+  stockAlertsEnabled: true,
+  productFeedEnabled: true,
 };
 
 /** الحقول التي يقرؤها المتصفح — كل شيء هنا عام (لا أسرار). */

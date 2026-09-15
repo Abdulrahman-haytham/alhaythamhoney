@@ -4,22 +4,28 @@ import { guardAdmin } from '@/lib/admin-request';
 import { readJson } from '@/lib/request-security';
 import { productInput } from '@/lib/validation';
 import { logAudit } from '@/lib/audit.server';
-import { syncTiers, syncVariants, toProductScalars } from '@/lib/products.admin';
+import { syncBundleItems, syncTiers, syncVariants, toProductScalars } from '@/lib/products.admin';
+import { notifyStockAlerts } from '@/lib/stock-alerts.server';
+import { catalogAvailable } from '@/lib/bundles';
+import { productListInclude } from '@/lib/products.server';
 
 const snapshot = (p: {
   related: { relatedId: string }[];
   variants: { label: string; price: number; stockQty: number | null; inStock: boolean }[];
   tiers: { minQty: number; discountPercent: number }[];
+  bundleItems: { quantity: number; product: { name: string } }[];
+  attributes: { id: string }[];
 }) => ({
   relatedIds: p.related.map((r) => r.relatedId),
   variants: p.variants.map((v) => `${v.label}: ${v.price}${v.inStock ? '' : ' (غير متوفر)'}`),
   tiers: p.tiers.map((t) => `${t.minQty}+ → ${t.discountPercent}%`),
+  bundleItems: p.bundleItems.map((b) => `${b.product.name} × ${b.quantity}`),
+  attributeValueIds: p.attributes.map((a) => a.id).sort(),
 });
 
 const include = {
+  ...productListInclude,
   related: { orderBy: { sortOrder: 'asc' as const }, select: { relatedId: true } },
-  variants: { orderBy: { sortOrder: 'asc' as const } },
-  tiers: { orderBy: { minQty: 'asc' as const } },
 };
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -40,7 +46,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       { status: 400 },
     );
   }
-  const { relatedIds, variants, tiers } = parsed.data;
+  const { relatedIds, variants, tiers, bundleItems, attributeValueIds } = parsed.data;
   // المنتج لا يقترح نفسه؛ وتُستبدل القائمة كاملة بما اختاره الأدمن بالترتيب
   const related = relatedIds.filter((rid) => rid !== id);
   const updated = await db.$transaction(async (tx) => {
@@ -52,12 +58,18 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
           deleteMany: {},
           create: related.map((relatedId, sortOrder) => ({ relatedId, sortOrder })),
         },
+        attributes: { set: attributeValueIds.map((aid) => ({ id: aid })) },
       },
     });
     await syncVariants(tx, id, variants);
     await syncTiers(tx, id, tiers);
+    await syncBundleItems(tx, id, parsed.data.category, bundleItems);
     return tx.product.findUniqueOrThrow({ where: { id }, include });
   });
+  // عاد المنتج للتوفر (أو نُشر) → نراسل من طلب «أعلمني عند التوفر»
+  const wasAvailable = product.published && catalogAvailable(product);
+  const nowAvailable = updated.published && catalogAvailable(updated);
+  if (!wasAvailable && nowAvailable) await notifyStockAlerts(id);
   await logAudit({
     entity: 'product',
     entityId: id,

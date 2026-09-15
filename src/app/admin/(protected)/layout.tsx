@@ -7,6 +7,7 @@ const TABS = [
   { href: '/admin', label: 'المؤشرات' },
   { href: '/admin/orders', label: 'الطلبات' },
   { href: '/admin/products', label: 'المنتجات' },
+  { href: '/admin/attributes', label: 'الخصائص' },
   { href: '/admin/reviews', label: 'التقييمات' },
   { href: '/admin/mixtures', label: 'الخلطات' },
   { href: '/admin/articles', label: 'المدونة' },

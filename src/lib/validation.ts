@@ -44,7 +44,7 @@ export const productInput = z
     badge: text(100).nullable(),
     price: amount.nullable(),
     weight: text(80).nullable(),
-    category: z.enum(['HONEY', 'SUPPLEMENT']),
+    category: z.enum(['HONEY', 'SUPPLEMENT', 'BUNDLE']),
     inStock: z.boolean(),
     /** null = لا تتبّع للكمية */
     stockQty: z.number().int().min(0).max(1_000_000).nullable(),
@@ -54,6 +54,16 @@ export const productInput = z
     relatedIds: z.array(text(50).min(1)).max(12),
     variants: z.array(variantInput).max(12),
     tiers: z.array(tierInput).max(6),
+    /** مكوّنات الباقة (للفئة BUNDLE فقط) */
+    bundleItems: z
+      .array(
+        z
+          .object({ productId: text(50).min(1), quantity: z.number().int().min(1).max(50) })
+          .strict(),
+      )
+      .max(10),
+    /** معرّفات قيم الخصائص (نوع الزهرة، المنطقة…) */
+    attributeValueIds: z.array(text(50).min(1)).max(40),
     detailedInfo: z
       .object({
         uses: z.array(text(400)).max(20).optional(),
@@ -72,6 +82,14 @@ export const productInput = z
   .refine(
     (p) => new Set(p.variants.map((v) => v.label.trim())).size === p.variants.length,
     'أسماء المتغيّرات مكررة.',
+  )
+  .refine(
+    (p) => p.category !== 'BUNDLE' || p.bundleItems.length > 0,
+    'الباقة تحتاج مكوّناً واحداً على الأقل.',
+  )
+  .refine(
+    (p) => new Set(p.bundleItems.map((b) => b.productId)).size === p.bundleItems.length,
+    'مكوّنات الباقة مكررة.',
   );
 
 export const reviewInput = z
@@ -211,6 +229,8 @@ export const settingsInput = z
     tieredPricingEnabled: z.boolean(),
     promotionsEnabled: z.boolean(),
     shippingZonesEnabled: z.boolean(),
+    stockAlertsEnabled: z.boolean(),
+    productFeedEnabled: z.boolean(),
   })
   .strict();
 
@@ -354,3 +374,16 @@ export const promotionInput = z
     (p) => !p.startsAt || !p.endsAt || p.startsAt <= p.endsAt,
     'تاريخ الانتهاء قبل تاريخ البداية.',
   );
+
+// ---- الخصائص و«أعلمني عند التوفر» ----
+export const attributeInput = z
+  .object({
+    name: text(60).min(2, 'اسم الخاصية مطلوب.'),
+    sortOrder: z.number().int().min(0).max(1000),
+    /** القيم بالترتيب — تُزامَن مع الموجود بالنص */
+    values: z.array(text(60).min(1)).max(60),
+  })
+  .strict()
+  .refine((a) => new Set(a.values.map((v) => v.trim())).size === a.values.length, 'قيم مكررة.');
+
+export const stockAlertInput = z.object({ productId: text(50).min(1), email: emailInput }).strict();

@@ -10,6 +10,7 @@ import { trackWhatsAppClick } from '@/lib/analytics';
 import { defaultVariant, variantAvailable, variantCartId, type VariantLite } from '@/lib/variants';
 import { bestTier, fmtSyp, type PriceTierRule } from '@/lib/pricing';
 import AddToCartButton from './AddToCartButton';
+import StockAlertButton from '@/components/StockAlertButton';
 import StickyBuyBar from './StickyBuyBar';
 
 /**
@@ -138,7 +139,15 @@ export default function BuyBox({
       )}
 
       <div className="space-y-3" id="buy-box">
-        <AddToCartButton available={canOrder} product={cartProduct} />
+        {canOrder || price == null ? (
+          <AddToCartButton available={canOrder} product={cartProduct} />
+        ) : (
+          <StockAlertButton
+            productId={product.productId}
+            productName={`${product.name}${cartProduct.weight ? ` (${cartProduct.weight})` : ''}`}
+            className="flex w-full items-center justify-center gap-2 rounded-xl border border-amber-500/40 bg-amber-500/10 py-4 font-bold text-amber-300 transition-colors hover:bg-amber-500/20"
+          />
+        )}
         <a
           href={getWhatsAppLink(
             `مرحباً عسل الهيثم، أود الاستفسار عن المنتج المعروض في الموقع: ${product.name}${cartProduct.weight ? ` (${cartProduct.weight})` : ''}`,

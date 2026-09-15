@@ -3,15 +3,16 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { ShoppingCart, Eye, Heart, Check, BellRing } from 'lucide-react';
+import { ShoppingCart, Eye, Heart, Check, Package } from 'lucide-react';
 import type { CatalogProduct } from '@/lib/products.server';
-import { defaultVariant, priceFrom, productAvailable, variantCartId } from '@/lib/variants';
+import { defaultVariant, priceFrom, variantCartId } from '@/lib/variants';
 import { useCart } from '@/store/cartStore';
 import { useWishlist } from '@/store/wishlistStore';
-import { getWhatsAppLink } from '@/lib/config';
-import { trackAddToCart, trackWhatsAppClick } from '@/lib/analytics';
+import { trackAddToCart } from '@/lib/analytics';
+import StockAlertButton from '@/components/StockAlertButton';
+import { catalogAvailable } from '@/lib/bundles';
 import { useHydrated } from '@/lib/useHydrated';
-import { isAvailable, lowStockLabel } from '@/lib/settings';
+import { lowStockLabel } from '@/lib/settings';
 import { useSettings } from '@/components/SettingsProvider';
 
 function formatPrice(price: number) {
@@ -32,7 +33,7 @@ export default function ProductCard({ product }: { product: CatalogProduct }) {
   // inStock من الأدمن + الكمية المتتبَّعة (0 = نفد) — والشارة «بقي X» تحت العتبة
   const variants = product.variants ?? [];
   const variant = defaultVariant(variants);
-  const available = isAvailable(product) && productAvailable(product);
+  const available = catalogAvailable(product);
   const lowStock = lowStockLabel(variant ? variant.stockQty : product.stockQty, lowStockThreshold);
   const display = priceFrom(product);
   const canOrder = available && display.price !== null;
@@ -93,10 +94,17 @@ export default function ProductCard({ product }: { product: CatalogProduct }) {
           </span>
         )}
 
-        {product.badge && available && (
+        {product.badge && available ? (
           <span className="golden-glow absolute top-2.5 right-2.5 z-10 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 px-2 py-0.5 text-[9px] font-black text-zinc-950 shadow-lg sm:top-4 sm:right-4 sm:px-3 sm:py-1 sm:text-[10px]">
             {product.badge}
           </span>
+        ) : (
+          product.category === 'BUNDLE' &&
+          available && (
+            <span className="absolute top-2.5 right-2.5 z-10 inline-flex items-center gap-1 rounded-full bg-zinc-950/80 px-2 py-0.5 text-[9px] font-black text-amber-300 ring-1 ring-amber-500/40 backdrop-blur-sm sm:top-4 sm:right-4 sm:px-3 sm:py-1 sm:text-[10px]">
+              <Package className="h-3 w-3" /> باقة
+            </span>
+          )
         )}
 
         <button
@@ -180,16 +188,12 @@ export default function ProductCard({ product }: { product: CatalogProduct }) {
               {display.price === null ? 'استفسر عن السعر' : added ? 'أُضيف' : 'أضف للسلة'}
             </button>
           ) : (
-            <a
-              href={getWhatsAppLink(`مرحباً، أرجو إعلامي عند توفر ${product.name}.`)}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={() => trackWhatsAppClick('out-of-stock')}
+            <StockAlertButton
+              productId={product.id}
+              productName={product.name}
+              compact
               className="flex h-10 flex-1 items-center justify-center gap-1.5 rounded-xl border border-amber-500/40 bg-amber-500/10 text-[13px] font-bold text-amber-300 transition-colors hover:bg-amber-500/20 sm:h-auto sm:py-2.5 sm:text-sm"
-            >
-              <BellRing className="h-4 w-4" />
-              أبلغني عند توفره
-            </a>
+            />
           )}
         </div>
       </div>

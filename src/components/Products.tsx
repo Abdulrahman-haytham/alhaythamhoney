@@ -1,6 +1,6 @@
 import type { Product } from '@prisma/client';
 import type { CatalogProduct } from '@/lib/products.server';
-import { Droplets, Sparkles } from 'lucide-react';
+import { Droplets, Sparkles, Package } from 'lucide-react';
 import ProductCard from './ProductCard';
 
 /**
@@ -22,9 +22,14 @@ const CATEGORY_META: Record<
     subtitle: 'منتجات طبيعية تُستخدم منذ قرون لدعم الجسد بذكاء',
     icon: <Sparkles className="w-6 h-6 text-amber-500" />,
   },
+  BUNDLE: {
+    title: 'الباقات – أكثر قيمة بسعر واحد',
+    subtitle: 'مجموعات مختارة تكمّل بعضها، بسعر أقل من شرائها منفصلة',
+    icon: <Package className="w-6 h-6 text-amber-500" />,
+  },
 };
 
-const CATEGORY_ORDER: Product['category'][] = ['HONEY', 'SUPPLEMENT'];
+const CATEGORY_ORDER: Product['category'][] = ['BUNDLE', 'HONEY', 'SUPPLEMENT'];
 
 /**
  * `mobileCarousel`: على الجوال تُعرض بطاقتان جنباً إلى جنب وتُمرَّر البقية أفقياً.

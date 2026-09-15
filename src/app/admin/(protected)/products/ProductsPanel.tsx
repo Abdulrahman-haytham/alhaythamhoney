@@ -7,7 +7,12 @@ import type { productInput } from '@/lib/validation';
 import type { Prisma } from '@prisma/client';
 
 type Input = z.infer<typeof productInput>;
-type ProductRow = Omit<Input, 'detailedInfo'> & { id: string; detailedInfo: Prisma.JsonValue };
+type ProductRow = Omit<Input, 'detailedInfo'> & {
+  id: string;
+  detailedInfo: Prisma.JsonValue;
+  waitingAlerts: number;
+};
+type AttributeOption = { id: string; name: string; values: { id: string; value: string }[] };
 const empty: Input = {
   slug: '',
   name: '',
@@ -25,6 +30,8 @@ const empty: Input = {
   relatedIds: [],
   variants: [],
   tiers: [],
+  bundleItems: [],
+  attributeValueIds: [],
   detailedInfo: null,
 };
 type VariantForm = Input['variants'][number];
@@ -42,15 +49,21 @@ const inputClass =
 function Editor({
   product,
   all,
+  attributes,
   onCreated,
 }: {
   product?: ProductRow;
-  /** بقية المنتجات لاختيار «يُشترى معه عادةً» */
-  all: { id: string; name: string }[];
+  /** بقية المنتجات لاختيار «يُشترى معه عادةً» ومكوّنات الباقة */
+  all: { id: string; name: string; category: Input['category'] }[];
+  attributes: AttributeOption[];
   onCreated?: () => void;
 }) {
   const router = useRouter();
-  const [form, setForm] = useState<Omit<Input, 'detailedInfo'>>(product ?? empty);
+  const [form, setForm] = useState<Omit<Input, 'detailedInfo'>>(() => {
+    if (!product) return empty;
+    const { id: _id, detailedInfo: _d, waitingAlerts: _w, ...rest } = product;
+    return rest;
+  });
   const [details, setDetails] = useState(JSON.stringify(product?.detailedInfo ?? {}, null, 2));
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
@@ -154,6 +167,7 @@ function Editor({
           >
             <option value="HONEY">عسل</option>
             <option value="SUPPLEMENT">منتجات الخلية</option>
+            <option value="BUNDLE">باقة (مجموعة منتجات بسعر واحد)</option>
           </select>
         </label>
         <label>
@@ -251,6 +265,119 @@ function Editor({
             })}
         </div>
       </fieldset>
+      {form.category === 'BUNDLE' && (
+        <fieldset className="rounded-lg border border-amber-500/30 p-3">
+          <legend className="px-1 text-sm text-amber-400">مكوّنات الباقة</legend>
+          <p className="mb-2 text-xs text-zinc-500">
+            سعر الباقة هو حقل «السعر» أعلاه؛ الموقع يعرض للزبون كم يوفّر مقارنة بشراء المكوّنات
+            منفصلة. الباقة تنفد تلقائياً إن نفد أحد مكوّناتها.
+          </p>
+          <div className="space-y-2">
+            {form.bundleItems.map((b, i) => (
+              <div key={b.productId} className="flex items-center gap-2 text-sm">
+                <span className="min-w-0 flex-1 text-zinc-200">
+                  {all.find((p) => p.id === b.productId)?.name ?? b.productId}
+                </span>
+                <input
+                  type="number"
+                  min={1}
+                  max={50}
+                  value={b.quantity}
+                  aria-label="الكمية"
+                  onChange={(e) =>
+                    set(
+                      'bundleItems',
+                      form.bundleItems.map((x, j) =>
+                        j === i ? { ...x, quantity: Math.max(1, Number(e.target.value)) } : x,
+                      ),
+                    )
+                  }
+                  className="w-20 rounded-lg border border-zinc-700 bg-zinc-950 px-2 py-1 text-white"
+                />
+                <button
+                  type="button"
+                  onClick={() =>
+                    set(
+                      'bundleItems',
+                      form.bundleItems.filter((_, j) => j !== i),
+                    )
+                  }
+                  className="text-xs text-red-400"
+                >
+                  حذف
+                </button>
+              </div>
+            ))}
+            <select
+              className={inputClass}
+              value=""
+              onChange={(e) => {
+                if (!e.target.value) return;
+                set('bundleItems', [
+                  ...form.bundleItems,
+                  { productId: e.target.value, quantity: 1 },
+                ]);
+              }}
+            >
+              <option value="">+ أضف منتجاً إلى الباقة…</option>
+              {all
+                .filter(
+                  (p) =>
+                    p.id !== product?.id &&
+                    p.category !== 'BUNDLE' &&
+                    !form.bundleItems.some((b) => b.productId === p.id),
+                )
+                .map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
+                ))}
+            </select>
+          </div>
+        </fieldset>
+      )}
+
+      {attributes.length > 0 && (
+        <fieldset className="rounded-lg border border-zinc-800 p-3">
+          <legend className="px-1 text-sm text-amber-400">خصائص الفلترة</legend>
+          <p className="mb-2 text-xs text-zinc-500">
+            تظهر كفلاتر في المتجر (نوع الزهرة، المنطقة، الموسم…). تُدار القوائم من صفحة «الخصائص».
+          </p>
+          <div className="space-y-2">
+            {attributes.map((a) => (
+              <div key={a.id} className="flex flex-wrap items-center gap-1.5">
+                <span className="ml-1 text-xs text-zinc-400">{a.name}:</span>
+                {a.values.map((v) => {
+                  const on = form.attributeValueIds.includes(v.id);
+                  return (
+                    <button
+                      key={v.id}
+                      type="button"
+                      aria-pressed={on}
+                      onClick={() =>
+                        set(
+                          'attributeValueIds',
+                          on
+                            ? form.attributeValueIds.filter((id) => id !== v.id)
+                            : [...form.attributeValueIds, v.id],
+                        )
+                      }
+                      className={`rounded-full border px-2.5 py-0.5 text-xs transition ${
+                        on
+                          ? 'border-amber-500 bg-amber-500/15 text-amber-300'
+                          : 'border-zinc-700 text-zinc-400 hover:border-zinc-500'
+                      }`}
+                    >
+                      {v.value}
+                    </button>
+                  );
+                })}
+              </div>
+            ))}
+          </div>
+        </fieldset>
+      )}
+
       <fieldset className="rounded-lg border border-zinc-800 p-3">
         <legend className="px-1 text-sm text-amber-400">الأحجام / المتغيّرات</legend>
         <p className="mb-2 text-xs text-zinc-500">
@@ -467,9 +594,15 @@ function Editor({
   );
 }
 
-export function ProductsPanel({ products }: { products: ProductRow[] }) {
+export function ProductsPanel({
+  products,
+  attributes,
+}: {
+  products: ProductRow[];
+  attributes: AttributeOption[];
+}) {
   const [creating, setCreating] = useState(false);
-  const all = products.map((p) => ({ id: p.id, name: p.name }));
+  const all = products.map((p) => ({ id: p.id, name: p.name, category: p.category }));
   return (
     <div className="space-y-5">
       <button
@@ -478,7 +611,9 @@ export function ProductsPanel({ products }: { products: ProductRow[] }) {
       >
         {creating ? 'إلغاء الإضافة' : '+ منتج جديد'}
       </button>
-      {creating && <Editor all={all} onCreated={() => setCreating(false)} />}
+      {creating && (
+        <Editor all={all} attributes={attributes} onCreated={() => setCreating(false)} />
+      )}
       {products.map((product) => (
         <details key={product.id} className="rounded-xl border border-zinc-800 bg-zinc-900/40">
           <summary className="cursor-pointer p-4">
@@ -487,9 +622,13 @@ export function ProductsPanel({ products }: { products: ProductRow[] }) {
               — {product.published ? 'منشور' : 'مخفي'} · {product.inStock ? 'متوفر' : 'غير متوفر'}
               {product.stockQty != null && ` · الكمية ${product.stockQty}`}
               {product.variants.length > 0 && ` · ${product.variants.length} أحجام`}
+              {product.category === 'BUNDLE' && ' · باقة'}
+              {product.waitingAlerts > 0 && (
+                <span className="text-amber-300"> · {product.waitingAlerts} ينتظرون توفره</span>
+              )}
             </span>
           </summary>
-          <Editor product={product} all={all} />
+          <Editor product={product} all={all} attributes={attributes} />
         </details>
       ))}
     </div>

@@ -12,6 +12,8 @@ import {
   orderInput,
   promotionInput,
   zoneInput,
+  attributeInput,
+  stockAlertInput,
 } from '@/lib/validation';
 import {
   createSessionToken,
@@ -42,6 +44,12 @@ import {
   variantCartId,
 } from '@/lib/variants';
 import { diffRecords } from '@/lib/audit.server';
+import {
+  bundleAvailable,
+  bundleComponentsValue,
+  catalogAvailable,
+  type BundleComponentLite,
+} from '@/lib/bundles';
 
 describe('article body formats', () => {
   it('renders indented raw HTML as HTML, not as a code block', () => {
@@ -144,9 +152,30 @@ describe('pricing and validation', () => {
       relatedIds: [],
       variants: [],
       tiers: [],
+      bundleItems: [],
+      attributeValueIds: [],
       detailedInfo: null,
     };
     expect(productInput.safeParse(product).success).toBe(true);
+    // الباقة تحتاج مكوّنات، ولا تكرار فيها
+    expect(productInput.safeParse({ ...product, category: 'BUNDLE' }).success).toBe(false);
+    expect(
+      productInput.safeParse({
+        ...product,
+        category: 'BUNDLE',
+        bundleItems: [
+          { productId: 'a', quantity: 1 },
+          { productId: 'a', quantity: 2 },
+        ],
+      }).success,
+    ).toBe(false);
+    expect(
+      productInput.safeParse({
+        ...product,
+        category: 'BUNDLE',
+        bundleItems: [{ productId: 'a', quantity: 1 }],
+      }).success,
+    ).toBe(true);
     for (const image of [
       '//evil.example/x.png',
       '/images/../secret.png',
@@ -699,6 +728,8 @@ describe('variants, quantity tiers, promotions and zones', () => {
       published: true,
       sortOrder: 0,
       relatedIds: [],
+      bundleItems: [],
+      attributeValueIds: [],
       variants: [
         {
           id: null,
@@ -737,6 +768,8 @@ describe('variants, quantity tiers, promotions and zones', () => {
         published: true,
         sortOrder: 0,
         relatedIds: [],
+        bundleItems: [],
+        attributeValueIds: [],
         variants: [],
         tiers: [
           { minQty: 3, discountPercent: 10 },
@@ -745,5 +778,47 @@ describe('variants, quantity tiers, promotions and zones', () => {
         detailedInfo: null,
       }).success,
     ).toBe(false); // شرائح مكررة
+  });
+});
+
+describe('bundles and catalog availability', () => {
+  const component = (over: Partial<BundleComponentLite['product']> = {}, quantity = 1) => ({
+    quantity,
+    product: {
+      id: 'c',
+      slug: 'c',
+      name: 'مكوّن',
+      image: '/images/c.webp',
+      price: 50_000,
+      inStock: true,
+      stockQty: null,
+      published: true,
+      variants: [],
+      ...over,
+    },
+  });
+  it('is available only when every component is, and reports savings', () => {
+    const items = [component(), component({ id: 'd', price: 30_000 }, 2)];
+    expect(bundleAvailable(items)).toBe(true);
+    expect(bundleComponentsValue(items)).toBe(110_000);
+    expect(bundleAvailable([component(), component({ id: 'd', stockQty: 0 })])).toBe(false);
+    expect(bundleAvailable([component(), component({ id: 'd', published: false })])).toBe(false);
+    expect(bundleComponentsValue([component({ price: null })])).toBeNull();
+    expect(catalogAvailable({ category: 'BUNDLE', inStock: true, bundleItems: [] })).toBe(false);
+    expect(catalogAvailable({ category: 'HONEY', inStock: true, stockQty: 0 })).toBe(false);
+    expect(catalogAvailable({ category: 'HONEY', inStock: true, stockQty: 3 })).toBe(true);
+  });
+  it('validates attributes and stock alerts', () => {
+    expect(
+      attributeInput.safeParse({ name: 'نوع الزهرة', sortOrder: 0, values: ['سدر', 'سدر'] })
+        .success,
+    ).toBe(false);
+    expect(
+      attributeInput.safeParse({ name: 'نوع الزهرة', sortOrder: 0, values: ['سدر', 'كينا'] })
+        .success,
+    ).toBe(true);
+    expect(stockAlertInput.safeParse({ productId: 'p', email: ' A@B.co ' }).data?.email).toBe(
+      'a@b.co',
+    );
   });
 });
