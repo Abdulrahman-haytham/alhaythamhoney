@@ -23,8 +23,19 @@ const empty: Input = {
   published: false,
   sortOrder: 0,
   relatedIds: [],
+  variants: [],
+  tiers: [],
   detailedInfo: null,
 };
+type VariantForm = Input['variants'][number];
+const emptyVariant = (): VariantForm => ({
+  id: null,
+  label: '',
+  price: 0,
+  stockQty: null,
+  inStock: true,
+  isDefault: false,
+});
 const inputClass =
   'mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-base text-white disabled:text-zinc-500';
 
@@ -45,6 +56,15 @@ function Editor({
   const [message, setMessage] = useState('');
   function set<K extends keyof typeof form>(key: K, value: (typeof form)[K]) {
     setForm((f) => ({ ...f, [key]: value }));
+  }
+  function setVariant(i: number, patch: Partial<VariantForm>) {
+    setForm((f) => ({
+      ...f,
+      variants: f.variants.map((v, j) => (j === i ? { ...v, ...patch } : v)),
+    }));
+  }
+  function setTier(i: number, patch: Partial<Input['tiers'][number]>) {
+    setForm((f) => ({ ...f, tiers: f.tiers.map((t, j) => (j === i ? { ...t, ...patch } : t)) }));
   }
   async function save(event: React.FormEvent) {
     event.preventDefault();
@@ -231,6 +251,175 @@ function Editor({
             })}
         </div>
       </fieldset>
+      <fieldset className="rounded-lg border border-zinc-800 p-3">
+        <legend className="px-1 text-sm text-amber-400">الأحجام / المتغيّرات</legend>
+        <p className="mb-2 text-xs text-zinc-500">
+          مثال: 250 غرام، 500 غرام، 1 كغ — لكل حجم سعره وكميته. اتركها فارغة إن كان للمنتج سعر واحد.
+          الافتراضي هو ما يُضاف من البطاقة مباشرة.
+        </p>
+        <div className="space-y-2">
+          {form.variants.map((v, i) => (
+            <div
+              key={v.id ?? `new-${i}`}
+              className="grid grid-cols-2 items-end gap-2 rounded-lg border border-zinc-800/60 p-2 sm:grid-cols-6"
+            >
+              <label className="text-xs sm:col-span-2">
+                الاسم
+                <input
+                  className={inputClass}
+                  value={v.label}
+                  onChange={(e) => setVariant(i, { label: e.target.value })}
+                  required
+                  maxLength={60}
+                  placeholder="500 غرام"
+                />
+              </label>
+              <label className="text-xs">
+                السعر
+                <input
+                  className={inputClass}
+                  type="number"
+                  min={0}
+                  value={v.price}
+                  onChange={(e) => setVariant(i, { price: Number(e.target.value) })}
+                  required
+                />
+              </label>
+              <label className="text-xs">
+                الكمية
+                <input
+                  className={inputClass}
+                  type="number"
+                  min={0}
+                  value={v.stockQty ?? ''}
+                  onChange={(e) =>
+                    setVariant(i, {
+                      stockQty: e.target.value === '' ? null : Number(e.target.value),
+                    })
+                  }
+                  placeholder="بلا تتبّع"
+                />
+              </label>
+              <div className="flex flex-col gap-1 text-xs">
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={v.inStock}
+                    onChange={(e) => setVariant(i, { inStock: e.target.checked })}
+                  />{' '}
+                  متوفر
+                </label>
+                <label>
+                  <input
+                    type="radio"
+                    name={`default-${product?.id ?? 'new'}`}
+                    checked={v.isDefault}
+                    onChange={() =>
+                      set(
+                        'variants',
+                        form.variants.map((x, j) => ({ ...x, isDefault: j === i })),
+                      )
+                    }
+                  />{' '}
+                  افتراضي
+                </label>
+              </div>
+              <button
+                type="button"
+                onClick={() =>
+                  set(
+                    'variants',
+                    form.variants.filter((_, j) => j !== i),
+                  )
+                }
+                className="text-xs text-red-400 hover:text-red-300"
+              >
+                حذف
+              </button>
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={() =>
+              set('variants', [
+                ...form.variants,
+                { ...emptyVariant(), isDefault: form.variants.length === 0 },
+              ])
+            }
+            disabled={form.variants.length >= 12}
+            className="rounded-lg border border-zinc-700 px-3 py-1.5 text-xs text-zinc-300 hover:border-amber-500/50 disabled:opacity-50"
+          >
+            + حجم جديد
+          </button>
+        </div>
+      </fieldset>
+
+      <fieldset className="rounded-lg border border-zinc-800 p-3">
+        <legend className="px-1 text-sm text-amber-400">خصم الكمية</legend>
+        <p className="mb-2 text-xs text-zinc-500">
+          «3 فأكثر = خصم 10%» — يُطبَّق تلقائياً في السلة على سعر الوحدة، ويُعرض جدوله في صفحة
+          المنتج. يمكن تعطيل الميزة كلها من الإعدادات.
+        </p>
+        <div className="flex flex-wrap items-end gap-2">
+          {form.tiers.map((t, i) => (
+            <div
+              key={i}
+              className="flex items-end gap-1 rounded-lg border border-zinc-800/60 p-2 text-xs"
+            >
+              <label>
+                من كمية
+                <input
+                  className={`${inputClass} w-20`}
+                  type="number"
+                  min={2}
+                  max={999}
+                  value={t.minQty}
+                  onChange={(e) => setTier(i, { minQty: Number(e.target.value) })}
+                  required
+                />
+              </label>
+              <label>
+                خصم %
+                <input
+                  className={`${inputClass} w-20`}
+                  type="number"
+                  min={1}
+                  max={90}
+                  value={t.discountPercent}
+                  onChange={(e) => setTier(i, { discountPercent: Number(e.target.value) })}
+                  required
+                />
+              </label>
+              <button
+                type="button"
+                onClick={() =>
+                  set(
+                    'tiers',
+                    form.tiers.filter((_, j) => j !== i),
+                  )
+                }
+                className="pb-2 text-red-400 hover:text-red-300"
+              >
+                حذف
+              </button>
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={() =>
+              set('tiers', [
+                ...form.tiers,
+                { minQty: (form.tiers.at(-1)?.minQty ?? 1) + 2, discountPercent: 10 },
+              ])
+            }
+            disabled={form.tiers.length >= 6}
+            className="rounded-lg border border-zinc-700 px-3 py-1.5 text-xs text-zinc-300 hover:border-amber-500/50 disabled:opacity-50"
+          >
+            + شريحة
+          </button>
+        </div>
+      </fieldset>
+
       <details>
         <summary className="cursor-pointer text-amber-400">تفاصيل إضافية (JSON)</summary>
         <p className="my-2 text-xs text-zinc-400">
@@ -297,6 +486,7 @@ export function ProductsPanel({ products }: { products: ProductRow[] }) {
             <span className="text-sm text-zinc-400">
               — {product.published ? 'منشور' : 'مخفي'} · {product.inStock ? 'متوفر' : 'غير متوفر'}
               {product.stockQty != null && ` · الكمية ${product.stockQty}`}
+              {product.variants.length > 0 && ` · ${product.variants.length} أحجام`}
             </span>
           </summary>
           <Editor product={product} all={all} />

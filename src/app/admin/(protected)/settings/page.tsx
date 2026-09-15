@@ -1,10 +1,15 @@
+import { db } from '@/lib/db';
 import { getSettings } from '@/lib/settings.server';
 import { SettingsForm } from './SettingsForm';
+import { ZonesPanel } from './ZonesPanel';
 
 export const dynamic = 'force-dynamic';
 
 export default async function AdminSettingsPage() {
-  const settings = await getSettings();
+  const [settings, zones] = await Promise.all([
+    getSettings(),
+    db.shippingZone.findMany({ orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }] }),
+  ]);
   return (
     <>
       <h1 className="mb-1 font-amiri text-3xl font-bold">إعدادات الموقع</h1>
@@ -13,6 +18,9 @@ export default async function AdminSettingsPage() {
         الأولى، شريط الإعلان، وسلوكيات المتجر.
       </p>
       <SettingsForm initial={settings} />
+      <div className="mt-6">
+        <ZonesPanel zones={zones} defaultCost={settings.shippingCost} />
+      </div>
     </>
   );
 }

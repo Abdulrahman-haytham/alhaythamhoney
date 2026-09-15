@@ -65,9 +65,44 @@ model Product {
   related      ProductRelation[] @relation("RelatedFrom")
   relatedBy    ProductRelation[] @relation("RelatedTo")
   articles     Article[]
+  /// أحجام/أوزان المنتج بأسعار مختلفة — إن وُجدت فالسعر الأساسي هو «يبدأ من»
+  variants     ProductVariant[]
+  /// خصم الكمية: «3 فأكثر = خصم 10%»
+  tiers        PriceTier[]
 
   @@index([published, sortOrder])
   @@map("products")
+}
+
+/// متغيّر منتج (Odoo variants): حجم أو وزن بسعر ومخزون مستقلّين تحت الرابط نفسه.
+model ProductVariant {
+  id        String      @id @default(cuid())
+  productId String
+  product   Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  label     String
+  price     Int
+  /// null = بلا تتبّع
+  stockQty  Int?
+  inStock   Boolean     @default(true)
+  isDefault Boolean     @default(false)
+  sortOrder Int         @default(0)
+  createdAt DateTime    @default(now())
+  items     OrderItem[]
+
+  @@index([productId, sortOrder])
+  @@map("product_variants")
+}
+
+/// شريحة سعر كمية (Odoo pricelist): من الكمية minQty فصاعداً يُخصم discountPercent من سعر الوحدة.
+model PriceTier {
+  id              String  @id @default(cuid())
+  productId       String
+  product         Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  minQty          Int
+  discountPercent Int
+
+  @@unique([productId, minQty])
+  @@map("price_tiers")
 }
 
 /// علاقة «يُشترى معه عادةً» باتجاه واحد: المنتج ← ما يُقترح معه.
@@ -86,28 +121,31 @@ model ProductRelation {
 /// طلب مسجَّل لحظة ضغط «أكمل الطلب عبر واتساب». الدفع والتأكيد يتمّان خارج الموقع،
 /// فيبدأ بحالة PENDING ويحدّثها الأدمن من اللوحة؛ الأسعار محسوبة على الخادم لا من المتصفح.
 model Order {
-  id            String      @id @default(cuid())
+  id            String         @id @default(cuid())
   /// مرجع قصير يظهر في رسالة واتساب وصفحة التتبع (HY-XXXXXX)
-  reference     String      @unique
-  status        OrderStatus @default(PENDING)
+  reference     String         @unique
+  status        OrderStatus    @default(PENDING)
   customerId    String?
-  customer      Customer?   @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  customer      Customer?      @relation(fields: [customerId], references: [id], onDelete: SetNull)
   customerName  String?
   customerPhone String?
   customerCity  String?
   subtotal      Int
-  discount      Int         @default(0)
-  shipping      Int         @default(0)
+  discount      Int            @default(0)
+  shipping      Int            @default(0)
   total         Int
   couponCode    String?
+  /// منطقة الشحن المختارة (اسم المحافظة) وقت الطلب
+  zoneName      String?
+  promotionUses PromotionUse[]
   /// تفصيل الحساب كما عُرض للزبون (خصومات، عروض، شحن) — للمراجعة لا لإعادة الحساب
   breakdown     Json?
   /// ملاحظات داخلية للأدمن
   notes         String?
   confirmedAt   DateTime?
   items         OrderItem[]
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
 
   @@index([customerId, createdAt])
   @@index([status, createdAt])
@@ -116,11 +154,13 @@ model Order {
 }
 
 model OrderItem {
-  id        String   @id @default(cuid())
+  id        String          @id @default(cuid())
   orderId   String
-  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  order     Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
   productId String?
-  product   Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  product   Product?        @relation(fields: [productId], references: [id], onDelete: SetNull)
+  variantId String?
+  variant   ProductVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
   /// معرّف البند في السلة (مثلاً mix:… للخلطات) — للتشخيص فقط
   cartId    String?
   name      String
@@ -421,9 +461,81 @@ model SiteSettings {
   /// بعد كم ساعة من آخر تعديل تُعتبر السلة «متروكة»
   cartReminderHours     Int      @default(12)
   couponsEnabled        Boolean  @default(true)
+  /// خصومات الكمية على المنتجات (تُعرّف لكل منتج)
+  tieredPricingEnabled  Boolean  @default(true)
+  /// العروض التلقائية في السلة
+  promotionsEnabled     Boolean  @default(true)
+  /// الشحن حسب المحافظة (وإلا تكلفة واحدة)
+  shippingZonesEnabled  Boolean  @default(false)
   updatedAt             DateTime @updatedAt
 
   @@map("site_settings")
+}
+
+/// منطقة شحن (Odoo delivery rules): محافظة بتكلفة ومدة توقّع.
+model ShippingZone {
+  id        String  @id @default(cuid())
+  name      String  @unique
+  cost      Int
+  /// مثال: «2–3 أيام»
+  etaText   String?
+  active    Boolean @default(true)
+  sortOrder Int     @default(0)
+
+  @@map("shipping_zones")
+}
+
+enum PromotionKind {
+  /// خصم نسبة مئوية عند تجاوز مبلغ
+  PERCENT_OVER_AMOUNT
+  /// هدية (منتج) عند تجاوز مبلغ
+  GIFT_OVER_AMOUNT
+  /// اشترِ X من منتج واحصل على Y من منتج (قد يكون نفسه) مجاناً
+  BUY_X_GET_Y
+}
+
+/// عرض تلقائي بلا كود (Odoo promotion program) — يُطبَّق في السلة إن تحققت شروطه،
+/// وله ميزانية شهرية اختيارية تحمي الأدمن من تجاوز ما رصده.
+model Promotion {
+  id            String         @id @default(cuid())
+  title         String
+  kind          PromotionKind
+  active        Boolean        @default(true)
+  startsAt      DateTime?
+  endsAt        DateTime?
+  /// الحد الأدنى للمجموع (لأنواع «عند تجاوز مبلغ»)
+  minSubtotal   Int            @default(0)
+  percent       Int            @default(0)
+  maxDiscount   Int?
+  buyProductId  String?
+  buyQty        Int            @default(1)
+  giftProductId String?
+  giftQty       Int            @default(1)
+  /// تُعرض رسالة «أضف X لتحصل على…» في السلة
+  showProgress  Boolean        @default(true)
+  /// سقف قيمة الخصم/الهدايا في الشهر بالليرة (0 = بلا سقف)
+  monthlyBudget Int            @default(0)
+  uses          PromotionUse[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@index([active, startsAt, endsAt])
+  @@map("promotions")
+}
+
+/// استخدام عرض في طلب — أساس حساب الميزانية الشهرية
+model PromotionUse {
+  id          String    @id @default(cuid())
+  promotionId String
+  promotion   Promotion @relation(fields: [promotionId], references: [id], onDelete: Cascade)
+  orderId     String
+  order       Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  /// قيمة الخصم أو الهدية بالليرة
+  amount      Int
+  createdAt   DateTime  @default(now())
+
+  @@index([promotionId, createdAt])
+  @@map("promotion_uses")
 }
 
 model RateLimit {

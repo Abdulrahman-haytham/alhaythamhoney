@@ -15,6 +15,25 @@ const localImage = text(500).refine(
     /^\/uploads\/studio\/[a-f0-9-]+\.(webp|png|jpe?g|avif)$/.test(url),
   'اختر صورة محلية من المنتجات أو الاستديو.',
 );
+// ---- متغيّرات المنتج وخصومات الكمية ----
+export const variantInput = z
+  .object({
+    /** معرّف موجود عند التعديل — يُحفظ ليبقى ما في سلال الزبائن صالحاً */
+    id: text(50).nullable().optional(),
+    label: text(60).min(1, 'اسم المتغيّر مطلوب.'),
+    price: amount,
+    stockQty: z.number().int().min(0).max(1_000_000).nullable(),
+    inStock: z.boolean(),
+    isDefault: z.boolean(),
+  })
+  .strict();
+export const tierInput = z
+  .object({
+    minQty: z.number().int().min(2).max(999),
+    discountPercent: z.number().int().min(1).max(90),
+  })
+  .strict();
+
 export const productInput = z
   .object({
     slug,
@@ -33,6 +52,8 @@ export const productInput = z
     sortOrder: z.number().int().min(0).max(10000),
     /** معرّفات «يُشترى معه عادةً» بالترتيب */
     relatedIds: z.array(text(50).min(1)).max(12),
+    variants: z.array(variantInput).max(12),
+    tiers: z.array(tierInput).max(6),
     detailedInfo: z
       .object({
         uses: z.array(text(400)).max(20).optional(),
@@ -43,7 +64,15 @@ export const productInput = z
       .strict()
       .nullable(),
   })
-  .strict();
+  .strict()
+  .refine(
+    (p) => new Set(p.tiers.map((t) => t.minQty)).size === p.tiers.length,
+    'شرائح الكمية مكررة.',
+  )
+  .refine(
+    (p) => new Set(p.variants.map((v) => v.label.trim())).size === p.variants.length,
+    'أسماء المتغيّرات مكررة.',
+  );
 
 export const reviewInput = z
   .object({
@@ -179,6 +208,9 @@ export const settingsInput = z
     cartReminderEnabled: z.boolean(),
     cartReminderHours: z.number().int().min(1).max(720),
     couponsEnabled: z.boolean(),
+    tieredPricingEnabled: z.boolean(),
+    promotionsEnabled: z.boolean(),
+    shippingZonesEnabled: z.boolean(),
   })
   .strict();
 
@@ -256,6 +288,7 @@ export const quoteInput = z
   .object({
     items: z.array(cartLine).max(60),
     couponCode: couponCode.nullable(),
+    zoneId: text(50).nullable().optional(),
   })
   .strict();
 export const orderInput = quoteInput
@@ -284,3 +317,40 @@ export const eventInput = z
     value: z.number().int().min(0).max(1_000_000).nullable().optional(),
   })
   .strict();
+
+// ---- الشحن حسب المحافظة والعروض ----
+export const zoneInput = z
+  .object({
+    name: text(60).min(2, 'اسم المنطقة مطلوب.'),
+    cost: amount,
+    etaText: optionalText(60),
+    active: z.boolean(),
+    sortOrder: z.number().int().min(0).max(1000),
+  })
+  .strict();
+
+export const promotionInput = z
+  .object({
+    title: text(120).min(3, 'العنوان قصير.'),
+    kind: z.enum(['PERCENT_OVER_AMOUNT', 'GIFT_OVER_AMOUNT', 'BUY_X_GET_Y']),
+    active: z.boolean(),
+    startsAt: isoDay.nullable(),
+    endsAt: isoDay.nullable(),
+    minSubtotal: amount,
+    percent: z.number().int().min(0).max(90),
+    maxDiscount: amount.nullable(),
+    buyProductId: text(50).nullable(),
+    buyQty: z.number().int().min(1).max(99),
+    giftProductId: text(50).nullable(),
+    giftQty: z.number().int().min(1).max(20),
+    showProgress: z.boolean(),
+    monthlyBudget: amount,
+  })
+  .strict()
+  .refine((p) => p.kind !== 'PERCENT_OVER_AMOUNT' || p.percent >= 1, 'حدّد نسبة الخصم.')
+  .refine((p) => p.kind === 'PERCENT_OVER_AMOUNT' || !!p.giftProductId, 'اختر منتج الهدية.')
+  .refine((p) => p.kind !== 'BUY_X_GET_Y' || !!p.buyProductId, 'اختر المنتج المشروط شراؤه.')
+  .refine(
+    (p) => !p.startsAt || !p.endsAt || p.startsAt <= p.endsAt,
+    'تاريخ الانتهاء قبل تاريخ البداية.',
+  );

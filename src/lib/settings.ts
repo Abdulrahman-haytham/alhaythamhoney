@@ -23,6 +23,9 @@ export interface SiteSettingsData {
   cartReminderEnabled: boolean;
   cartReminderHours: number;
   couponsEnabled: boolean;
+  tieredPricingEnabled: boolean;
+  promotionsEnabled: boolean;
+  shippingZonesEnabled: boolean;
 }
 
 /** القيم الافتراضية — مطابقة لـ @default في schema.prisma وتُستخدم قبل أول حفظ. */
@@ -47,6 +50,9 @@ export const DEFAULT_SETTINGS: SiteSettingsData = {
   cartReminderEnabled: true,
   cartReminderHours: 12,
   couponsEnabled: true,
+  tieredPricingEnabled: true,
+  promotionsEnabled: true,
+  shippingZonesEnabled: false,
 };
 
 /** الحقول التي يقرؤها المتصفح — كل شيء هنا عام (لا أسرار). */

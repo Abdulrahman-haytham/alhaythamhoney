@@ -10,6 +10,8 @@ import {
   profileInput,
   drawInput,
   orderInput,
+  promotionInput,
+  zoneInput,
 } from '@/lib/validation';
 import {
   createSessionToken,
@@ -25,7 +27,20 @@ import { DEFAULT_SETTINGS, lowStockLabel, isAvailable } from '@/lib/settings';
 import { applyRuntimeSettings, getWhatsAppLink, SHIPPING } from '@/lib/config';
 import { renderMarkdown } from '@/lib/markdown';
 import { generateOrderReference, normalizeOrderReference } from '@/lib/orders';
-import { buildQuote, whatsappOrderMessage } from '@/lib/pricing';
+import {
+  buildQuote,
+  bestTier,
+  whatsappOrderMessage,
+  type PricingLine,
+  type PromotionRule,
+} from '@/lib/pricing';
+import {
+  defaultVariant,
+  priceFrom,
+  productAvailable,
+  parseCartId,
+  variantCartId,
+} from '@/lib/variants';
 import { diffRecords } from '@/lib/audit.server';
 
 describe('article body formats', () => {
@@ -127,6 +142,8 @@ describe('pricing and validation', () => {
       published: false,
       sortOrder: 0,
       relatedIds: [],
+      variants: [],
+      tiers: [],
       detailedInfo: null,
     };
     expect(productInput.safeParse(product).success).toBe(true);
@@ -440,5 +457,293 @@ describe('orders and pricing engine', () => {
     );
     expect(Object.keys(changes).sort()).toEqual(['inner', 'price']);
     expect(changes.price).toEqual({ from: 1, to: 2 });
+  });
+});
+
+describe('variants, quantity tiers, promotions and zones', () => {
+  const line = (over: Partial<PricingLine> = {}): PricingLine => ({
+    cartId: 'p1',
+    productId: 'p1',
+    variantId: null,
+    name: 'عسل سدر',
+    unitPrice: 100_000,
+    quantity: 1,
+    weight: '500 غرام',
+    image: null,
+    recipe: null,
+    ...over,
+  });
+  const gift = { name: 'شمع عسل', image: null, price: 40_000 };
+  const promo = (over: Partial<PromotionRule>): PromotionRule => ({
+    id: 'pr',
+    title: 'عرض',
+    kind: 'PERCENT_OVER_AMOUNT',
+    minSubtotal: 0,
+    percent: 0,
+    maxDiscount: null,
+    buyProductId: null,
+    buyQty: 1,
+    giftProductId: null,
+    giftQty: 1,
+    showProgress: true,
+    remainingBudget: null,
+    gift: null,
+    ...over,
+  });
+
+  it('applies the best quantity tier per line and reports it', () => {
+    const q = buildQuote({
+      lines: [
+        line({
+          quantity: 3,
+          tiers: [
+            { minQty: 3, discountPercent: 10 },
+            { minQty: 6, discountPercent: 20 },
+          ],
+        }),
+      ],
+      coupon: null,
+      shippingCost: 0,
+      freeShippingThreshold: 0,
+    });
+    expect(q.lines[0].lineDiscount).toBe(30_000);
+    expect(q.lines[0].lineDiscountLabel).toContain('10%');
+    expect(q.adjustments[0]).toEqual({ kind: 'tier', label: 'خصم الكمية', amount: 30_000 });
+    expect(q.total).toBe(270_000);
+    expect(bestTier([{ minQty: 3, discountPercent: 10 }], 2)).toBeNull();
+  });
+
+  it('applies percent and gift promotions with hints and monthly budget caps', () => {
+    const rules = [
+      promo({ id: 'a', title: 'خصم 5%', percent: 5, minSubtotal: 300_000, maxDiscount: 10_000 }),
+      promo({
+        id: 'b',
+        title: 'هدية',
+        kind: 'GIFT_OVER_AMOUNT',
+        minSubtotal: 200_000,
+        giftProductId: 'g',
+        gift,
+      }),
+    ];
+    const small = buildQuote({
+      lines: [line()],
+      coupon: null,
+      shippingCost: 0,
+      freeShippingThreshold: 0,
+      promotions: rules,
+    });
+    expect(small.adjustments).toHaveLength(0);
+    expect(small.gifts).toHaveLength(0);
+    expect(small.hints).toEqual([
+      'أضف 200,000 ل.س لتحصل على خصم 5%',
+      'أضف 100,000 ل.س لتحصل على شمع عسل هديةً',
+    ]);
+    const big = buildQuote({
+      lines: [line({ quantity: 4 })],
+      coupon: null,
+      shippingCost: 0,
+      freeShippingThreshold: 0,
+      promotions: rules,
+    });
+    expect(big.adjustments).toEqual([{ kind: 'promotion', label: 'خصم 5%', amount: 10_000 }]);
+    expect(big.gifts[0]).toMatchObject({ productId: 'g', quantity: 1, value: 40_000 });
+    expect(big.promotionsApplied).toEqual([
+      { id: 'a', amount: 10_000 },
+      { id: 'b', amount: 40_000 },
+    ]);
+    expect(big.total).toBe(390_000);
+    // الميزانية المتبقية أقل من قيمة الهدية → لا هدية ولا رسالة
+    const capped = buildQuote({
+      lines: [line({ quantity: 4 })],
+      coupon: null,
+      shippingCost: 0,
+      freeShippingThreshold: 0,
+      promotions: [{ ...rules[1], remainingBudget: 30_000 }],
+    });
+    expect(capped.gifts).toHaveLength(0);
+    expect(capped.hints).toHaveLength(0);
+  });
+
+  it('handles buy X get Y across variants of the same product', () => {
+    const rule = promo({
+      id: 'c',
+      title: 'اشترِ 2 واحصل على 1',
+      kind: 'BUY_X_GET_Y',
+      buyProductId: 'p1',
+      buyQty: 2,
+      giftProductId: 'p1',
+      giftQty: 1,
+      buyProduct: { name: 'عسل سدر' },
+      gift: { name: 'عسل سدر', image: null, price: 100_000 },
+    });
+    const one = buildQuote({
+      lines: [line()],
+      coupon: null,
+      shippingCost: 0,
+      freeShippingThreshold: 0,
+      promotions: [rule],
+    });
+    expect(one.gifts).toHaveLength(0);
+    expect(one.hints[0]).toBe('أضف 1 من عسل سدر لتحصل على 1 عسل سدر مجاناً');
+    const five = buildQuote({
+      lines: [
+        line({ cartId: 'p1@v1', variantId: 'v1', quantity: 3 }),
+        line({ cartId: 'p1@v2', variantId: 'v2', quantity: 2 }),
+      ],
+      coupon: null,
+      shippingCost: 0,
+      freeShippingThreshold: 0,
+      promotions: [rule],
+    });
+    expect(five.gifts[0].quantity).toBe(2);
+  });
+
+  it('orders coupon after promotions and never discounts below zero', () => {
+    const q = buildQuote({
+      lines: [line({ quantity: 4 })],
+      coupon: { ok: true, code: 'BIG', discount: 1_000_000, label: 'خصم ثابت' },
+      shippingCost: 25_000,
+      freeShippingThreshold: 0,
+      promotions: [promo({ id: 'a', title: 'خصم 10%', percent: 10 })],
+      zones: [{ id: 'z', name: 'حلب', cost: 40_000, etaText: '2–3 أيام' }],
+      zoneId: 'z',
+      shippingLabel: 'حلب · 2–3 أيام',
+    });
+    expect(q.adjustments.map((a) => a.amount)).toEqual([40_000, 360_000]);
+    expect(q.discount).toBe(400_000);
+    expect(q.total).toBe(25_000);
+    expect(q.shippingLabel).toBe('حلب · 2–3 أيام');
+    expect(whatsappOrderMessage(q, 'HY-ABCD23', 'u')).toContain('الشحن (حلب · 2–3 أيام)');
+  });
+
+  it('derives cart ids, default variant and price-from', () => {
+    const variants = [
+      {
+        id: 'a',
+        label: '250 غرام',
+        price: 60_000,
+        stockQty: 0,
+        inStock: true,
+        isDefault: true,
+        sortOrder: 0,
+      },
+      {
+        id: 'b',
+        label: '500 غرام',
+        price: 100_000,
+        stockQty: null,
+        inStock: true,
+        isDefault: false,
+        sortOrder: 1,
+      },
+      {
+        id: 'c',
+        label: '1 كغ',
+        price: 190_000,
+        stockQty: 5,
+        inStock: false,
+        isDefault: false,
+        sortOrder: 2,
+      },
+    ];
+    expect(defaultVariant(variants)?.id).toBe('b');
+    expect(priceFrom({ price: 1, variants })).toEqual({ price: 100_000, from: false });
+    expect(priceFrom({ price: 1, variants: [] })).toEqual({ price: 1, from: false });
+    expect(productAvailable({ inStock: true, variants })).toBe(true);
+    expect(productAvailable({ inStock: true, variants: [variants[0]] })).toBe(false);
+    expect(parseCartId(variantCartId('p', 'v'))).toEqual({ productId: 'p', variantId: 'v' });
+    expect(parseCartId('p')).toEqual({ productId: 'p', variantId: null });
+  });
+
+  it('validates promotions, zones, variants and tiers', () => {
+    const base = {
+      title: 'هدية الشتاء',
+      kind: 'GIFT_OVER_AMOUNT',
+      active: true,
+      startsAt: null,
+      endsAt: null,
+      minSubtotal: 300_000,
+      percent: 0,
+      maxDiscount: null,
+      buyProductId: null,
+      buyQty: 1,
+      giftProductId: null,
+      giftQty: 1,
+      showProgress: true,
+      monthlyBudget: 500_000,
+    };
+    expect(promotionInput.safeParse(base).success).toBe(false); // بلا منتج هدية
+    expect(promotionInput.safeParse({ ...base, giftProductId: 'g' }).success).toBe(true);
+    expect(
+      promotionInput.safeParse({ ...base, kind: 'PERCENT_OVER_AMOUNT', percent: 0 }).success,
+    ).toBe(false);
+    expect(
+      promotionInput.safeParse({ ...base, kind: 'BUY_X_GET_Y', giftProductId: 'g' }).success,
+    ).toBe(false);
+    expect(
+      zoneInput.safeParse({ name: 'حماة', cost: 20000, etaText: '', active: true, sortOrder: 0 })
+        .data?.etaText,
+    ).toBeNull();
+    const product = productInput.safeParse({
+      slug: 'sidr',
+      name: 'عسل سدر',
+      desc: 'وصف كافٍ للمنتج هنا',
+      benefit: null,
+      image: '/images/products/x.webp',
+      badge: null,
+      price: 100000,
+      weight: null,
+      category: 'HONEY',
+      inStock: true,
+      stockQty: null,
+      published: true,
+      sortOrder: 0,
+      relatedIds: [],
+      variants: [
+        {
+          id: null,
+          label: '500 غرام',
+          price: 100000,
+          stockQty: null,
+          inStock: true,
+          isDefault: true,
+        },
+        {
+          id: null,
+          label: '500 غرام',
+          price: 190000,
+          stockQty: 2,
+          inStock: true,
+          isDefault: false,
+        },
+      ],
+      tiers: [{ minQty: 3, discountPercent: 10 }],
+      detailedInfo: null,
+    });
+    expect(product.success).toBe(false); // أسماء مكررة
+    expect(
+      productInput.safeParse({
+        slug: 'sidr',
+        name: 'عسل سدر',
+        desc: 'وصف كافٍ للمنتج هنا',
+        benefit: null,
+        image: '/images/products/x.webp',
+        badge: null,
+        price: 100000,
+        weight: null,
+        category: 'HONEY',
+        inStock: true,
+        stockQty: null,
+        published: true,
+        sortOrder: 0,
+        relatedIds: [],
+        variants: [],
+        tiers: [
+          { minQty: 3, discountPercent: 10 },
+          { minQty: 3, discountPercent: 20 },
+        ],
+        detailedInfo: null,
+      }).success,
+    ).toBe(false); // شرائح مكررة
   });
 });

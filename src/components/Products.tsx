@@ -1,4 +1,5 @@
 import type { Product } from '@prisma/client';
+import type { CatalogProduct } from '@/lib/products.server';
 import { Droplets, Sparkles } from 'lucide-react';
 import ProductCard from './ProductCard';
 
@@ -33,7 +34,7 @@ export default function Products({
   products,
   mobileCarousel = false,
 }: {
-  products: Product[];
+  products: CatalogProduct[];
   mobileCarousel?: boolean;
 }) {
   if (products.length === 0) {

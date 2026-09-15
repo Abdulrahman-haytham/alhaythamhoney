@@ -1,5 +1,14 @@
 import 'server-only';
+import type { Prisma } from '@prisma/client';
 import { db } from '@/lib/db';
+
+/** ما تحتاجه بطاقات المنتج وصفحته: المتغيّرات وشرائح الكمية مع المنتج */
+export const productListInclude = {
+  variants: { orderBy: { sortOrder: 'asc' } },
+  tiers: { orderBy: { minQty: 'asc' } },
+} satisfies Prisma.ProductInclude;
+
+export type CatalogProduct = Prisma.ProductGetPayload<{ include: typeof productListInclude }>;
 
 /**
  * كل المنتجات المنشورة — المتوفر وغير المتوفر معاً.
@@ -11,11 +20,12 @@ export async function getProducts() {
   return db.product.findMany({
     where: { published: true },
     orderBy: [{ inStock: 'desc' }, { sortOrder: 'asc' }],
+    include: productListInclude,
   });
 }
 
 export async function getProductBySlug(slug: string) {
-  return db.product.findFirst({ where: { slug, published: true } });
+  return db.product.findFirst({ where: { slug, published: true }, include: productListInclude });
 }
 
 /**
@@ -31,7 +41,7 @@ export async function getRelatedProducts(
   const manual = await db.productRelation.findMany({
     where: { productId, related: { published: true } },
     orderBy: { sortOrder: 'asc' },
-    include: { related: true },
+    include: { related: { include: productListInclude } },
   });
   const picked = manual.map((r) => r.related);
   if (picked.length >= limit || !auto) return picked.slice(0, limit);
@@ -44,6 +54,7 @@ export async function getRelatedProducts(
     // ترتيب enum في PostgreSQL: HONEY ثم SUPPLEMENT — فنقلبه حين تكون الفئة SUPPLEMENT
     orderBy: [{ category: category === 'HONEY' ? 'asc' : 'desc' }, { sortOrder: 'asc' }],
     take: limit - picked.length,
+    include: productListInclude,
   });
   return [...picked, ...fill];
 }

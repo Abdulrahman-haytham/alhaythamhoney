@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { ShoppingCart, MessageCircle } from 'lucide-react';
+import { variantCartId } from '@/lib/variants';
 import { useCart } from '@/store/cartStore';
 import { getWhatsAppLink } from '@/lib/config';
 import { trackAddToCart } from '@/lib/analytics';
@@ -51,7 +52,9 @@ export default function ArticleProductCard({ product }: { product: ArticleProduc
               type="button"
               onClick={() => {
                 addItem({
-                  id: product.id,
+                  id: product.variantId ? variantCartId(product.id, product.variantId) : product.id,
+                  productId: product.id,
+                  variantId: product.variantId ?? undefined,
                   slug: product.slug,
                   name: product.name,
                   image: product.image,

@@ -163,6 +163,12 @@ export function SettingsForm({ initial }: { initial: SiteSettingsData }) {
             onChange={(e) => set('freeShippingThreshold', num(e.target.value))}
           />
         </label>
+        <Toggle
+          label="الشحن حسب المحافظة"
+          hint="يختار الزبون محافظته في السلة فيرى تكلفتها ومدة التوصيل من جدول المناطق أدناه. بلا اختيار تُستخدم الأجور الموحّدة."
+          checked={s.shippingZonesEnabled}
+          onChange={(v) => set('shippingZonesEnabled', v)}
+        />
       </Section>
 
       <Section title="الصفحة الأولى (الهيرو)">
@@ -319,6 +325,18 @@ export function SettingsForm({ initial }: { initial: SiteSettingsData }) {
           hint="عطّله لإخفاء الحقل كلياً دون حذف الكوبونات."
           checked={s.couponsEnabled}
           onChange={(v) => set('couponsEnabled', v)}
+        />
+        <Toggle
+          label="خصم الكمية"
+          hint="شرائح «3 فأكثر = خصم X%» المعرّفة على كل منتج — تُطبَّق في السلة وتُعرض في صفحة المنتج."
+          checked={s.tieredPricingEnabled}
+          onChange={(v) => set('tieredPricingEnabled', v)}
+        />
+        <Toggle
+          label="العروض التلقائية"
+          hint="الهدايا والخصومات بلا كود من صفحة «العروض» — تعطيلها يوقفها كلها فوراً."
+          checked={s.promotionsEnabled}
+          onChange={(v) => set('promotionsEnabled', v)}
         />
       </Section>
 

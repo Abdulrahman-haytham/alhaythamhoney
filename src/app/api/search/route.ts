@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { stripHtml } from '@/lib/markdown';
+import { priceFrom } from '@/lib/variants';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,7 +13,15 @@ export async function GET() {
   const [products, mixtures, articles] = await Promise.all([
     db.product.findMany({
       where: { published: true },
-      select: { slug: true, name: true, desc: true, image: true, price: true, inStock: true },
+      select: {
+        slug: true,
+        name: true,
+        desc: true,
+        image: true,
+        price: true,
+        inStock: true,
+        variants: { select: { price: true, inStock: true, stockQty: true } },
+      },
       orderBy: { sortOrder: 'asc' },
     }),
     db.mixture.findMany({
@@ -32,7 +41,16 @@ export async function GET() {
       title: p.name,
       desc: p.desc,
       image: p.image,
-      price: p.price,
+      price: priceFrom({
+        price: p.price,
+        variants: p.variants.map((v) => ({
+          ...v,
+          id: '',
+          label: '',
+          isDefault: false,
+          sortOrder: 0,
+        })),
+      }).price,
       inStock: p.inStock,
       terms: `${p.name} ${p.desc}`.toLowerCase(),
     })),

@@ -1,5 +1,6 @@
 import 'server-only';
 import { db } from '@/lib/db';
+import { defaultVariant, variantAvailable } from '@/lib/variants';
 import { renderMarkdown, stripHtml } from '@/lib/markdown';
 
 export interface ArticleMeta {
@@ -31,6 +32,9 @@ export interface ArticleProduct {
   weight: string | null;
   inStock: boolean;
   stockQty: number | null;
+  /** المتغيّر الافتراضي (إن وُجدت أحجام) — يُضاف من البطاقة مباشرة */
+  variantId: string | null;
+  variantLabel: string | null;
 }
 
 const WORDS_PER_MINUTE = 200;
@@ -122,6 +126,7 @@ export async function getArticleBySlug(
           weight: true,
           inStock: true,
           stockQty: true,
+          variants: { orderBy: { sortOrder: 'asc' } },
         },
       },
     },
@@ -129,5 +134,20 @@ export async function getArticleBySlug(
   if (!row) return null;
   const live = row.published && row.publishedAt <= new Date();
   if (!live && !includeDrafts) return null;
-  return { ...toMeta(row), html: renderMarkdown(row.body), products: row.products };
+  return {
+    ...toMeta(row),
+    html: renderMarkdown(row.body),
+    products: row.products.map(({ variants, ...p }) => {
+      const variant = defaultVariant(variants);
+      return {
+        ...p,
+        price: variant ? variant.price : p.price,
+        weight: variant ? variant.label : p.weight,
+        stockQty: variant ? variant.stockQty : p.stockQty,
+        inStock: p.inStock && (!variant || variantAvailable(variant)),
+        variantId: variant?.id ?? null,
+        variantLabel: variant?.label ?? null,
+      };
+    }),
+  };
 }

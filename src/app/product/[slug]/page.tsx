@@ -1,27 +1,19 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import {
-  CheckCircle2,
-  Heart,
-  Zap,
-  Award,
-  ShieldCheck,
-  Truck,
-  Leaf,
-  MessageCircle,
-} from 'lucide-react';
+import { CheckCircle2, Heart, Zap, Award, ShieldCheck, Truck, Leaf } from 'lucide-react';
 import Link from 'next/link';
 import { ArrowLeft, BookOpen, Sparkles } from 'lucide-react';
 import { getProductBySlug, getRelatedProducts, getProductArticles } from '@/lib/products.server';
+import { getProductPromotionLabels } from '@/lib/promotions.server';
+import { priceFrom, productAvailable } from '@/lib/variants';
 import { getApprovedReviews, getRatingSummary } from '@/lib/reviews.server';
-import { SITE, getWhatsAppLink } from '@/lib/config';
+import { SITE } from '@/lib/config';
 import { getSettings } from '@/lib/settings.server';
-import { isAvailable, lowStockLabel } from '@/lib/settings';
+import { isAvailable } from '@/lib/settings';
 import { ProductReviews } from '@/components/ProductReviews';
 import ProductCard from '@/components/ProductCard';
 import RecentlyViewed, { RecentlyViewedTracker } from '@/components/RecentlyViewed';
-import AddToCartButton from './AddToCartButton';
-import StickyBuyBar from './StickyBuyBar';
+import BuyBox from './BuyBox';
 export const dynamic = 'force-dynamic';
 
 interface DetailedInfo {
@@ -35,10 +27,6 @@ interface DetailedInfo {
 function parseDetailedInfo(value: unknown): DetailedInfo | null {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
   return value as DetailedInfo;
-}
-
-function formatPrice(price: number) {
-  return new Intl.NumberFormat('en-US').format(price);
 }
 
 export async function generateMetadata({
@@ -68,17 +56,19 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   if (!product) notFound();
 
   const settings = await getSettings();
-  const [reviews, rating, related, articles] = await Promise.all([
+  const [reviews, rating, related, articles, promotionLabels] = await Promise.all([
     getApprovedReviews(product.slug),
     getRatingSummary(product.slug),
     getRelatedProducts(product.id, product.category, settings.autoRelatedProducts),
     getProductArticles(product.id),
+    settings.promotionsEnabled ? getProductPromotionLabels(product.id) : Promise.resolve([]),
   ]);
 
-  const available = isAvailable(product);
-  const lowStock = lowStockLabel(product.stockQty, settings.lowStockThreshold);
+  const available = isAvailable(product) && productAvailable(product);
+  const display = priceFrom(product);
   const cartProduct = {
     id: product.id,
+    productId: product.id,
     slug: product.slug,
     name: product.name,
     desc: product.desc,
@@ -97,12 +87,18 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     image: new URL(product.image, SITE.url).href,
     sku: product.slug,
     brand: { '@type': 'Brand', name: SITE.name },
-    ...(product.price != null
+    ...(display.price != null
       ? {
           offers: {
-            '@type': 'Offer',
+            '@type': display.from ? 'AggregateOffer' : 'Offer',
             url: `${SITE.url}/product/${product.slug}`,
-            price: product.price,
+            ...(display.from
+              ? {
+                  lowPrice: display.price,
+                  highPrice: Math.max(...product.variants.map((v) => v.price)),
+                  offerCount: product.variants.length,
+                }
+              : { price: display.price }),
             priceCurrency: 'SYP',
             availability: `https://schema.org/${available ? 'InStock' : 'OutOfStock'}`,
           },
@@ -161,40 +157,17 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               {product.desc}
             </p>
 
-            {product.price != null && (
-              <div className="flex items-center gap-3">
-                <span className="text-3xl font-bold gold-text">{formatPrice(product.price)}</span>
-                <span className="text-zinc-500">ل.س</span>
-                {product.weight && (
-                  <span className="text-zinc-500 border-r border-zinc-700 pr-3">
-                    {product.weight}
-                  </span>
-                )}
-              </div>
-            )}
-
-            {lowStock && (
-              <p className="inline-flex items-center gap-2 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-1.5 text-sm font-bold text-red-300">
-                <span className="h-2 w-2 animate-pulse rounded-full bg-red-400" />
-                {lowStock} — اطلبه قبل أن ينفد
-              </p>
-            )}
-
-            {/* Action Buttons */}
-            <div className="space-y-3" id="buy-box">
-              <AddToCartButton available={available} product={cartProduct} />
-              <a
-                href={getWhatsAppLink(
-                  `مرحباً عسل الهيثم، أود الاستفسار عن المنتج المعروض في الموقع: ${product.name}`,
-                )}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full flex items-center justify-center gap-2 border border-amber-500/30 text-amber-400 py-3.5 rounded-xl font-bold hover:bg-amber-500/10 transition-all"
-              >
-                <MessageCircle className="w-5 h-5" />
-                <span>اطلب الآن عبر واتساب</span>
-              </a>
-            </div>
+            <BuyBox
+              product={cartProduct}
+              stockQty={product.stockQty}
+              variants={product.variants}
+              tiers={product.tiers.map((t) => ({
+                minQty: t.minQty,
+                discountPercent: t.discountPercent,
+              }))}
+              promotionLabels={promotionLabels}
+              available={available}
+            />
 
             {/* Trust Badges */}
             <div className="grid grid-cols-3 gap-4 py-6 border-y border-white/5">
@@ -356,10 +329,9 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           slug: product.slug,
           name: product.name,
           image: product.image,
-          price: product.price,
+          price: display.price,
         }}
       />
-      <StickyBuyBar product={cartProduct} available={available} anchorId="buy-box" />
     </div>
   );
 }

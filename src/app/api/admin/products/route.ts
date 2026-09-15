@@ -5,21 +5,31 @@ import { guardAdmin } from '@/lib/admin-request';
 import { readJson } from '@/lib/request-security';
 import { productInput } from '@/lib/validation';
 import { logAudit } from '@/lib/audit.server';
+import { syncTiers, syncVariants, toProductScalars } from '@/lib/products.admin';
 
 export async function POST(request: Request) {
   const denied = await guardAdmin(request);
   if (denied) return denied;
-  const parsed = productInput.safeParse(await readJson(request, 32 * 1024));
+  const parsed = productInput.safeParse(await readJson(request, 64 * 1024));
   if (!parsed.success)
-    return NextResponse.json({ error: 'تحقق من الحقول ورابط الصورة.' }, { status: 400 });
+    return NextResponse.json(
+      { error: parsed.error.issues[0]?.message || 'تحقق من الحقول ورابط الصورة.' },
+      { status: 400 },
+    );
   try {
-    const { relatedIds, ...data } = parsed.data;
-    const product = await db.product.create({
-      data: {
-        ...data,
-        detailedInfo: data.detailedInfo ?? Prisma.DbNull,
-        related: { create: relatedIds.map((relatedId, sortOrder) => ({ relatedId, sortOrder })) },
-      },
+    const { relatedIds, variants, tiers } = parsed.data;
+    const product = await db.$transaction(async (tx) => {
+      const created = await tx.product.create({
+        data: {
+          ...toProductScalars(parsed.data),
+          related: {
+            create: relatedIds.map((relatedId, sortOrder) => ({ relatedId, sortOrder })),
+          },
+        },
+      });
+      await syncVariants(tx, created.id, variants);
+      await syncTiers(tx, created.id, tiers);
+      return created;
     });
     await logAudit({
       entity: 'product',

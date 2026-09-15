@@ -4,7 +4,10 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
 export interface CartProduct {
+  /** معرّف البند: المنتج، أو `<productId>@<variantId>` لمتغيّر، أو mix:… لخلطة */
   id: string;
+  productId?: string;
+  variantId?: string;
   slug?: string;
   name: string;
   desc?: string | null;
@@ -33,12 +36,15 @@ interface CartState {
   updatedAt: number | null;
   /** كوبون كتبه الزبون؛ يُتحقق منه عند كل عرض للسلة */
   couponCode: string | null;
+  /** منطقة الشحن المختارة (إن فعّل الأدمن الشحن حسب المحافظة) */
+  zoneId: string | null;
   lastAdded: LastAdded | null;
   addItem: (product: CartProduct, quantity?: number) => void;
   removeItem: (id: string) => void;
   updateQuantity: (id: string, quantity: number) => void;
   clearCart: () => void;
   setCoupon: (code: string | null) => void;
+  setZone: (zoneId: string | null) => void;
   dismissLastAdded: () => void;
   getTotalItems: () => number;
   getTotalPrice: () => number;
@@ -50,6 +56,7 @@ export const useCart = create<CartState>()(
       items: [],
       updatedAt: null,
       couponCode: null,
+      zoneId: null,
       lastAdded: null,
       addItem: (product, quantity = 1) =>
         set((state) => {
@@ -84,6 +91,7 @@ export const useCart = create<CartState>()(
         ),
       clearCart: () => set({ items: [], updatedAt: Date.now(), couponCode: null }),
       setCoupon: (couponCode) => set({ couponCode }),
+      setZone: (zoneId) => set({ zoneId }),
       dismissLastAdded: () => set({ lastAdded: null }),
       getTotalItems: () => get().items.reduce((sum, item) => sum + item.quantity, 0),
       getTotalPrice: () =>
@@ -92,7 +100,12 @@ export const useCart = create<CartState>()(
     {
       name: 'alhaytham-cart',
       // lastAdded حالة عابرة للواجهة — لا تُحفظ حتى لا يظهر التوست عند إعادة الفتح
-      partialize: (s) => ({ items: s.items, updatedAt: s.updatedAt, couponCode: s.couponCode }),
+      partialize: (s) => ({
+        items: s.items,
+        updatedAt: s.updatedAt,
+        couponCode: s.couponCode,
+        zoneId: s.zoneId,
+      }),
     },
   ),
 );

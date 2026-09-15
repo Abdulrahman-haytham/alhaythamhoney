@@ -16,6 +16,8 @@ import {
   Loader2,
   PackageCheck,
   AlertTriangle,
+  Gift,
+  MapPin,
 } from 'lucide-react';
 import { useCart } from '@/store/cartStore';
 import { getWhatsAppLink } from '@/lib/config';
@@ -170,6 +172,8 @@ export function CartClient() {
   const settings = useSettings();
   const couponCode = useCart((s) => s.couponCode);
   const setCoupon = useCart((s) => s.setCoupon);
+  const zoneId = useCart((s) => s.zoneId);
+  const setZone = useCart((s) => s.setZone);
   const [serverQuote, setServerQuote] = useState<Quote | null>(null);
   const [quoting, setQuoting] = useState(false);
   const [quoteError, setQuoteError] = useState<string | null>(null);
@@ -188,6 +192,7 @@ export function CartClient() {
         body: JSON.stringify({
           items: items.map(({ id, quantity }) => ({ id, quantity })),
           couponCode,
+          zoneId,
         }),
       })
         .then((r) => (r.ok ? (r.json() as Promise<Quote>) : Promise.reject(new Error())))
@@ -213,7 +218,7 @@ export function CartClient() {
       clearTimeout(timer);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mounted, signature, couponCode]);
+  }, [mounted, signature, couponCode, zoneId]);
 
   if (!mounted) {
     return (
@@ -252,7 +257,8 @@ export function CartClient() {
   const localQuote = buildQuote({
     lines: items.map((i) => ({
       cartId: i.id,
-      productId: i.recipe ? null : i.id,
+      productId: i.recipe ? null : (i.productId ?? i.id),
+      variantId: i.variantId ?? null,
       name: i.name,
       unitPrice: i.price ?? 0,
       quantity: i.quantity,
@@ -267,7 +273,14 @@ export function CartClient() {
   const stale =
     !serverQuote ||
     serverQuote.lines.map((l) => `${l.cartId}:${l.quantity}`).join('|') !== signature;
-  const quote = stale ? { ...localQuote, coupon: serverQuote?.coupon ?? null } : serverQuote;
+  const quote = stale
+    ? {
+        ...localQuote,
+        coupon: serverQuote?.coupon ?? null,
+        zones: serverQuote?.zones ?? [],
+        zoneId: serverQuote?.zoneId ?? zoneId,
+      }
+    : serverQuote;
   const afterDiscount = quote.subtotal - quote.discount;
 
   function placeOrder() {
@@ -286,6 +299,7 @@ export function CartClient() {
         reference,
         items: items.map(({ id, quantity }) => ({ id, quantity })),
         couponCode: quote.coupon?.ok ? quote.coupon.code : null,
+        zoneId: quote.zoneId,
       }),
       keepalive: true,
     }).catch(() => null);
@@ -402,6 +416,29 @@ export function CartClient() {
             );
           })}
         </ul>
+
+        {quote.gifts.length > 0 && (
+          <div className="rounded-2xl border border-green-500/30 bg-green-500/5 p-4">
+            <p className="mb-2 flex items-center gap-2 text-sm font-bold text-green-300">
+              <Gift className="h-4 w-4" /> هدايا مع طلبك
+            </p>
+            <ul className="space-y-2">
+              {quote.gifts.map((g) => (
+                <li key={g.promotionId + g.productId} className="flex items-center gap-3 text-sm">
+                  {g.image && (
+                    <img src={g.image} alt="" className="h-10 w-10 rounded-lg object-cover" />
+                  )}
+                  <span className="text-white">
+                    {g.name} × {g.quantity}
+                  </span>
+                  <span className="mr-auto text-xs text-zinc-400">
+                    {g.label} · بقيمة {fmt(g.value)} ل.س
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
 
       <aside className="lg:col-span-1">
@@ -427,6 +464,26 @@ export function CartClient() {
                 <dd className="shrink-0 tabular-nums">-{fmt(a.amount)} ل.س</dd>
               </div>
             ))}
+            {quote.zones.length > 0 && (
+              <label className="block">
+                <span className="mb-1 flex items-center gap-1.5 text-xs text-zinc-400">
+                  <MapPin className="h-3.5 w-3.5" /> محافظة التوصيل
+                </span>
+                <select
+                  value={quote.zoneId ?? ''}
+                  onChange={(e) => setZone(e.target.value || null)}
+                  aria-label="محافظة التوصيل"
+                  className="h-10 w-full rounded-xl border border-zinc-700 bg-zinc-950 px-3 text-sm text-white focus:border-amber-500/50 focus:outline-none"
+                >
+                  <option value="">اختر المحافظة…</option>
+                  {quote.zones.map((z) => (
+                    <option key={z.id} value={z.id}>
+                      {z.name} — {fmt(z.cost)} ل.س{z.etaText ? ` · ${z.etaText}` : ''}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
             <div className="flex justify-between text-zinc-300">
               <dt className="flex items-center gap-1.5">
                 <Truck className="h-4 w-4 text-zinc-500" />

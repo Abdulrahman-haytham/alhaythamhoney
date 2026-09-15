@@ -4,7 +4,8 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { ShoppingCart, Eye, Heart, Check, BellRing } from 'lucide-react';
-import type { Product } from '@prisma/client';
+import type { CatalogProduct } from '@/lib/products.server';
+import { defaultVariant, priceFrom, productAvailable, variantCartId } from '@/lib/variants';
 import { useCart } from '@/store/cartStore';
 import { useWishlist } from '@/store/wishlistStore';
 import { getWhatsAppLink } from '@/lib/config';
@@ -22,26 +23,32 @@ function formatPrice(price: number) {
  * القلب فوق الصورة، والوصف وزر «تفاصيل» يظهران من sm فأعلى فقط —
  * الصورة والاسم يصلان لصفحة المنتج، فلا داعي لزر ثالث في 160 بكسل.
  */
-export default function ProductCard({ product }: { product: Product }) {
+export default function ProductCard({ product }: { product: CatalogProduct }) {
   const { addItem } = useCart();
   const { addItem: addWishlist, removeItem: removeWishlist, isWishlisted } = useWishlist();
   const hydrated = useHydrated();
   const wishlisted = hydrated && isWishlisted(product.id);
   const { lowStockThreshold } = useSettings();
   // inStock من الأدمن + الكمية المتتبَّعة (0 = نفد) — والشارة «بقي X» تحت العتبة
-  const available = isAvailable(product);
-  const lowStock = lowStockLabel(product.stockQty, lowStockThreshold);
-  const canOrder = available && product.price !== null;
+  const variants = product.variants ?? [];
+  const variant = defaultVariant(variants);
+  const available = isAvailable(product) && productAvailable(product);
+  const lowStock = lowStockLabel(variant ? variant.stockQty : product.stockQty, lowStockThreshold);
+  const display = priceFrom(product);
+  const canOrder = available && display.price !== null;
   const [added, setAdded] = useState(false);
 
+  // مع المتغيّرات تضيف البطاقة المتغيّر الافتراضي؛ التبديل بينها في صفحة المنتج
   const cartProduct = {
-    id: product.id,
+    id: variant ? variantCartId(product.id, variant.id) : product.id,
+    productId: product.id,
+    variantId: variant?.id,
     slug: product.slug,
     name: product.name,
     desc: product.desc,
     image: product.image,
-    price: product.price,
-    weight: product.weight,
+    price: variant ? variant.price : product.price,
+    weight: variant ? variant.label : product.weight,
     badge: product.badge,
     benefit: product.benefit,
   };
@@ -49,7 +56,7 @@ export default function ProductCard({ product }: { product: Product }) {
   function handleAdd() {
     if (!canOrder) return;
     addItem(cartProduct);
-    trackAddToCart({ id: product.id, name: product.name, price: product.price ?? undefined });
+    trackAddToCart({ id: product.id, name: product.name, price: cartProduct.price ?? undefined });
     setAdded(true);
     setTimeout(() => setAdded(false), 1600);
   }
@@ -126,16 +133,23 @@ export default function ProductCard({ product }: { product: Product }) {
           {product.desc}
         </p>
 
-        {product.price != null && (
+        {display.price != null && (
           <div className="mt-2.5 sm:mt-0 sm:mb-4 sm:flex sm:items-center sm:justify-between">
             <p className="leading-none">
+              {display.from && (
+                <span className="ml-1 text-[10px] text-zinc-500 sm:text-xs">يبدأ من</span>
+              )}
               <span className="gold-text text-lg font-bold tabular-nums sm:text-2xl">
-                {formatPrice(product.price)}
+                {formatPrice(display.price)}
               </span>
               <span className="mr-1 text-[11px] text-zinc-500 sm:text-sm">ل.س</span>
             </p>
-            {product.weight && (
-              <p className="mt-1 text-[10px] text-zinc-500 sm:mt-0 sm:text-sm">{product.weight}</p>
+            {(variants.length > 0 || product.weight) && (
+              <p className="mt-1 text-[10px] text-zinc-500 sm:mt-0 sm:text-sm">
+                {variants.length > 1
+                  ? `${variants.length} أحجام`
+                  : (variant?.label ?? product.weight)}
+              </p>
             )}
           </div>
         )}
@@ -163,7 +177,7 @@ export default function ProductCard({ product }: { product: Product }) {
               }`}
             >
               {added ? <Check className="h-4 w-4" /> : <ShoppingCart className="h-4 w-4" />}
-              {product.price === null ? 'استفسر عن السعر' : added ? 'أُضيف' : 'أضف للسلة'}
+              {display.price === null ? 'استفسر عن السعر' : added ? 'أُضيف' : 'أضف للسلة'}
             </button>
           ) : (
             <a

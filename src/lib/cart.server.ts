@@ -3,6 +3,8 @@ import { db } from '@/lib/db';
 import { computePrice, describeRecipe } from '@/lib/mixturePricing';
 import { getHoneyOptions } from '@/lib/mixtures.server';
 import { isAvailable } from '@/lib/settings';
+import { parseCartId, variantAvailable } from '@/lib/variants';
+import type { PricingLine } from '@/lib/pricing';
 
 /** ما يرسله المتصفح: معرّف البند في السلة وكميته فقط — السعر يُحسب هنا. */
 export interface CartLineInput {
@@ -10,16 +12,7 @@ export interface CartLineInput {
   quantity: number;
 }
 
-export interface ResolvedLine {
-  cartId: string;
-  productId: string | null;
-  name: string;
-  unitPrice: number;
-  quantity: number;
-  weight: string | null;
-  image: string | null;
-  recipe: string | null;
-}
+export type ResolvedLine = PricingLine;
 
 const MIX_PREFIX = 'mix:';
 
@@ -56,6 +49,7 @@ async function resolveMixture(cartId: string): Promise<Omit<ResolvedLine, 'quant
   return {
     cartId,
     productId: null,
+    variantId: null,
     name: `خلطة ${mixture.name}`,
     unitPrice: price.total,
     weight: `${size} غرام`,
@@ -68,10 +62,17 @@ async function resolveMixture(cartId: string): Promise<Omit<ResolvedLine, 'quant
  * يحوّل بنود السلة إلى أسطر مسعّرة من قاعدة البيانات. البنود التي لم تعد متاحة
  * (حُذفت، أُخفيت، نفدت) تُسقَط وتُعاد أسماؤها ليخبر المتصفح الزبون.
  */
-export async function resolveCartLines(items: CartLineInput[]) {
-  const productIds = items.filter((i) => !i.id.startsWith(MIX_PREFIX)).map((i) => i.id);
+export async function resolveCartLines(items: CartLineInput[], tiersEnabled: boolean) {
+  const productIds = [
+    ...new Set(
+      items.filter((i) => !i.id.startsWith(MIX_PREFIX)).map((i) => parseCartId(i.id).productId),
+    ),
+  ];
   const products = productIds.length
-    ? await db.product.findMany({ where: { id: { in: productIds }, published: true } })
+    ? await db.product.findMany({
+        where: { id: { in: productIds }, published: true },
+        include: { variants: true, tiers: { orderBy: { minQty: 'asc' } } },
+      })
     : [];
   const lines: ResolvedLine[] = [];
   const dropped: { cartId: string; name: string }[] = [];
@@ -82,20 +83,44 @@ export async function resolveCartLines(items: CartLineInput[]) {
       else dropped.push({ cartId: item.id, name: 'خلطة مخصّصة' });
       continue;
     }
-    const product = products.find((p) => p.id === item.id);
-    if (!product || product.price == null || !isAvailable(product)) {
+    const { productId, variantId } = parseCartId(item.id);
+    const product = products.find((p) => p.id === productId);
+    if (!product || !isAvailable(product)) {
       dropped.push({ cartId: item.id, name: product?.name ?? 'منتج' });
+      continue;
+    }
+    const tiers = tiersEnabled
+      ? product.tiers.map((t) => ({ minQty: t.minQty, discountPercent: t.discountPercent }))
+      : [];
+    const variant = variantId ? product.variants.find((v) => v.id === variantId) : null;
+    if (variantId && (!variant || !variantAvailable(variant))) {
+      dropped.push({
+        cartId: item.id,
+        name: `${product.name}${variant ? ` (${variant.label})` : ''}`,
+      });
+      continue;
+    }
+    // منتج له متغيّرات لكن البند القديم بلا متغيّر (أُضيف قبل إنشائها) — يُسقَط ليُعاد اختياره
+    if (!variant && product.variants.length > 0) {
+      dropped.push({ cartId: item.id, name: product.name });
+      continue;
+    }
+    const unitPrice = variant ? variant.price : product.price;
+    if (unitPrice == null) {
+      dropped.push({ cartId: item.id, name: product.name });
       continue;
     }
     lines.push({
       cartId: item.id,
       productId: product.id,
+      variantId: variant?.id ?? null,
       name: product.name,
-      unitPrice: product.price,
+      unitPrice,
       quantity: item.quantity,
-      weight: product.weight,
+      weight: variant ? variant.label : product.weight,
       image: product.image,
       recipe: null,
+      tiers,
     });
   }
   return { lines, dropped };
