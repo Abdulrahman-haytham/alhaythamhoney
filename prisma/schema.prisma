@@ -428,6 +428,12 @@ model Customer {
   referredById       String?
   referredBy         Customer?           @relation("Referrals", fields: [referredById], references: [id], onDelete: SetNull)
   referrals          Customer[]          @relation("Referrals")
+  /// نسخة السلة الأخيرة للمسجّل (لبريد السلة المتروكة) وتوقيتها وآخر تذكير
+  cartJson           Json?
+  cartUpdatedAt      DateTime?
+  cartRemindedAt     DateTime?
+  /// رمز إلغاء الاشتراك في الرسائل (رابط في كل حملة)
+  unsubscribeToken   String?             @unique
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
   reviews            Review[]

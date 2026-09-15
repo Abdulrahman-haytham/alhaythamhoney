@@ -2,6 +2,12 @@
 CREATE TYPE "CampaignStatus" AS ENUM ('DRAFT', 'SENDING', 'SENT');
 
 -- AlterTable
+ALTER TABLE "customers" ADD COLUMN     "cartJson" JSONB,
+ADD COLUMN     "cartRemindedAt" TIMESTAMP(3),
+ADD COLUMN     "cartUpdatedAt" TIMESTAMP(3),
+ADD COLUMN     "unsubscribeToken" TEXT;
+
+-- AlterTable
 ALTER TABLE "site_settings" ADD COLUMN     "abandonedCartEmailEnabled" BOOLEAN NOT NULL DEFAULT false,
 ADD COLUMN     "abandonedCartHours" INTEGER NOT NULL DEFAULT 24;
 
@@ -46,6 +52,9 @@ CREATE INDEX "campaign_recipients_campaignId_sentAt_idx" ON "campaign_recipients
 
 -- CreateIndex
 CREATE UNIQUE INDEX "campaign_recipients_campaignId_customerId_key" ON "campaign_recipients"("campaignId", "customerId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "customers_unsubscribeToken_key" ON "customers"("unsubscribeToken");
 
 -- AddForeignKey
 ALTER TABLE "campaign_recipients" ADD CONSTRAINT "campaign_recipients_campaignId_fkey" FOREIGN KEY ("campaignId") REFERENCES "campaigns"("id") ON DELETE CASCADE ON UPDATE CASCADE;

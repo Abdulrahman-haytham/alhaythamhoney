@@ -28,16 +28,10 @@ const inputClass =
   'mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-white placeholder:text-zinc-600 focus:border-amber-500/50 focus:outline-none';
 const dateFmt = new Intl.DateTimeFormat('ar-SY', { dateStyle: 'medium', timeStyle: 'short' });
 
-function Editor({
-  campaign,
-  adminEmail,
-  onDone,
-}: {
-  campaign?: CampaignRow;
-  adminEmail: string | null;
-  onDone?: () => void;
-}) {
+function Editor({ campaign, adminEmail }: { campaign?: CampaignRow; adminEmail: string | null }) {
   const router = useRouter();
+  // معرّف الحملة بعد أول حفظ — حتى لا تُنشأ نسخة جديدة مع كل زر
+  const [id, setId] = useState<string | null>(campaign?.id ?? null);
   const [subject, setSubject] = useState(campaign?.subject ?? '');
   const [body, setBody] = useState(campaign?.body ?? '');
   const [tab, setTab] = useState<'write' | 'preview'>('write');
@@ -46,19 +40,17 @@ function Editor({
   const [busy, setBusy] = useState<'' | 'save' | 'test' | 'send'>('');
   const [message, setMessage] = useState<{ text: string; ok: boolean } | null>(null);
   const [progress, setProgress] = useState<{ sent: number; remaining: number } | null>(null);
+  const [done, setDone] = useState(campaign?.status === 'SENT');
   const locked = campaign ? campaign.status !== 'DRAFT' : false;
 
   async function save(): Promise<string | null> {
     setBusy('save');
     setMessage(null);
-    const res = await fetch(
-      campaign ? `/api/admin/campaigns/${campaign.id}` : '/api/admin/campaigns',
-      {
-        method: campaign ? 'PATCH' : 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ subject, body }),
-      },
-    ).catch(() => null);
+    const res = await fetch(id ? `/api/admin/campaigns/${id}` : '/api/admin/campaigns', {
+      method: id ? 'PATCH' : 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ subject, body }),
+    }).catch(() => null);
     const data = res ? await res.json().catch(() => ({})) : {};
     setBusy('');
     if (!res?.ok) {
@@ -66,8 +58,10 @@ function Editor({
       return null;
     }
     setMessage({ text: 'تم الحفظ.', ok: true });
+    const savedId = id ?? (data.id as string);
+    setId(savedId);
     router.refresh();
-    return campaign?.id ?? (data.id as string);
+    return savedId;
   }
 
   async function showPreview() {
@@ -82,10 +76,10 @@ function Editor({
   }
 
   async function sendTest() {
-    const id = locked ? campaign!.id : await save();
-    if (!id) return;
+    const cid = locked ? id : await save();
+    if (!cid) return;
     setBusy('test');
-    const res = await fetch(`/api/admin/campaigns/${id}/test`, {
+    const res = await fetch(`/api/admin/campaigns/${cid}/test`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: testEmail }),
@@ -101,13 +95,13 @@ function Editor({
 
   async function sendAll() {
     if (!confirm('إرسال الحملة إلى كل الموافقين على العروض الآن؟ لا يمكن التراجع.')) return;
-    const id = locked ? campaign!.id : await save();
-    if (!id) return;
+    const cid = locked ? id : await save();
+    if (!cid) return;
     setBusy('send');
     let sentTotal = campaign?.sentCount ?? 0;
     // دفعات متتالية حتى ينتهي الإرسال — يظهر التقدّم للأدمن
     for (let guard = 0; guard < 500; guard++) {
-      const res = await fetch(`/api/admin/campaigns/${id}/send`, { method: 'POST' }).catch(
+      const res = await fetch(`/api/admin/campaigns/${cid}/send`, { method: 'POST' }).catch(
         () => null,
       );
       const data = res ? await res.json().catch(() => ({})) : {};
@@ -119,12 +113,12 @@ function Editor({
       setProgress({ sent: sentTotal, remaining: data.remaining });
       if (data.remaining === 0) {
         setMessage({ text: `اكتمل الإرسال: ${sentTotal} رسالة.`, ok: true });
+        setDone(true);
         break;
       }
     }
     setBusy('');
     router.refresh();
-    onDone?.();
   }
 
   async function remove() {
@@ -215,7 +209,7 @@ function Editor({
             <FlaskConical className="h-3.5 w-3.5" /> رسالة تجريبية
           </button>
         </div>
-        {campaign?.status !== 'SENT' && (
+        {!done && (
           <button
             type="button"
             onClick={sendAll}
@@ -270,7 +264,7 @@ export function CampaignsPanel({
       >
         {creating ? 'إلغاء' : '+ حملة جديدة'}
       </button>
-      {creating && <Editor adminEmail={adminEmail} onDone={() => setCreating(false)} />}
+      {creating && <Editor adminEmail={adminEmail} />}
       {campaigns.map((c) => {
         const st = STATUS[c.status];
         const openRate = c.sentCount ? Math.round((c.openCount / c.sentCount) * 100) : 0;

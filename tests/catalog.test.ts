@@ -16,6 +16,8 @@ import {
   stockAlertInput,
   registerInput,
   pointsAdjustInput,
+  campaignInput,
+  cartSyncInput,
 } from '@/lib/validation';
 import {
   createSessionToken,
@@ -47,6 +49,7 @@ import {
 } from '@/lib/variants';
 import { diffRecords } from '@/lib/audit.server';
 import { pointsForAmount, redeemablePoints } from '@/lib/loyalty';
+import { campaignHtml } from '@/lib/campaigns.server';
 import {
   bundleAvailable,
   bundleComponentsValue,
@@ -930,5 +933,29 @@ describe('loyalty, referral and personal coupons', () => {
     ).toBe('AB2C3D');
     expect(pointsAdjustInput.safeParse({ delta: 0, note: 'تصحيح' }).success).toBe(false);
     expect(pointsAdjustInput.safeParse({ delta: -5, note: 'تصحيح' }).success).toBe(true);
+  });
+});
+
+describe('campaigns and cart sync', () => {
+  it('wraps campaign html with unsubscribe link and tracking pixel', () => {
+    const html = campaignHtml('<p>مرحباً</p>', {
+      unsubscribeUrl: 'https://x/unsubscribe?t=abc',
+      pixelUrl: 'https://x/api/c/abc',
+    });
+    expect(html).toContain('https://x/unsubscribe?t=abc');
+    expect(html).toContain('<img src="https://x/api/c/abc"');
+    expect(campaignHtml('<p>x</p>', { unsubscribeUrl: 'u' })).not.toContain('<img');
+  });
+  it('validates campaign and cart-sync payloads', () => {
+    expect(campaignInput.safeParse({ subject: 'عرض', body: 'قصير' }).success).toBe(false);
+    expect(
+      campaignInput.safeParse({ subject: 'وصل السدر', body: 'نص كافٍ للحملة البريدية' }).success,
+    ).toBe(true);
+    expect(
+      cartSyncInput.safeParse({
+        items: [{ id: 'p', name: 'عسل', quantity: 2, price: 1000, image: null }],
+      }).success,
+    ).toBe(true);
+    expect(cartSyncInput.safeParse({ items: [{ id: 'p', quantity: 0 }] }).success).toBe(false);
   });
 });
