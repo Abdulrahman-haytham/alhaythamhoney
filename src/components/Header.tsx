@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { DUR, EASE } from '@/lib/motion';
 import { useHydrated } from '@/lib/useHydrated';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -19,7 +21,7 @@ import {
   UserRound,
   Gift,
 } from 'lucide-react';
-import { SITE, getWhatsAppLink } from '@/lib/config';
+import { SITE, getWhatsAppLink, yearsOfExperience } from '@/lib/config';
 import { useCart } from '@/store/cartStore';
 import { useWishlist } from '@/store/wishlistStore';
 import { useSettings } from '@/components/SettingsProvider';
@@ -42,6 +44,23 @@ function SkipLink() {
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  // شفاف في أعلى الصفحة، ثم زجاجي داكن بعد التمرير — الانتقال نفسه متحرك عبر CSS
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    let ticking = false;
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        setScrolled(window.scrollY > 24);
+        ticking = false;
+      });
+    };
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+  const solid = scrolled || mobileMenuOpen;
   const settings = useSettings();
   const customer = useCustomer();
   const mounted = useHydrated();
@@ -113,7 +132,11 @@ export default function Header() {
             )}
           </div>
         ) : (
-          <div className="bg-black border-b border-amber-900/30 py-1.5 sm:py-2 px-3 sm:px-4 text-[10px] sm:text-xs md:text-sm font-light tracking-wide overflow-hidden">
+          <div
+            className={`border-b py-1.5 px-3 text-[10px] font-light tracking-wide overflow-hidden transition-colors duration-300 sm:py-2 sm:px-4 sm:text-xs md:text-sm ${
+              solid ? 'bg-black border-amber-900/30' : 'bg-black/30 border-transparent'
+            }`}
+          >
             {/* عرض متحرك للجوال */}
             <div className="md:hidden w-full relative">
               <div className="animate-marquee whitespace-nowrap">
@@ -123,7 +146,7 @@ export default function Header() {
                 </div>
                 <div className="inline-flex items-center gap-1.5 mx-3 text-amber-200/80">
                   <Award className="w-3.5 h-3.5 text-amber-500" />
-                  <span>خبرة عائلية +25 عاماً</span>
+                  <span>خبرة عائلية +{yearsOfExperience()} عاماً</span>
                 </div>
                 <div className="inline-flex items-center gap-1.5 mx-3 text-amber-200/80">
                   <Truck className="w-3.5 h-3.5 text-amber-500" />
@@ -141,7 +164,7 @@ export default function Header() {
               <div className="w-px h-4 bg-amber-900/50"></div>
               <div className="flex items-center gap-2">
                 <Award className="w-4 h-4 text-amber-500" />
-                <span>خبرة عائلية +25 عاماً</span>
+                <span>خبرة عائلية +{yearsOfExperience()} عاماً</span>
               </div>
               <div className="w-px h-4 bg-amber-900/50"></div>
               <div className="flex items-center gap-2">
@@ -155,7 +178,11 @@ export default function Header() {
 
         {/* التنقل الرئيسي */}
         <nav
-          className="bg-zinc-950/80 backdrop-blur-md border-b border-amber-900/20 py-1.5 sm:py-2 px-3 sm:px-4 md:px-6"
+          className={`border-b py-1.5 px-3 transition-[background-color,border-color,backdrop-filter] duration-300 ease-out sm:py-2 sm:px-4 md:px-6 ${
+            solid
+              ? 'bg-zinc-950/90 border-amber-900/20 md:bg-zinc-950/75 md:backdrop-blur-md'
+              : 'bg-transparent border-transparent'
+          }`}
           aria-label="التنقل الرئيسي"
         >
           <div className="container mx-auto flex justify-between items-center">
@@ -186,7 +213,7 @@ export default function Header() {
             </Link>
 
             {/* روابط سطح المكتب */}
-            <div className="hidden md:flex gap-5 xl:gap-8 text-sm font-medium text-zinc-400 whitespace-nowrap">
+            <div className="nav-links hidden md:flex gap-5 xl:gap-8 text-sm font-medium text-zinc-400 whitespace-nowrap">
               <Link
                 href="/shop"
                 className="flex items-center gap-2 hover:text-amber-500 transition-colors"
@@ -300,111 +327,120 @@ export default function Header() {
             </div>
 
             {/* قائمة الجوال المنبثقة */}
-            {mobileMenuOpen && (
-              <div className="md:hidden absolute top-full left-0 right-0 bg-zinc-950/95 backdrop-blur-md border-b border-amber-900/20 h-screen overflow-y-auto pb-20">
-                <div className="flex flex-col py-6 px-6 gap-5">
-                  <Link
-                    href="/shop"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center gap-4 text-zinc-300 hover:text-amber-500 transition-colors py-3 text-lg border-b border-zinc-800/50"
-                  >
-                    <Store className="w-6 h-6 text-amber-500" />
-                    <span className="font-medium">المتجر</span>
-                  </Link>
-                  <Link
-                    href="/studio"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center gap-4 text-zinc-300 hover:text-amber-500 transition-colors py-3 text-lg border-b border-zinc-800/50"
-                  >
-                    <Camera className="w-6 h-6 text-amber-500" />
-                    <span className="font-medium">استديو الهيثم</span>
-                  </Link>
-                  <Link
-                    href="/articles"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="text-zinc-300 hover:text-amber-500 transition-colors py-3 text-lg border-b border-zinc-800/50"
-                  >
-                    المدونة
-                  </Link>
-                  <Link
-                    href="/custom-mixtures"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="text-zinc-300 hover:text-amber-500 transition-colors py-3 text-lg border-b border-zinc-800/50"
-                  >
-                    الخلطات الخاصة
-                  </Link>
-                  <Link
-                    href="/draw"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center gap-4 text-amber-300 hover:text-amber-200 transition-colors py-3 text-lg border-b border-zinc-800/50"
-                  >
-                    <Gift className="w-6 h-6 text-amber-500" />
-                    <span className="font-medium">السحب الأسبوعي</span>
-                  </Link>
-                  <Link
-                    href={customer ? '/account' : '/account/login'}
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center gap-4 text-zinc-300 hover:text-amber-500 transition-colors py-3 text-lg border-b border-zinc-800/50"
-                  >
-                    <UserRound className="w-6 h-6 text-amber-500" />
-                    <span className="font-medium">
-                      {customer ? `حسابي — ${customer.name}` : 'تسجيل الدخول'}
-                    </span>
-                  </Link>
-                  <Link
-                    href="/about-us"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="text-zinc-300 hover:text-amber-500 transition-colors py-3 text-lg border-b border-zinc-800/50"
-                  >
-                    حكايتنا
-                  </Link>
-                  <Link
-                    href="/quality-standards"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="text-zinc-300 hover:text-amber-500 transition-colors py-3 text-lg border-b border-zinc-800/50"
-                  >
-                    الجودة
-                  </Link>
-                  <Link
-                    href="/faq"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="text-zinc-300 hover:text-amber-500 transition-colors py-3 text-lg border-b border-zinc-800/50"
-                  >
-                    الأسئلة الشائعة
-                  </Link>
+            <AnimatePresence>
+              {mobileMenuOpen && (
+                <motion.div
+                  key="mobile-menu"
+                  initial={{ opacity: 0, y: -8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -6 }}
+                  transition={{ duration: DUR.fast, ease: EASE }}
+                  className="md:hidden absolute top-full left-0 right-0 bg-zinc-950/97 border-b border-amber-900/20 h-screen overflow-y-auto pb-20"
+                >
+                  <div className="flex flex-col py-6 px-6 gap-5">
+                    <Link
+                      href="/shop"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex items-center gap-4 text-zinc-300 hover:text-amber-500 transition-colors py-3 text-lg border-b border-zinc-800/50"
+                    >
+                      <Store className="w-6 h-6 text-amber-500" />
+                      <span className="font-medium">المتجر</span>
+                    </Link>
+                    <Link
+                      href="/studio"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex items-center gap-4 text-zinc-300 hover:text-amber-500 transition-colors py-3 text-lg border-b border-zinc-800/50"
+                    >
+                      <Camera className="w-6 h-6 text-amber-500" />
+                      <span className="font-medium">استديو الهيثم</span>
+                    </Link>
+                    <Link
+                      href="/articles"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="text-zinc-300 hover:text-amber-500 transition-colors py-3 text-lg border-b border-zinc-800/50"
+                    >
+                      المدونة
+                    </Link>
+                    <Link
+                      href="/custom-mixtures"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="text-zinc-300 hover:text-amber-500 transition-colors py-3 text-lg border-b border-zinc-800/50"
+                    >
+                      الخلطات الخاصة
+                    </Link>
+                    <Link
+                      href="/draw"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex items-center gap-4 text-amber-300 hover:text-amber-200 transition-colors py-3 text-lg border-b border-zinc-800/50"
+                    >
+                      <Gift className="w-6 h-6 text-amber-500" />
+                      <span className="font-medium">السحب الأسبوعي</span>
+                    </Link>
+                    <Link
+                      href={customer ? '/account' : '/account/login'}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex items-center gap-4 text-zinc-300 hover:text-amber-500 transition-colors py-3 text-lg border-b border-zinc-800/50"
+                    >
+                      <UserRound className="w-6 h-6 text-amber-500" />
+                      <span className="font-medium">
+                        {customer ? `حسابي — ${customer.name}` : 'تسجيل الدخول'}
+                      </span>
+                    </Link>
+                    <Link
+                      href="/about-us"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="text-zinc-300 hover:text-amber-500 transition-colors py-3 text-lg border-b border-zinc-800/50"
+                    >
+                      حكايتنا
+                    </Link>
+                    <Link
+                      href="/quality-standards"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="text-zinc-300 hover:text-amber-500 transition-colors py-3 text-lg border-b border-zinc-800/50"
+                    >
+                      الجودة
+                    </Link>
+                    <Link
+                      href="/faq"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="text-zinc-300 hover:text-amber-500 transition-colors py-3 text-lg border-b border-zinc-800/50"
+                    >
+                      الأسئلة الشائعة
+                    </Link>
 
-                  {/* أزرار الإجراءات في الجوال */}
-                  <div className="flex gap-3 pt-2 border-t border-zinc-800/50">
-                    <Link
-                      href="/wishlist"
+                    {/* أزرار الإجراءات في الجوال */}
+                    <div className="flex gap-3 pt-2 border-t border-zinc-800/50">
+                      <Link
+                        href="/wishlist"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="flex-1 flex items-center justify-center gap-2 py-3 bg-zinc-900 rounded-xl text-zinc-300 font-bold"
+                      >
+                        <Heart className="w-5 h-5" />
+                        المفضلة ({savedCount})
+                      </Link>
+                      <Link
+                        href="/cart"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="flex-1 flex items-center justify-center gap-2 py-3 bg-zinc-900 rounded-xl text-zinc-300 font-bold"
+                      >
+                        <ShoppingCart className="w-5 h-5" />
+                        السلة ({cartCount})
+                      </Link>
+                    </div>
+
+                    <a
+                      href={getWhatsAppLink(SITE.whatsappDefaultMessage)}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       onClick={() => setMobileMenuOpen(false)}
-                      className="flex-1 flex items-center justify-center gap-2 py-3 bg-zinc-900 rounded-xl text-zinc-300 font-bold"
+                      className="mt-2 w-full py-4 gold-gradient rounded-xl text-zinc-950 text-lg font-black text-center luxury-shadow active:scale-95 transition-transform"
                     >
-                      <Heart className="w-5 h-5" />
-                      المفضلة ({savedCount})
-                    </Link>
-                    <Link
-                      href="/cart"
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="flex-1 flex items-center justify-center gap-2 py-3 bg-zinc-900 rounded-xl text-zinc-300 font-bold"
-                    >
-                      <ShoppingCart className="w-5 h-5" />
-                      السلة ({cartCount})
-                    </Link>
+                      🍯 اطلب الآن عبر واتساب
+                    </a>
                   </div>
-
-                  <a
-                    href={getWhatsAppLink(SITE.whatsappDefaultMessage)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="mt-2 w-full py-4 gold-gradient rounded-xl text-zinc-950 text-lg font-black text-center luxury-shadow active:scale-95 transition-transform"
-                  >
-                    🍯 اطلب الآن عبر واتساب
-                  </a>
-                </div>
-              </div>
-            )}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </nav>
       </header>

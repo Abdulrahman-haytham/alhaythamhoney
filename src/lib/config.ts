@@ -39,6 +39,9 @@ export const SITE = {
   },
 };
 
+/** سنوات الخبرة تُحسب من سنة التأسيس — لا تُكتب يدوياً في أي مكان */
+export const yearsOfExperience = (now = new Date()) => now.getFullYear() - SITE.foundedYear;
+
 export const SHIPPING = {
   get cost() {
     return runtime.shippingCost;

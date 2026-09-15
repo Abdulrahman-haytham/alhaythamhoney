@@ -156,6 +156,8 @@ describe('pricing and validation', () => {
       category: 'HONEY',
       inStock: true,
       stockQty: null,
+      cutoutImage: null,
+      accentColor: null,
       published: false,
       sortOrder: 0,
       relatedIds: [],
@@ -166,6 +168,11 @@ describe('pricing and validation', () => {
       detailedInfo: null,
     };
     expect(productInput.safeParse(product).success).toBe(true);
+    expect(productInput.safeParse({ ...product, accentColor: 'red' }).success).toBe(false);
+    expect(productInput.safeParse({ ...product, accentColor: '#A1B2C3' }).success).toBe(true);
+    expect(productInput.safeParse({ ...product, cutoutImage: '/images/jar.webp' }).success).toBe(
+      true,
+    );
     // الباقة تحتاج مكوّنات، ولا تكرار فيها
     expect(productInput.safeParse({ ...product, category: 'BUNDLE' }).success).toBe(false);
     expect(
@@ -734,6 +741,8 @@ describe('variants, quantity tiers, promotions and zones', () => {
       category: 'HONEY',
       inStock: true,
       stockQty: null,
+      cutoutImage: null,
+      accentColor: null,
       published: true,
       sortOrder: 0,
       relatedIds: [],
@@ -774,6 +783,8 @@ describe('variants, quantity tiers, promotions and zones', () => {
         category: 'HONEY',
         inStock: true,
         stockQty: null,
+        cutoutImage: null,
+        accentColor: null,
         published: true,
         sortOrder: 0,
         relatedIds: [],

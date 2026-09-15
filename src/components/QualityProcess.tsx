@@ -1,6 +1,6 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { Reveal } from '@/components/motion/Reveal';
 import { Mountain, Microscope, PackageCheck } from 'lucide-react';
 
 /** المعايير الثلاثة من الخلية إلى العبوة — منقولة من قسم الجودة في الموقع الأصلي. */
@@ -28,13 +28,7 @@ export default function QualityProcess() {
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-amber-900/30 to-transparent" />
 
       <div className="container relative mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="mb-12 text-center sm:mb-16"
-        >
+        <Reveal className="mb-12 text-center sm:mb-16">
           <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-amber-500/25 bg-amber-500/[0.07] px-4 py-1.5">
             <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
             <span className="text-xs font-semibold tracking-wide text-amber-300">
@@ -47,16 +41,13 @@ export default function QualityProcess() {
           <p className="mx-auto max-w-2xl text-base font-light text-zinc-400 sm:text-lg">
             معايير لا نساوم عليها لأن صحتك هي أمانتنا
           </p>
-        </motion.div>
+        </Reveal>
 
         <div className="mx-auto grid max-w-5xl grid-cols-1 gap-4 sm:gap-6 md:grid-cols-3">
           {FACTORS.map((f, index) => (
-            <motion.div
+            <Reveal
+              delay={index * 0.08}
               key={f.title}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: '-40px' }}
-              transition={{ duration: 0.5, delay: index * 0.1, ease: [0.16, 1, 0.3, 1] }}
               className="group relative overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6 transition-colors duration-300 hover:border-amber-500/40 hover:bg-zinc-900/70 sm:p-8"
             >
               <span className="absolute inset-x-0 top-0 mx-auto h-px w-0 bg-gradient-to-l from-transparent via-amber-400 to-transparent transition-all duration-500 group-hover:w-full" />
@@ -75,7 +66,7 @@ export default function QualityProcess() {
                 {f.title}
               </h3>
               <p className="text-sm leading-relaxed text-zinc-400 sm:text-base">{f.body}</p>
-            </motion.div>
+            </Reveal>
           ))}
         </div>
       </div>

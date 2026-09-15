@@ -1,26 +1,40 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { useHydrated } from '@/lib/useHydrated';
 
+const FADE_MS = 420;
+
 /**
- * شاشة افتتاح بشعار الهيثم المتحرك — تظهر مرة واحدة عند التحميل الأول للصفحة
- * (لا تظهر مجدداً عند التنقّل بين الصفحات، لأن هذا المكوّن يعيش في التخطيط الجذري).
- * لا يوجد تأخير مقصود: المحتوى مُصيّر على الخادم فعلاً منذ البداية، فالشاشة
- * تُخفى فوراً بمجرد أن يكتمل تحميل React وترطيبه (useEffect عند التركيب) —
- * أي أن مدة ظهورها الفعلية تتبع سرعة تحميل الصفحة نفسها: قصيرة على اتصال
- * سريع، أطول على اتصال بطيء، دون فرض مدة ثابتة.
+ * شاشة الافتتاح: شعار الهيثم يُرسم بخطوط ذهبية مع «جارٍ تحضير الخلية… 🐝».
+ * لا مدة مصطنعة: تُخفى فور اكتمال ترطيب React (أي بسرعة تحميل الصفحة نفسها)،
+ * لكن بخروج ناعم بدل الاختفاء الفجائي. تظهر مرة واحدة في الجلسة — من يفتح رابط
+ * منتج من إنستغرام مباشرة لا ينتظر رسم شعار في كل صفحة (القرار في layout قبل الرسم).
  */
 export default function BootLoader() {
-  const visible = !useHydrated();
+  const hydrated = useHydrated();
+  const [gone, setGone] = useState(false);
 
-  if (!visible) return null;
+  useEffect(() => {
+    if (!hydrated) return;
+    try {
+      sessionStorage.setItem('haytham-booted', '1');
+    } catch {
+      // التخزين قد يكون معطّلاً
+    }
+    const t = setTimeout(() => setGone(true), FADE_MS);
+    return () => clearTimeout(t);
+  }, [hydrated]);
+
+  if (gone) return null;
 
   return (
     <haytham-loader
       active
       overlay
       theme="dark"
-      label="جارٍ التحميل…"
+      label="جارٍ تحضير الخلية… 🐝"
+      className={hydrated ? 'boot-leaving' : undefined}
       style={
         {
           '--haytham-size': '190px',

@@ -10,6 +10,7 @@ import { SettingsProvider } from '@/components/SettingsProvider';
 import { getSettings } from '@/lib/settings.server';
 import { CustomerProvider } from '@/components/CustomerProvider';
 import { currentCustomer } from '@/lib/customer-auth';
+import { MotionProvider } from '@/components/MotionProvider';
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE.url),
@@ -44,6 +45,17 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Amiri:wght@400;700&display=swap"
         />
+        {/* شاشة الافتتاح مرة واحدة في الجلسة: القرار قبل أي رسم حتى لا تومض */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "try{if(sessionStorage.getItem('haytham-booted'))document.documentElement.dataset.booted='1'}catch(e){}",
+          }}
+        />
+        {/* بلا JavaScript تظهر كل عناصر الحركة فوراً */}
+        <noscript>
+          <style>{`[data-reveal]{opacity:1!important;transform:none!important;clip-path:none!important}`}</style>
+        </noscript>
       </head>
       <body className="bg-zinc-950 text-zinc-100 antialiased">
         <Script src="/haytham-loader.js" strategy="beforeInteractive" />
@@ -62,7 +74,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 : null
             }
           >
-            <SiteShell footer={<Footer />}>{children}</SiteShell>
+            <MotionProvider>
+              <SiteShell footer={<Footer />}>{children}</SiteShell>
+            </MotionProvider>
           </CustomerProvider>
         </SettingsProvider>
         <ServiceWorkerRegistrar />

@@ -2,6 +2,8 @@ import type { Product } from '@prisma/client';
 import type { CatalogProduct } from '@/lib/products.server';
 import { Droplets, Sparkles, Package } from 'lucide-react';
 import ProductCard from './ProductCard';
+import { Reveal } from './motion/Reveal';
+import { Stagger, StaggerItem } from './motion/Stagger';
 
 /**
  * تجميع اختياري حسب فئة المنتج — يعيد إحساس المجموعات في النسخة القديمة
@@ -63,7 +65,7 @@ export default function Products({
       <div className="container mx-auto">
         {groups.map((group) => (
           <div key={group.category} className="mb-16 sm:mb-24 md:mb-32 last:mb-0">
-            <div className="mb-8 sm:mb-12 md:mb-16">
+            <Reveal className="mb-8 sm:mb-12 md:mb-16">
               <div className="flex items-center gap-2 sm:gap-3 md:gap-4 mb-3 md:mb-4">
                 <div className="p-2 sm:p-2.5 md:p-3 bg-amber-500/10 rounded-lg sm:rounded-xl border border-amber-500/20">
                   {group.meta.icon}
@@ -76,9 +78,11 @@ export default function Products({
               <p className="text-zinc-400 text-sm sm:text-base max-w-2xl border-r-2 border-amber-500/20 pr-3 sm:pr-4">
                 {group.meta.subtitle}
               </p>
-            </div>
+            </Reveal>
 
-            <div
+            <Stagger
+              stagger={0.07}
+              amount={0.1}
               className={
                 mobileCarousel
                   ? // الجوال: بطاقتان ظاهرتان في صف واحد + لمحة من الثالثة تدل على إمكانية السحب
@@ -87,9 +91,11 @@ export default function Products({
               }
             >
               {group.items.map((item) => (
-                <ProductCard key={item.id} product={item} />
+                <StaggerItem key={item.id} className="snap-start">
+                  <ProductCard product={item} />
+                </StaggerItem>
               ))}
-            </div>
+            </Stagger>
           </div>
         ))}
       </div>

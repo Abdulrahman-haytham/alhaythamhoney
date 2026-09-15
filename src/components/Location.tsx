@@ -1,7 +1,7 @@
 'use client';
 
 import { MapPin, Navigation } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Reveal } from '@/components/motion/Reveal';
 import { SITE, getTelLink } from '@/lib/config';
 
 const address = 'الحي الشمالي، جانب مسجد بلال الحبشي، قمحانة، حماة، سوريا';
@@ -17,12 +17,7 @@ export function Location() {
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-px bg-gradient-to-r from-transparent via-amber-500/20 to-transparent"></div>
 
       <div className="container mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-center mb-8 sm:mb-12 md:mb-16"
-        >
+        <Reveal className="text-center mb-8 sm:mb-12 md:mb-16">
           <div className="inline-flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-1 sm:py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 mb-4 sm:mb-6">
             <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-500" />
             <span className="text-amber-500 text-[10px] sm:text-xs font-black tracking-wider sm:tracking-widest uppercase">
@@ -35,16 +30,11 @@ export function Location() {
           <p className="text-zinc-500 text-sm sm:text-base md:text-lg max-w-2xl mx-auto px-4">
             يسعدنا استقبالكم في مركزنا الرئيسي لتذوق أجود أنواع العسل مباشرة من المنحل.
           </p>
-        </motion.div>
+        </Reveal>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 sm:gap-10 md:gap-12 items-start">
           {/* تفاصيل العنوان */}
-          <motion.div
-            initial={{ opacity: 0, x: 30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            className="lg:col-span-1 space-y-6 sm:space-y-8"
-          >
+          <Reveal className="lg:col-span-1 space-y-6 sm:space-y-8">
             <div className="bg-zinc-900/50 p-5 sm:p-6 md:p-8 rounded-2xl sm:rounded-[2rem] md:rounded-[2.5rem] border border-white/5 luxury-shadow">
               <h3 className="text-xl sm:text-2xl font-amiri font-bold text-white mb-3 sm:mb-4">
                 العنوان الدقيق
@@ -77,15 +67,10 @@ export function Location() {
                 📞 <span dir="ltr">{SITE.phoneNumber}</span>
               </a>
             </div>
-          </motion.div>
+          </Reveal>
 
           {/* بطاقة الموقع الثابتة (بلا تضمين خريطة فعلي) */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            className="lg:col-span-2 relative h-[300px] sm:h-[400px] md:h-[500px] rounded-2xl sm:rounded-[2.5rem] md:rounded-[3rem] overflow-hidden border border-amber-500/10 luxury-shadow group flex items-center justify-center bg-zinc-900/40"
-          >
+          <Reveal className="lg:col-span-2 relative h-[300px] sm:h-[400px] md:h-[500px] rounded-2xl sm:rounded-[2.5rem] md:rounded-[3rem] overflow-hidden border border-amber-500/10 luxury-shadow group flex items-center justify-center bg-zinc-900/40">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(245,158,11,0.08),transparent_70%)]"></div>
             <div className="absolute inset-0 bg-amber-500/5 group-hover:bg-transparent transition-colors pointer-events-none"></div>
             <div className="relative z-10 flex flex-col items-center gap-4 text-center px-6">
@@ -106,7 +91,7 @@ export function Location() {
                 عرض الموقع على الخريطة
               </a>
             </div>
-          </motion.div>
+          </Reveal>
         </div>
       </div>
     </section>

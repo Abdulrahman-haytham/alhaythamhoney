@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
 import { ShoppingCart, Eye, Heart, Check, Package } from 'lucide-react';
 import type { CatalogProduct } from '@/lib/products.server';
 import { defaultVariant, priceFrom, variantCartId } from '@/lib/variants';
@@ -63,22 +62,27 @@ export default function ProductCard({ product }: { product: CatalogProduct }) {
   }
 
   return (
-    <motion.article
-      initial={false}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      className="group relative flex snap-start flex-col overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-zinc-900/60 to-zinc-950/80 shadow-lg shadow-black/40 ring-1 ring-white/10 transition-all duration-500 hover:-translate-y-1 hover:border-amber-500/40 hover:shadow-2xl hover:ring-amber-500/20 sm:rounded-[2rem] md:rounded-[2.5rem]"
-    >
+    <article className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-zinc-900/60 to-zinc-950/80 shadow-lg shadow-black/40 ring-1 ring-white/10 transition-[transform,box-shadow,border-color] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-1.5 hover:border-amber-500/40 hover:shadow-[0_24px_60px_-20px_rgba(212,175,55,0.35)] sm:rounded-[2rem] md:rounded-[2.5rem]">
       <div className="relative flex-shrink-0 overflow-hidden">
         <Link href={`/product/${product.slug}`} className="block">
           <img
             src={product.image}
             alt={`${product.name} - عسل طبيعي 100% من الهيثم — نحل وعسل في سوريا`}
-            className={`aspect-[4/5] w-full object-cover transition-transform duration-700 group-hover:scale-105 sm:aspect-[4/3] ${
+            className={`aspect-[4/5] w-full object-cover transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.04] sm:aspect-[4/3] ${
               available ? '' : 'opacity-45 grayscale'
             }`}
             loading="lazy"
           />
+          {/* دعوة تظهر عند المرور (حاسوب فقط) — لا تغطي الشارات السفلية على الجوال */}
+          {available && (
+            <span
+              aria-hidden
+              className="pointer-events-none absolute inset-x-0 bottom-0 hidden items-center justify-center gap-1.5 bg-gradient-to-t from-zinc-950/90 to-transparent pb-3 pt-10 text-xs font-bold text-amber-200 opacity-0 transition-[opacity,transform] duration-300 ease-out translate-y-2 group-hover:translate-y-0 group-hover:opacity-100 sm:flex"
+            >
+              اكتشف هذا العسل
+              <Eye className="h-3.5 w-3.5" />
+            </span>
+          )}
         </Link>
 
         {!available && (
@@ -126,7 +130,7 @@ export default function ProductCard({ product }: { product: CatalogProduct }) {
 
       <div className="flex flex-grow flex-col p-3 sm:p-6 md:p-8">
         <Link href={`/product/${product.slug}`} className="block">
-          <h4 className="line-clamp-2 font-amiri text-[15px] font-bold leading-[1.3] text-white transition-colors group-hover:text-amber-400 sm:text-xl md:text-2xl">
+          <h4 className="line-clamp-2 font-amiri text-[15px] font-bold leading-[1.3] text-white transition-[color,transform] duration-300 group-hover:-translate-y-0.5 group-hover:text-amber-400 sm:text-xl md:text-2xl">
             {product.name}
           </h4>
         </Link>
@@ -181,7 +185,7 @@ export default function ProductCard({ product }: { product: CatalogProduct }) {
               className={`flex h-10 flex-1 items-center justify-center gap-1.5 rounded-xl text-[13px] font-bold transition-all duration-300 sm:h-auto sm:py-2.5 sm:text-sm ${
                 added
                   ? 'bg-green-600 text-white'
-                  : 'bg-amber-500 text-zinc-950 shadow-lg shadow-amber-500/20 hover:-translate-y-0.5 hover:bg-amber-400 hover:shadow-amber-500/40'
+                  : 'bg-amber-500 text-zinc-950 shadow-lg shadow-amber-500/20 hover:bg-amber-400 hover:shadow-amber-500/40'
               }`}
             >
               {added ? <Check className="h-4 w-4" /> : <ShoppingCart className="h-4 w-4" />}
@@ -197,6 +201,6 @@ export default function ProductCard({ product }: { product: CatalogProduct }) {
           )}
         </div>
       </div>
-    </motion.article>
+    </article>
   );
 }

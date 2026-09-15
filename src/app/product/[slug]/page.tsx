@@ -11,7 +11,7 @@ import { priceFrom } from '@/lib/variants';
 import { bundleComponentsValue, catalogAvailable, componentAvailable } from '@/lib/bundles';
 import { fmtSyp } from '@/lib/pricing';
 import { getApprovedReviews, getRatingSummary } from '@/lib/reviews.server';
-import { SITE } from '@/lib/config';
+import { SITE, yearsOfExperience } from '@/lib/config';
 import { getSettings } from '@/lib/settings.server';
 import { ProductReviews } from '@/components/ProductReviews';
 import ProductCard from '@/components/ProductCard';
@@ -230,7 +230,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                 <div className="w-10 h-10 mx-auto rounded-full bg-amber-500/10 flex items-center justify-center text-amber-500">
                   <Award className="w-5 h-5" />
                 </div>
-                <p className="text-xs text-zinc-400">خبرة 25+ عاماً</p>
+                <p className="text-xs text-zinc-400">خبرة +{yearsOfExperience()} عاماً</p>
               </div>
             </div>
 

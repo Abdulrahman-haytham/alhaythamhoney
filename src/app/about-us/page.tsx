@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { BookOpen } from 'lucide-react';
 import Story from '@/components/Story';
 import Mission from '@/components/Mission';
-import Stats from '@/components/Stats';
+import Since1997 from '@/components/Since1997';
 import { SITE } from '@/lib/config';
 
 export const metadata: Metadata = {
@@ -35,7 +35,7 @@ export default function AboutPage() {
 
       <Story />
       <Mission />
-      <Stats />
+      <Since1997 />
     </>
   );
 }

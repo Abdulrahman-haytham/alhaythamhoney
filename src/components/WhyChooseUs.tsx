@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { motion } from 'framer-motion';
+import { Reveal } from '@/components/motion/Reveal';
 import {
   FlaskConical,
   Hexagon,
@@ -62,13 +62,7 @@ export default function WhyChooseUs() {
       <div className="pointer-events-none absolute left-1/2 top-1/3 h-[26rem] w-[26rem] -translate-x-1/2 rounded-full bg-amber-500/[0.04] blur-3xl" />
 
       <div className="container relative mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="mb-12 text-center sm:mb-16"
-        >
+        <Reveal className="mb-12 text-center sm:mb-16">
           <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-amber-500/25 bg-amber-500/[0.07] px-4 py-1.5">
             <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
             <span className="text-xs font-semibold tracking-wide text-amber-300">التزامنا</span>
@@ -80,16 +74,13 @@ export default function WhyChooseUs() {
             العسل الطبيعي لا يُثبَت بالكلام، بل بمصدره وفحصه وطريقة بيعه. هذه التزاماتنا الستة —
             مكتوبة لتُحاسبنا عليها.
           </p>
-        </motion.div>
+        </Reveal>
 
         <div className="mx-auto grid max-w-5xl grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3">
           {COMMITMENTS.map((item, index) => (
-            <motion.div
+            <Reveal
+              delay={index * 0.06}
               key={item.title}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: '-40px' }}
-              transition={{ duration: 0.5, delay: index * 0.06, ease: [0.16, 1, 0.3, 1] }}
               className="group relative overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900/40 p-4 transition-colors duration-300 hover:border-amber-500/40 hover:bg-zinc-900/70 sm:p-6"
             >
               <span className="absolute inset-x-0 top-0 mx-auto h-px w-0 bg-gradient-to-l from-transparent via-amber-400 to-transparent transition-all duration-500 group-hover:w-full" />
@@ -102,17 +93,11 @@ export default function WhyChooseUs() {
                 {item.title}
               </h3>
               <p className="text-[11px] leading-relaxed text-zinc-400 sm:text-sm">{item.body}</p>
-            </motion.div>
+            </Reveal>
           ))}
         </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-          className="mt-12 flex flex-col items-center justify-center gap-3 sm:mt-16 sm:flex-row sm:gap-4"
-        >
+        <Reveal className="mt-12 flex flex-col items-center justify-center gap-3 sm:mt-16 sm:flex-row sm:gap-4">
           <a
             href={getWhatsAppLink('مرحباً، أود الاستفسار عن منتجات الهيثم.')}
             target="_blank"
@@ -130,7 +115,7 @@ export default function WhyChooseUs() {
             <Store className="h-5 w-5" />
             تصفّح المنتجات
           </Link>
-        </motion.div>
+        </Reveal>
       </div>
     </section>
   );

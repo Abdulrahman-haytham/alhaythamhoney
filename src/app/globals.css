@@ -248,3 +248,47 @@ body {
   border-radius: 1rem;
   margin: 1.5rem 0;
 }
+
+/* شاشة الافتتاح: تُخفى إن سبق ظهورها في الجلسة، وتخرج بتلاشٍ ناعم */
+html[data-booted] haytham-loader {
+  display: none;
+}
+haytham-loader {
+  transition: opacity 0.42s ease-out;
+}
+haytham-loader.boot-leaving {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* روابط التنقّل: خط سفلي رفيع ينزلق من اليمين (اتجاه القراءة) */
+.nav-links > a {
+  position: relative;
+}
+.nav-links > a::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: -4px;
+  height: 1px;
+  width: 100%;
+  background: linear-gradient(to left, #d4af37, transparent);
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.nav-links > a:hover::after,
+.nav-links > a:focus-visible::after {
+  transform: scaleX(1);
+}
+
+/* تفاصيل دقيقة: الأزرار الذهبية ترتفع قليلاً ولا تقفز */
+.gold-gradient {
+  transition:
+    transform 0.2s ease-out,
+    box-shadow 0.2s ease-out,
+    filter 0.2s ease-out;
+}
+.gold-gradient:hover {
+  filter: brightness(1.05);
+}

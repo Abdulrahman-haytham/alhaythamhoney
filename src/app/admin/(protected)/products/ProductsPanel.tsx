@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { z } from 'zod';
 import type { productInput } from '@/lib/validation';
@@ -25,6 +25,8 @@ const empty: Input = {
   category: 'HONEY',
   inStock: true,
   stockQty: null,
+  cutoutImage: null,
+  accentColor: null,
   published: false,
   sortOrder: 0,
   relatedIds: [],
@@ -67,6 +69,16 @@ function Editor({
   const [details, setDetails] = useState(JSON.stringify(product?.detailedInfo ?? {}, null, 2));
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
+  const cutoutRef = useRef<HTMLInputElement>(null);
+  async function uploadCutout(file: File) {
+    setMessage('');
+    const fd = new FormData();
+    fd.append('file', file);
+    const res = await fetch('/api/admin/images', { method: 'POST', body: fd }).catch(() => null);
+    const data = res ? await res.json().catch(() => ({})) : {};
+    if (!res?.ok) return setMessage(data.error || 'تعذّر رفع الصورة.');
+    set('cutoutImage', data.url);
+  }
   function set<K extends keyof typeof form>(key: K, value: (typeof form)[K]) {
     setForm((f) => ({ ...f, [key]: value }));
   }
@@ -219,6 +231,67 @@ function Editor({
           required
         />
       </label>
+      <fieldset className="rounded-lg border border-zinc-800 p-3">
+        <legend className="px-1 text-sm text-amber-400">العرض السينمائي (الصفحة الرئيسية)</legend>
+        <p className="mb-2 text-xs text-zinc-500">
+          صورة المرطبان مقصوصة بخلفية شفافة (PNG/WebP) تظهر في عرض أنواع العسل؛ بدونها يُستخدم
+          المرطبان العام. اللون يصبغ الخلفية بخفة عند الوصول لهذا المنتج.
+        </p>
+        <div className="flex flex-wrap items-center gap-3">
+          <input
+            ref={cutoutRef}
+            type="file"
+            accept="image/png,image/webp"
+            hidden
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) void uploadCutout(f);
+              e.target.value = '';
+            }}
+          />
+          {form.cutoutImage ? (
+            <img
+              src={form.cutoutImage}
+              alt=""
+              className="h-16 w-16 rounded-lg bg-[repeating-conic-gradient(#27272a_0_25%,#18181b_0_50%)] bg-[length:12px_12px] object-contain"
+            />
+          ) : null}
+          <button
+            type="button"
+            onClick={() => cutoutRef.current?.click()}
+            className="rounded-lg border border-zinc-700 px-3 py-1.5 text-xs text-zinc-200 hover:border-amber-500/50"
+          >
+            {form.cutoutImage ? 'استبدال المرطبان المقصوص' : 'رفع مرطبان مقصوص'}
+          </button>
+          {form.cutoutImage && (
+            <button
+              type="button"
+              onClick={() => set('cutoutImage', null)}
+              className="text-xs text-red-400"
+            >
+              إزالة
+            </button>
+          )}
+          <label className="mr-auto flex items-center gap-2 text-xs">
+            لون الخلفية
+            <input
+              type="color"
+              value={form.accentColor ?? '#d4af37'}
+              onChange={(e) => set('accentColor', e.target.value)}
+              className="h-8 w-12 cursor-pointer rounded border border-zinc-700 bg-zinc-950"
+            />
+            {form.accentColor && (
+              <button
+                type="button"
+                onClick={() => set('accentColor', null)}
+                className="text-zinc-500 hover:text-zinc-300"
+              >
+                افتراضي
+              </button>
+            )}
+          </label>
+        </div>
+      </fieldset>
       <label className="block">
         الوصف
         <textarea

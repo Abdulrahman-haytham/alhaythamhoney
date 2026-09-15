@@ -1,6 +1,6 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { Reveal } from '@/components/motion/Reveal';
 import { Lightbulb, Shield, Sprout, HeartHandshake } from 'lucide-react';
 
 const VALUES = [
@@ -30,12 +30,7 @@ export default function Mission() {
       <div className="pointer-events-none absolute bottom-0 left-0 h-64 w-64 translate-y-1/2 -translate-x-1/2 rounded-full bg-amber-500/5 blur-3xl" />
 
       <div className="container mx-auto px-4 sm:px-6">
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="mb-8 text-center sm:mb-10"
-        >
+        <Reveal className="mb-8 text-center sm:mb-10">
           <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-amber-500/25 bg-amber-500/[0.07] px-4 py-1.5">
             <HeartHandshake className="h-4 w-4 text-amber-400" strokeWidth={1.5} />
             <span className="text-xs font-semibold tracking-wide text-amber-300">رسالتنا</span>
@@ -43,14 +38,11 @@ export default function Mission() {
           <h2 className="font-amiri text-3xl font-bold text-white sm:text-4xl md:text-5xl">
             رسالتنا في الهيثم
           </h2>
-        </motion.div>
+        </Reveal>
 
         <div className="mx-auto max-w-5xl">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.1 }}
+          <Reveal
+            delay={0.1}
             className="relative overflow-hidden rounded-2xl border border-amber-500/10 bg-zinc-950/50 p-5 sm:rounded-3xl sm:p-8 md:p-10"
           >
             <div className="pointer-events-none absolute top-2 right-4 select-none font-amiri text-6xl leading-none text-amber-500/5 sm:top-4 sm:right-6 sm:text-8xl">
@@ -119,7 +111,7 @@ export default function Mission() {
                 </div>
               </div>
             </div>
-          </motion.div>
+          </Reveal>
         </div>
       </div>
     </section>

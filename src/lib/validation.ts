@@ -56,6 +56,13 @@ export const productInput = z
     inStock: z.boolean(),
     /** null = لا تتبّع للكمية */
     stockQty: z.number().int().min(0).max(1_000_000).nullable(),
+    /** مرطبان مقصوص (شفاف) للعرض السينمائي — اختياري */
+    cutoutImage: localImage.nullable(),
+    accentColor: z
+      .string()
+      .trim()
+      .regex(/^#[0-9a-fA-F]{6}$/, 'لون بصيغة #RRGGBB')
+      .nullable(),
     published: z.boolean(),
     sortOrder: z.number().int().min(0).max(10000),
     /** معرّفات «يُشترى معه عادةً» بالترتيب */

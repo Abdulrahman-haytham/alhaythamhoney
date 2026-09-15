@@ -57,6 +57,10 @@ model Product {
   inStock      Boolean           @default(true)
   /// الكمية المتبقية — null تعني «غير متتبَّعة». تُظهر شارة «بقي X فقط» تحت عتبة الإعدادات.
   stockQty     Int?
+  /// صورة المرطبان مقصوصة بخلفية شفافة — لعرض العسل السينمائي في الصفحة الرئيسية
+  cutoutImage  String?
+  /// لون خفيف يصبغ خلفية العرض عند هذا المنتج (hex) — افتراضي ذهبي
+  accentColor  String?
   published    Boolean           @default(true)
   sortOrder    Int               @default(0)
   createdAt    DateTime          @default(now())
