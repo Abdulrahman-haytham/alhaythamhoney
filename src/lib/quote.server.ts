@@ -1,8 +1,10 @@
 import 'server-only';
+import { createHash } from 'node:crypto';
+import { commerceTransaction, CommerceError, type CommerceTx } from '@/lib/commerce.server';
 import { db } from '@/lib/db';
 import { resolveCartLines, type CartLineInput } from '@/lib/cart.server';
 import { checkCoupon } from '@/lib/coupons.server';
-import { getSettings } from '@/lib/settings.server';
+import { getCommerceSettings } from '@/lib/settings.server';
 import { getActivePromotionRules } from '@/lib/promotions.server';
 import { buildQuote, type Quote, type QuoteZone } from '@/lib/pricing';
 import { addPoints, customerRedeemable } from '@/lib/loyalty.server';
@@ -15,8 +17,8 @@ export interface QuoteRequest {
   usePoints?: boolean;
 }
 
-async function getZones(): Promise<QuoteZone[]> {
-  const zones = await db.shippingZone.findMany({
+async function getZones(tx: CommerceTx): Promise<QuoteZone[]> {
+  const zones = await tx.shippingZone.findMany({
     where: { active: true },
     orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
     select: { id: true, name: true, cost: true, etaText: true },
@@ -25,12 +27,16 @@ async function getZones(): Promise<QuoteZone[]> {
 }
 
 /** عرض سعر كامل للسلة من قاعدة البيانات — المصدر الوحيد للحقيقة قبل الطلب. */
-export async function quoteCart(req: QuoteRequest, customer: CustomerInfo | null): Promise<Quote> {
-  const settings = await getSettings();
+export async function quoteCart(
+  req: QuoteRequest,
+  customer: CustomerInfo | null,
+  tx: CommerceTx = db,
+): Promise<Quote> {
+  const settings = await getCommerceSettings(tx);
   const [{ lines, dropped }, promotions, zones] = await Promise.all([
-    resolveCartLines(req.items, settings.tieredPricingEnabled),
-    settings.promotionsEnabled ? getActivePromotionRules() : Promise.resolve([]),
-    settings.shippingZonesEnabled ? getZones() : Promise.resolve([]),
+    resolveCartLines(req.items, settings.tieredPricingEnabled, tx),
+    settings.promotionsEnabled ? getActivePromotionRules(new Date(), tx) : Promise.resolve([]),
+    settings.shippingZonesEnabled ? getZones(tx) : Promise.resolve([]),
   ]);
   // المنطقة: المختارة، وإلا محافظة الزبون من حسابه إن طابقت اسماً
   const zone =
@@ -50,14 +56,14 @@ export async function quoteCart(req: QuoteRequest, customer: CustomerInfo | null
   });
   const coupon =
     settings.couponsEnabled && req.couponCode && lines.length
-      ? await checkCoupon(req.couponCode, pre.subtotal - pre.discount, customer?.id ?? null)
+      ? await checkCoupon(req.couponCode, pre.subtotal - pre.discount, customer?.id ?? null, tx)
       : null;
   // النقاط تُستبدل على ما بقي بعد كل الخصومات الأخرى
   let loyalty: Quote['loyalty'] = null;
   let points: { amount: number; label: string } | null = null;
   if (customer && settings.loyaltyEnabled && lines.length) {
     const afterCoupon = pre.subtotal - pre.discount - (coupon?.ok ? coupon.discount : 0);
-    const r = await customerRedeemable(customer.id, Math.max(0, afterCoupon));
+    const r = await customerRedeemable(customer.id, Math.max(0, afterCoupon), tx, settings);
     const use = req.usePoints && r.points > 0;
     loyalty = {
       balance: r.balance,
@@ -85,16 +91,43 @@ export async function quoteCart(req: QuoteRequest, customer: CustomerInfo | null
  * ويسجّل استخدام الكوبون للحسابات (مرة لكل حساب) واستخدام العروض مقابل ميزانيتها.
  */
 export async function createOrder(
-  req: QuoteRequest & { reference: string },
+  req: QuoteRequest & { reference: string; expectedTotal?: number },
   customer: CustomerInfo | null,
 ) {
-  const quote = await quoteCart(req, customer);
-  if (quote.lines.length === 0) return { quote, order: null };
-  const zone = quote.zones.find((z) => z.id === quote.zoneId) ?? null;
-  const order = await db.$transaction(async (tx) => {
+  const requestHash = createHash('sha256')
+    .update(
+      JSON.stringify({
+        customerId: customer?.id ?? null,
+        items: [...req.items].sort((a, b) => a.id.localeCompare(b.id)),
+        couponCode: req.couponCode,
+        zoneId: req.zoneId ?? null,
+        usePoints: req.usePoints ?? false,
+        expectedTotal: req.expectedTotal ?? null,
+      }),
+    )
+    .digest('hex');
+  return commerceTransaction(async (tx) => {
+    const existing = await tx.order.findUnique({ where: { reference: req.reference } });
+    if (existing) {
+      if (existing.requestHash !== requestHash || !existing.quoteSnapshot)
+        throw new CommerceError('مرجع مستخدم لمحاولة مختلفة. حدّث السلة وأعد المحاولة.');
+      return { quote: existing.quoteSnapshot as unknown as Quote, order: existing, replayed: true };
+    }
+    const quote = await quoteCart(req, customer, tx);
+    // A changed/removed line or a different total must be reviewed before reserving benefits.
+    if (
+      !quote.lines.length ||
+      quote.dropped.length ||
+      (req.expectedTotal !== undefined && quote.total !== req.expectedTotal)
+    )
+      return { quote, order: null, replayed: false };
+    const zone = quote.zones.find((z) => z.id === quote.zoneId) ?? null;
     const created = await tx.order.create({
       data: {
         reference: req.reference,
+        requestHash,
+        quoteSnapshot: JSON.parse(JSON.stringify(quote)),
+        pointsDiscount: quote.loyalty?.pointsUsed ? quote.loyalty.redeemableAmount : 0,
         customerId: customer?.id ?? null,
         customerName: customer?.name ?? null,
         customerPhone: customer?.phone ?? null,
@@ -149,6 +182,7 @@ export async function createOrder(
       await addPoints(tx, customer.id, -quote.loyalty.pointsUsed, 'ORDER_REDEEM', {
         orderId: created.id,
         note: req.reference,
+        eventKey: `order:${created.id}:redeem`,
       });
     }
     if (quote.coupon?.ok && customer) {
@@ -158,10 +192,14 @@ export async function createOrder(
       });
       if (coupon)
         await tx.couponRedemption.create({
-          data: { couponId: coupon.id, customerId: customer.id, subtotal: quote.subtotal },
+          data: {
+            couponId: coupon.id,
+            customerId: customer.id,
+            subtotal: quote.subtotal,
+            orderId: created.id,
+          },
         });
     }
-    return created;
+    return { quote, order: created, replayed: false };
   });
-  return { quote, order };
 }

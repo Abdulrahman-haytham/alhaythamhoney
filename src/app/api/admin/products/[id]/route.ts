@@ -5,19 +5,17 @@ import { readJson } from '@/lib/request-security';
 import { productInput } from '@/lib/validation';
 import { logAudit } from '@/lib/audit.server';
 import { syncBundleItems, syncTiers, syncVariants, toProductScalars } from '@/lib/products.admin';
-import { notifyStockAlerts } from '@/lib/stock-alerts.server';
-import { catalogAvailable } from '@/lib/bundles';
 import { productListInclude } from '@/lib/products.server';
 
 const snapshot = (p: {
   related: { relatedId: string }[];
-  variants: { label: string; price: number; stockQty: number | null; inStock: boolean }[];
+  variants: { label: string; price: number; inStock: boolean }[];
   tiers: { minQty: number; discountPercent: number }[];
   bundleItems: { quantity: number; product: { name: string } }[];
   attributes: { id: string }[];
 }) => ({
   relatedIds: p.related.map((r) => r.relatedId),
-  variants: p.variants.map((v) => `${v.label}: ${v.price}${v.inStock ? '' : ' (غير متوفر)'}`),
+  variants: p.variants.map((v) => `${v.label}: ${v.price}${v.inStock ? '' : ' (الطلب بالتواصل)'}`),
   tiers: p.tiers.map((t) => `${t.minQty}+ → ${t.discountPercent}%`),
   bundleItems: p.bundleItems.map((b) => `${b.product.name} × ${b.quantity}`),
   attributeValueIds: p.attributes.map((a) => a.id).sort(),
@@ -66,10 +64,6 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     await syncBundleItems(tx, id, parsed.data.category, bundleItems);
     return tx.product.findUniqueOrThrow({ where: { id }, include });
   });
-  // عاد المنتج للتوفر (أو نُشر) → نراسل من طلب «أعلمني عند التوفر»
-  const wasAvailable = product.published && catalogAvailable(product);
-  const nowAvailable = updated.published && catalogAvailable(updated);
-  if (!wasAvailable && nowAvailable) await notifyStockAlerts(id);
   await logAudit({
     entity: 'product',
     entityId: id,

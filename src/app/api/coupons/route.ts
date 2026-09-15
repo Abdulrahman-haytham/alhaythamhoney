@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { checkOrigin, readJson } from '@/lib/request-security';
 import { rateLimit } from '@/lib/rate-limit';
 import { couponCheckInput } from '@/lib/validation';
-import { checkCoupon, redeemCoupon } from '@/lib/coupons.server';
+import { checkCoupon } from '@/lib/coupons.server';
 import { currentCustomer } from '@/lib/customer-auth';
 import { getSettings } from '@/lib/settings.server';
 
@@ -21,13 +21,7 @@ export async function POST(request: Request) {
   );
 }
 
-/** تسجيل الاستخدام عند إتمام الطلب — من حساب مسجّل فقط. */
-export async function PUT(request: Request) {
-  const denied = checkOrigin(request) || (await rateLimit(request, 'coupon-redeem', 20, 3600));
-  if (denied) return denied;
-  const customer = await currentCustomer();
-  if (!customer) return NextResponse.json({ ok: false, reason: 'سجّل الدخول.' }, { status: 401 });
-  const parsed = couponCheckInput.safeParse(await readJson(request));
-  if (!parsed.success) return NextResponse.json({ ok: false, reason: 'كود غير صالح.' });
-  return NextResponse.json(await redeemCoupon(parsed.data.code, parsed.data.subtotal, customer.id));
+/** Coupon usage is reserved only by the authoritative order transaction. */
+export async function PUT() {
+  return NextResponse.json({ error: 'استخدام الكوبون يتم مع تسجيل الطلب فقط.' }, { status: 410 });
 }

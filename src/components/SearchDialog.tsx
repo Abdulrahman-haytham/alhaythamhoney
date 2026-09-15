@@ -208,7 +208,7 @@ export function SearchDialog({ open, onClose }: { open: boolean; onClose: () => 
                                 )
                               ) : (
                                 <span className="shrink-0 rounded-full bg-zinc-800 px-2 py-0.5 text-[10px] text-zinc-400">
-                                  غير متوفر
+                                  الطلب بالتواصل
                                 </span>
                               ))}
                           </Link>

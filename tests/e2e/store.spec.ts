@@ -1,6 +1,13 @@
 import { test, expect } from '@playwright/test';
 
-test('mobile storefront, wishlist links, cart and WhatsApp checkout', async ({ page }) => {
+test('mobile storefront, wishlist links, cart and WhatsApp checkout', async ({
+  page,
+  context,
+  request,
+}) => {
+  await context.route('https://wa.me/**', (route) =>
+    route.fulfill({ status: 200, body: 'WhatsApp handoff intercepted in test' }),
+  );
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
   await page.goto('/product/e2e-honey');
@@ -11,10 +18,43 @@ test('mobile storefront, wishlist links, cart and WhatsApp checkout', async ({ p
   await expect(page.locator('main a[href="/product/e2e-honey"]').first()).toBeVisible();
   await page.goto('/cart');
   await expect(page.getByText('عسل الاختبار', { exact: true })).toBeVisible();
-  const checkout = page.getByRole('link', { name: 'أكمل الطلب عبر واتساب' });
-  await expect(checkout).toHaveAttribute('href', /https:\/\/wa.me\//);
+  const checkout = page.getByRole('button', { name: 'أكمل الطلب عبر واتساب' });
+  await expect(checkout).toBeVisible();
   await page.reload();
   await expect(page.getByText('عسل الاختبار', { exact: true })).toBeVisible();
+  const references: string[] = [];
+  await page.route('**/api/orders', async (route) => {
+    references.push(route.request().postDataJSON().reference);
+    if (references.length === 1)
+      await route.fulfill({
+        status: 503,
+        contentType: 'application/json',
+        body: JSON.stringify({ error: 'تعذّر حفظ الطلب الآن.' }),
+      });
+    else await route.continue();
+  });
+  await checkout.click();
+  await expect(page.getByRole('alert')).toContainText('تعذّر حفظ الطلب');
+  await expect(page.getByText('سُجّل طلبك برقم', { exact: false })).toHaveCount(0);
+  await expect(page.getByText('عسل الاختبار', { exact: true })).toBeVisible();
+  const savedResponse = page.waitForResponse(
+    (r) => r.url().endsWith('/api/orders') && r.status() === 201,
+  );
+  await checkout.click();
+  const saved = await (await savedResponse).json();
+  expect(references).toHaveLength(2);
+  expect(references[0]).toBe(references[1]);
+  await expect(page.getByRole('link', { name: 'فتح واتساب وإرسال الطلب' })).toHaveAttribute(
+    'href',
+    /https:\/\/wa.me\//,
+  );
+  const handoff = new URL(
+    (await page.getByRole('link', { name: 'فتح واتساب وإرسال الطلب' }).getAttribute('href'))!,
+  );
+  expect(handoff.searchParams.get('text')).toContain(saved.reference);
+  const tracked = await request.get(`/orders/${saved.reference}`);
+  expect(tracked.status()).toBe(200);
+  expect(await tracked.text()).toContain(saved.reference);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
     true,
   );

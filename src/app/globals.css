@@ -248,3 +248,19 @@ body {
   border-radius: 1rem;
   margin: 1.5rem 0;
 }
+
+/* The server-rendered page stays usable if hydration fails or JavaScript is disabled. */
+#boot-loader {
+  animation: dismiss-boot-loader 0s 8s forwards;
+}
+@keyframes dismiss-boot-loader {
+  to {
+    visibility: hidden;
+    pointer-events: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  #boot-loader {
+    display: none !important;
+  }
+}

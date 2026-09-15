@@ -4,17 +4,16 @@ import { useState } from 'react';
 import { MessageCircle, Layers, BadgePercent, Gift } from 'lucide-react';
 import type { CartProduct } from '@/store/cartStore';
 import { getWhatsAppLink } from '@/lib/config';
-import { lowStockLabel } from '@/lib/settings';
 import { useSettings } from '@/components/SettingsProvider';
 import { trackWhatsAppClick } from '@/lib/analytics';
 import { defaultVariant, variantAvailable, variantCartId, type VariantLite } from '@/lib/variants';
 import { bestTier, fmtSyp, type PriceTierRule } from '@/lib/pricing';
 import AddToCartButton from './AddToCartButton';
-import StockAlertButton from '@/components/StockAlertButton';
+import ProductInquiryButton from '@/components/ProductInquiryButton';
 import StickyBuyBar from './StickyBuyBar';
 
 /**
- * صندوق الشراء (Odoo variants): اختيار الحجم يبدّل السعر والتوفر وشارة «بقي X»
+ * صندوق الشراء (Odoo variants): اختيار الحجم يبدّل السعر وخيار الطلب
  * وما يُضاف إلى السلة، مع جدول خصم الكمية والعروض السارية على المنتج.
  */
 export default function BuyBox({
@@ -23,23 +22,20 @@ export default function BuyBox({
   tiers,
   promotionLabels,
   available,
-  stockQty,
 }: {
   product: CartProduct & { productId: string };
-  stockQty: number | null;
   variants: VariantLite[];
   tiers: PriceTierRule[];
   promotionLabels: string[];
-  /** توفر المنتج ككل (inStock + الكمية) بلا اعتبار المتغيّرات */
+  /** استقبال الطلبات للمنتج ككل، دون أعداد مخزون */
   available: boolean;
 }) {
-  const { lowStockThreshold, tieredPricingEnabled } = useSettings();
+  const { tieredPricingEnabled } = useSettings();
   const [variantId, setVariantId] = useState(() => defaultVariant(variants)?.id ?? null);
   const variant = variants.find((v) => v.id === variantId) ?? null;
 
   const price = variant ? variant.price : product.price;
   const canOrder = available && (variant ? variantAvailable(variant) : true);
-  const lowStock = lowStockLabel(variant ? variant.stockQty : stockQty, lowStockThreshold);
   const cartProduct: CartProduct = {
     ...product,
     id: variant ? variantCartId(product.productId, variant.id) : product.productId,
@@ -95,13 +91,6 @@ export default function BuyBox({
         </div>
       )}
 
-      {lowStock && canOrder && (
-        <p className="inline-flex items-center gap-2 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-1.5 text-sm font-bold text-red-300">
-          <span className="h-2 w-2 animate-pulse rounded-full bg-red-400" />
-          {lowStock} — اطلبه قبل أن ينفد
-        </p>
-      )}
-
       {(visibleTiers.length > 0 || promotionLabels.length > 0) && (
         <div className="space-y-2 rounded-xl border border-green-500/20 bg-green-500/5 p-3 text-sm">
           {visibleTiers.length > 0 && price != null && (
@@ -142,12 +131,12 @@ export default function BuyBox({
         {canOrder || price == null ? (
           <AddToCartButton available={canOrder} product={cartProduct} />
         ) : (
-          <StockAlertButton
-            productId={product.productId}
+          <ProductInquiryButton
             productName={`${product.name}${cartProduct.weight ? ` (${cartProduct.weight})` : ''}`}
             className="flex w-full items-center justify-center gap-2 rounded-xl border border-amber-500/40 bg-amber-500/10 py-4 font-bold text-amber-300 transition-colors hover:bg-amber-500/20"
           />
         )}
+        <p className="text-sm text-zinc-400">نؤكد التوفر وموعد التسليم معك عبر واتساب.</p>
         <a
           href={getWhatsAppLink(
             `مرحباً عسل الهيثم، أود الاستفسار عن المنتج المعروض في الموقع: ${product.name}${cartProduct.weight ? ` (${cartProduct.weight})` : ''}`,

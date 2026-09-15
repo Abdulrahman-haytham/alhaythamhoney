@@ -4,6 +4,7 @@ import { guardAdmin } from '@/lib/admin-request';
 import { readJson } from '@/lib/request-security';
 import { orderStatusInput } from '@/lib/validation';
 import { logAudit } from '@/lib/audit.server';
+import { CommerceError } from '@/lib/commerce.server';
 import { applyOrderStatus } from '@/lib/orders.server';
 
 /** تغيير حالة الطلب وملاحظاته — التأكيد الأول يثبّت تاريخ التأكيد ويُطلق مكافآت الولاء. */
@@ -15,25 +16,52 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   const { id } = await params;
   const before = await db.order.findUnique({ where: { id } });
   if (!before) return NextResponse.json({ error: 'الطلب غير موجود.' }, { status: 404 });
-  const after = await applyOrderStatus(before, parsed.data.status, parsed.data.notes);
+  let after;
+  try {
+    after = await applyOrderStatus(
+      id,
+      parsed.data.status,
+      parsed.data.notes,
+      parsed.data.followUpAt,
+      parsed.data.cancellationReason,
+      { customerName: parsed.data.customerName, customerPhone: parsed.data.customerPhone },
+    );
+  } catch (error) {
+    if (error instanceof CommerceError)
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    throw error;
+  }
   await logAudit({
     entity: 'order',
     entityId: id,
     action: 'status',
     label: before.reference,
-    before: { status: before.status, notes: before.notes },
-    after: { status: after.status, notes: after.notes },
+    before: {
+      status: before.status,
+      notes: before.notes,
+      customerName: before.customerName,
+      customerPhone: before.customerPhone,
+      followUpAt: before.followUpAt,
+      cancellationReason: before.cancellationReason,
+    },
+    after: {
+      status: after.status,
+      notes: after.notes,
+      customerName: after.customerName,
+      customerPhone: after.customerPhone,
+      followUpAt: after.followUpAt,
+      cancellationReason: after.cancellationReason,
+    },
   });
   return NextResponse.json({ ok: true });
 }
 
-export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
+/** Orders keep their accounting and audit history; use cancellation instead. */
+export async function DELETE(request: Request) {
   const denied = await guardAdmin(request);
   if (denied) return denied;
-  const { id } = await params;
-  const existing = await db.order.findUnique({ where: { id }, select: { reference: true } });
-  const deleted = await db.order.deleteMany({ where: { id } });
-  if (deleted.count === 0) return NextResponse.json({ error: 'الطلب غير موجود.' }, { status: 404 });
-  await logAudit({ entity: 'order', entityId: id, action: 'delete', label: existing?.reference });
-  return NextResponse.json({ ok: true });
+  return NextResponse.json(
+    { error: 'استخدم إلغاء الطلب مع ذكر السبب للحفاظ على السجل وتسوية النقاط.' },
+    { status: 405, headers: { Allow: 'PATCH' } },
+  );
 }
