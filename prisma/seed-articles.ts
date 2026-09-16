@@ -144,6 +144,23 @@ export const SEED_ARTICLES: SeedArticle[] = [
     ],
     publishedAt: '2026-02-09',
   },
+  {
+    slug: 'beekeeping-equipment-guide',
+    title: 'دليل تعليمي: أدوات ومعدات تربية النحل واستخراج العسل',
+    description:
+      'دليل تعليمي مصوّر لأهم أدوات ومعدات تربية النحل واستخراج العسل — للتعريف والتثقيف فقط، وليس قائمة عرض للبيع في متجرنا.',
+    keywords: [
+      'معدات النحالة',
+      'أدوات تربية النحل',
+      'خلية لانغستروث',
+      'معدات استخراج العسل',
+      'أدوات النحال',
+      'بدلة نحال',
+      'فراز العسل',
+    ],
+    image: '/images/beekeeping/beehive-components/langstroth-beehive.webp',
+    publishedAt: '2026-09-16',
+  },
 ];
 
 export async function readSeedArticleBody(slug: string): Promise<string> {
