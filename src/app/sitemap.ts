@@ -14,6 +14,7 @@ const STATIC: {
   { path: '/shop', priority: 0.9, changeFrequency: 'weekly' },
   { path: '/custom-mixtures', priority: 0.9, changeFrequency: 'monthly' },
   { path: '/articles', priority: 0.8, changeFrequency: 'weekly' },
+  { path: '/beekeeping', priority: 0.8, changeFrequency: 'weekly' },
   { path: '/about-us', priority: 0.6, changeFrequency: 'yearly' },
   { path: '/quality-standards', priority: 0.6, changeFrequency: 'yearly' },
   { path: '/faq', priority: 0.6, changeFrequency: 'monthly' },
@@ -32,6 +33,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const articles = await db.article.findMany({
     where: { published: true, publishedAt: { lte: new Date() } },
+    select: { slug: true, updatedAt: true },
+  });
+
+  const glossary = await db.glossaryEntry.findMany({
+    where: { published: true },
     select: { slug: true, updatedAt: true },
   });
 
@@ -58,6 +64,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: a.updatedAt,
       priority: 0.7,
       changeFrequency: 'yearly' as const,
+    })),
+    ...glossary.map((g) => ({
+      url: `${SITE.url}/beekeeping/${g.slug}`,
+      lastModified: g.updatedAt,
+      priority: 0.6,
+      changeFrequency: 'monthly' as const,
     })),
   ];
 }

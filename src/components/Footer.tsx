@@ -149,6 +149,11 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
+                <Link href="/beekeeping" className="hover:text-amber-500 transition-colors">
+                  موسوعة النحّال
+                </Link>
+              </li>
+              <li>
                 <Link href="/faq" className="hover:text-amber-500 transition-colors">
                   الأسئلة الشائعة
                 </Link>

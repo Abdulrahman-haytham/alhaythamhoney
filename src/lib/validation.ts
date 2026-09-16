@@ -516,3 +516,21 @@ export const leadStatusInput = z
       .nullable(),
   })
   .strict();
+
+// ---- موسوعة النحّال ----
+export const glossaryInput = z
+  .object({
+    slug,
+    name: text(120).min(2, 'الاسم قصير.'),
+    /** تصنيف نصّي حر — يوسّعه الأدمن بلا ترحيل قاعدة بيانات */
+    category: text(60).min(2, 'التصنيف مطلوب.'),
+    summary: text(2000).min(20, 'الشرح قصير جداً.'),
+    /** نصيحة النحّال — اختيارية، وهي ما يميّز الموسوعة عن أي دليل عام */
+    tip: optionalText(2000),
+    image: localImage,
+    published: z.boolean(),
+    sortOrder: z.number().int().min(0).max(10000),
+    /** منتجاتنا المرتبطة بهذه الأداة */
+    productIds: z.array(text(50).min(1)).max(12),
+  })
+  .strict();

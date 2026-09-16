@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic';
  * ويُبحث فيه في المتصفح — بلا استعلام لكل ضغطة زر.
  */
 export async function GET() {
-  const [products, mixtures, articles] = await Promise.all([
+  const [products, mixtures, articles, glossary] = await Promise.all([
     db.product.findMany({
       where: { published: true },
       select: {
@@ -32,6 +32,11 @@ export async function GET() {
       where: { published: true, publishedAt: { lte: new Date() } },
       select: { slug: true, title: true, description: true, image: true, keywords: true },
       orderBy: { publishedAt: 'desc' },
+    }),
+    db.glossaryEntry.findMany({
+      where: { published: true },
+      select: { slug: true, name: true, summary: true, image: true, category: true },
+      orderBy: { sortOrder: 'asc' },
     }),
   ]);
   const docs = [
@@ -73,6 +78,16 @@ export async function GET() {
       price: null,
       inStock: true,
       terms: `${a.title} ${a.description} ${a.keywords.join(' ')}`.toLowerCase(),
+    })),
+    ...glossary.map((g) => ({
+      kind: 'glossary' as const,
+      slug: g.slug,
+      title: g.name,
+      desc: g.category,
+      image: g.image,
+      price: null,
+      inStock: true,
+      terms: `${g.name} ${g.category} ${g.summary}`.toLowerCase(),
     })),
   ];
   return NextResponse.json(

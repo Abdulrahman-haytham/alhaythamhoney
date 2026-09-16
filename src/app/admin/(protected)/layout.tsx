@@ -11,6 +11,7 @@ const TABS = [
   { href: '/admin/reviews', label: 'التقييمات' },
   { href: '/admin/mixtures', label: 'الخلطات' },
   { href: '/admin/articles', label: 'المدونة' },
+  { href: '/admin/glossary', label: 'الموسوعة' },
   { href: '/admin/coupons', label: 'الكوبونات' },
   { href: '/admin/promotions', label: 'العروض' },
   { href: '/admin/draws', label: 'السحب' },

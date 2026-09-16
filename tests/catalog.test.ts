@@ -21,6 +21,7 @@ import {
   batchInput,
   leadInput,
   leadStatusInput,
+  glossaryInput,
 } from '@/lib/validation';
 import {
   createSessionToken,
@@ -51,6 +52,8 @@ import {
   variantCartId,
 } from '@/lib/variants';
 import { diffRecords } from '@/lib/audit.server';
+import { orderCategories } from '@/lib/glossary.server';
+import { SEED_GLOSSARY } from '../prisma/seed-glossary';
 import { pointsForAmount, redeemablePoints } from '@/lib/loyalty';
 import { campaignHtml } from '@/lib/campaigns.server';
 import {
@@ -1007,5 +1010,52 @@ describe('batch passports and wholesale leads', () => {
         .success,
     ).toBe(false);
     expect(leadStatusInput.safeParse({ status: 'WON', notes: '' }).data?.notes).toBeNull();
+  });
+});
+
+describe('beekeeping glossary hub', () => {
+  const entry = {
+    slug: 'bee-smoker',
+    name: 'المدخّن',
+    category: 'أدوات النحّال',
+    summary: 'الدخان البارد يهدّئ الطائفة قبل فتح الخلية للفحص، وهو أهم أداة في يد النحّال.',
+    tip: '',
+    image: '/images/beekeeping/beekeeping-tools/bee-smoker.webp',
+    published: true,
+    sortOrder: 0,
+    productIds: [],
+  };
+
+  it('accepts educational entries and normalizes the optional beekeeper tip', () => {
+    const ok = glossaryInput.safeParse(entry);
+    expect(ok.success).toBe(true);
+    // النصيحة اختيارية: الفراغ يُحفظ null لا نصاً فارغاً، فلا يظهر إطار نصيحة خالٍ
+    expect(ok.data?.tip).toBeNull();
+    expect(glossaryInput.safeParse({ ...entry, tip: 'نستخدم قشّ القمح الجاف.' }).data?.tip).toBe(
+      'نستخدم قشّ القمح الجاف.',
+    );
+  });
+
+  it('rejects a thin summary, a foreign image host and a bad slug', () => {
+    expect(glossaryInput.safeParse({ ...entry, summary: 'قصير' }).success).toBe(false);
+    expect(
+      glossaryInput.safeParse({ ...entry, image: 'https://evil.example/x.webp' }).success,
+    ).toBe(false);
+    expect(glossaryInput.safeParse({ ...entry, slug: 'Bee Smoker' }).success).toBe(false);
+    expect(glossaryInput.safeParse({ ...entry, category: '' }).success).toBe(false);
+  });
+
+  it('keeps known categories first and appends admin-invented ones', () => {
+    const ordered = orderCategories(['معدات أخرى', 'أمراض النحل', 'أدوات النحّال', 'معدات أخرى']);
+    expect(ordered).toEqual(['أدوات النحّال', 'معدات أخرى', 'أمراض النحل']);
+  });
+
+  it('ships every seeded entry with a real image file and a unique slug', () => {
+    const slugs = SEED_GLOSSARY.map((e) => e.slug);
+    expect(new Set(slugs).size).toBe(slugs.length);
+    for (const e of SEED_GLOSSARY) {
+      expect(existsSync(path.join(process.cwd(), 'public', e.image))).toBe(true);
+      expect(e.summary.length).toBeGreaterThan(40);
+    }
   });
 });

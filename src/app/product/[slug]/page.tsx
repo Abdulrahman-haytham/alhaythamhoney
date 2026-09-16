@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { ArrowLeft, BookOpen, Sparkles } from 'lucide-react';
 import { getProductBySlug, getRelatedProducts, getProductArticles } from '@/lib/products.server';
 import { getProductPromotionLabels } from '@/lib/promotions.server';
+import { getProductGlossary } from '@/lib/glossary.server';
 import { getProductBatches } from '@/lib/batches.server';
 import { formatArticleDate, toIsoDay } from '@/lib/articles';
 import { priceFrom } from '@/lib/variants';
@@ -59,14 +60,16 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   if (!product) notFound();
 
   const settings = await getSettings();
-  const [reviews, rating, related, articles, promotionLabels, batches] = await Promise.all([
-    getApprovedReviews(product.slug),
-    getRatingSummary(product.slug),
-    getRelatedProducts(product.id, product.category, settings.autoRelatedProducts),
-    getProductArticles(product.id),
-    settings.promotionsEnabled ? getProductPromotionLabels(product.id) : Promise.resolve([]),
-    getProductBatches(product.id),
-  ]);
+  const [reviews, rating, related, articles, promotionLabels, batches, glossary] =
+    await Promise.all([
+      getApprovedReviews(product.slug),
+      getRatingSummary(product.slug),
+      getRelatedProducts(product.id, product.category, settings.autoRelatedProducts),
+      getProductArticles(product.id),
+      settings.promotionsEnabled ? getProductPromotionLabels(product.id) : Promise.resolve([]),
+      getProductBatches(product.id),
+      getProductGlossary(product.id),
+    ]);
 
   const available = catalogAvailable(product);
   const bundleValue =
@@ -399,6 +402,50 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                 </Link>
               ))}
             </div>
+          </section>
+        )}
+
+        {glossary.length > 0 && (
+          <section aria-labelledby="glossary-heading" className="mt-16">
+            <div className="mb-5 flex items-center justify-between gap-4">
+              <h2
+                id="glossary-heading"
+                className="flex items-center gap-2 font-amiri text-2xl font-bold text-white sm:text-3xl"
+              >
+                <BookOpen className="h-6 w-6 text-amber-500" />
+                من ورشتنا: كيف صُنع هذا العسل
+              </h2>
+              <Link
+                href="/beekeeping"
+                className="inline-flex items-center gap-1.5 text-sm font-bold text-amber-500 hover:text-amber-400"
+              >
+                الموسوعة
+                <ArrowLeft className="h-4 w-4" />
+              </Link>
+            </div>
+            <ul className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+              {glossary.map((g) => (
+                <li key={g.slug}>
+                  <Link
+                    href={`/beekeeping/${g.slug}`}
+                    className="group flex h-full flex-col overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900/40 transition hover:border-amber-500/40"
+                  >
+                    <img
+                      src={g.image}
+                      alt=""
+                      loading="lazy"
+                      className="aspect-square w-full bg-white object-contain p-2"
+                    />
+                    <div className="p-3">
+                      <span className="text-[10px] text-amber-500/80">{g.category}</span>
+                      <h3 className="font-amiri text-sm font-bold text-white group-hover:text-amber-400 sm:text-base">
+                        {g.name}
+                      </h3>
+                    </div>
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </section>
         )}
 

@@ -79,6 +79,8 @@ model Product {
   attributes   AttributeValue[]
   stockAlerts  StockAlert[]
   batches      Batch[]
+  /// مداخل موسوعة النحّال المرتبطة بهذا المنتج (أدوات صناعته)
+  glossary     GlossaryEntry[]
 
   @@index([published, sortOrder])
   @@map("products")
@@ -608,6 +610,30 @@ model Lead {
 
   @@index([status, createdAt])
   @@map("leads")
+}
+
+/// مدخل في «موسوعة النحّال»: أداة أو مصطلح يشرحه الموقع تعليمياً — لا يُباع.
+/// التصنيف نصّ حر لا Enum حتى يضيف الأدمن محاور جديدة (مصطلحات، أمراض النحل…) بلا ترحيل.
+model GlossaryEntry {
+  id        String    @id @default(cuid())
+  slug      String    @unique
+  name      String
+  category  String
+  /// شرح الوظيفة والأهمية — يظهر في البطاقة وصفحة المدخل
+  summary   String
+  /// نصيحة عملية من نحّالي الهيثم — تُكتب من اللوحة وتميّز المحتوى عن أي دليل عام
+  tip       String?
+  image     String
+  published Boolean   @default(true)
+  sortOrder Int       @default(0)
+  /// منتجاتنا المرتبطة بهذه الأداة — تربط المحتوى التعليمي بالمتجر في الاتجاهين
+  products  Product[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([published, sortOrder])
+  @@index([category])
+  @@map("glossary_entries")
 }
 
 /// إعدادات الموقع — صف واحد (id = "site") يحرّره الأدمن بلا نشر جديد.

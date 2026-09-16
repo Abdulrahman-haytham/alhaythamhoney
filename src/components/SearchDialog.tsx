@@ -3,11 +3,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { trackSearch } from '@/lib/analytics';
 import Link from 'next/link';
-import { Search, X, FileText, Package, SlidersHorizontal, Loader2 } from 'lucide-react';
+import { Search, X, FileText, Package, SlidersHorizontal, Loader2, BookOpen } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export interface SearchDoc {
-  kind: 'product' | 'mixture' | 'article';
+  kind: 'product' | 'mixture' | 'article' | 'glossary';
   slug: string;
   title: string;
   desc: string;
@@ -22,6 +22,7 @@ const HREF: Record<SearchDoc['kind'], string> = {
   product: '/product/',
   mixture: '/custom-mixtures/',
   article: '/articles/',
+  glossary: '/beekeeping/',
 };
 
 let cachedDocs: SearchDoc[] | null = null;
@@ -107,6 +108,7 @@ export function SearchDialog({ open, onClose }: { open: boolean; onClose: () => 
     { kind: 'product', title: 'المنتجات', icon: <Package className="w-3.5 h-3.5" /> },
     { kind: 'mixture', title: 'الخلطات', icon: <SlidersHorizontal className="w-3.5 h-3.5" /> },
     { kind: 'article', title: 'المقالات', icon: <FileText className="w-3.5 h-3.5" /> },
+    { kind: 'glossary', title: 'موسوعة النحّال', icon: <BookOpen className="w-3.5 h-3.5" /> },
   ];
 
   return (
