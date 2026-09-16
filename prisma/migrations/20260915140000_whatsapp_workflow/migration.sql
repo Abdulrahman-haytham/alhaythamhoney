@@ -13,11 +13,13 @@ ALTER TABLE "coupons" ADD COLUMN     "rewardOrderId" TEXT;
 ALTER TABLE "coupon_redemptions" ADD COLUMN     "orderId" TEXT;
 
 -- AlterTable
-ALTER TABLE "customers" ADD COLUMN     "cartJson" JSONB,
-ADD COLUMN     "cartRemindedAt" TIMESTAMP(3),
-ADD COLUMN     "cartUpdatedAt" TIMESTAMP(3),
+-- The preceding campaign migration was also extended on nextjs. Keep upgrades
+-- compatible with databases that applied either revision of that migration.
+ALTER TABLE "customers" ADD COLUMN IF NOT EXISTS "cartJson" JSONB,
+ADD COLUMN IF NOT EXISTS "cartRemindedAt" TIMESTAMP(3),
+ADD COLUMN IF NOT EXISTS "cartUpdatedAt" TIMESTAMP(3),
 ADD COLUMN     "referralRewardedAt" TIMESTAMP(3),
-ADD COLUMN     "unsubscribeToken" TEXT,
+ADD COLUMN IF NOT EXISTS "unsubscribeToken" TEXT,
 ALTER COLUMN "marketingOptIn" SET DEFAULT false;
 
 -- AlterTable
@@ -38,7 +40,7 @@ CREATE INDEX "orders_status_followUpAt_idx" ON "orders"("status", "followUpAt");
 CREATE INDEX "coupon_redemptions_orderId_idx" ON "coupon_redemptions"("orderId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "customers_unsubscribeToken_key" ON "customers"("unsubscribeToken");
+CREATE UNIQUE INDEX IF NOT EXISTS "customers_unsubscribeToken_key" ON "customers"("unsubscribeToken");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "points_transactions_eventKey_key" ON "points_transactions"("eventKey");

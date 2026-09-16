@@ -33,6 +33,14 @@ export const tierInput = z
   })
   .strict();
 
+/** ملف PDF مرفوع عبر اللوحة */
+const localPdf = text(500).regex(/^\/uploads\/studio\/[a-f0-9-]+\.pdf$/, 'ارفع ملف PDF من اللوحة.');
+/** مقطع من الاستديو أو رابط https خارجي */
+const videoUrl = text(500).refine(
+  (v) => /^\/uploads\/studio\/[a-f0-9-]+\.(mp4|webm|mov)$/.test(v) || /^https:\/\/[^\s]+$/.test(v),
+  'مقطع من الاستديو أو رابط https.',
+);
+
 export const productInput = z
   .object({
     slug,
@@ -239,6 +247,7 @@ export const settingsInput = z
     referralMaxDiscount: amount,
     referralCouponDays: z.number().int().min(1).max(365),
     referralMonthlyCap: z.number().int().min(0).max(100_000),
+    wholesaleEnabled: z.boolean(),
     abandonedCartEmailEnabled: z.boolean(),
     abandonedCartHours: z.number().int().min(1).max(720),
     welcomeCouponEnabled: z.boolean(),
@@ -322,6 +331,8 @@ export const generateCodesInput = z
   .object({
     batch: text(60).min(1, 'اسم الدفعة مطلوب.'),
     count: z.number().int().min(1).max(5000),
+    /** جواز الدفعة الذي يفتحه QR المرطبان (اختياري) */
+    batchId: text(50).nullable().optional(),
   })
   .strict();
 
@@ -469,5 +480,65 @@ export const cartSyncInput = z
           .strict(),
       )
       .max(60),
+  })
+  .strict();
+
+// ---- جواز الدفعة وطلبات الجملة ----
+export const batchInput = z
+  .object({
+    code: text(40)
+      .toUpperCase()
+      .regex(/^[A-Z0-9]+(?:-[A-Z0-9]+)*$/, 'رمز الدفعة: حروف إنجليزية وأرقام وشرطات.'),
+    title: text(120).min(3, 'العنوان قصير.'),
+    productId: text(50).nullable(),
+    region: optionalText(120),
+    harvestDate: isoDay.nullable(),
+    floralSource: optionalText(120),
+    moisture: optionalText(120),
+    labReportUrl: localPdf.nullable(),
+    videoUrl: videoUrl.nullable(),
+    notes: text(20_000)
+      .transform((v) => (v.length ? v : null))
+      .nullable(),
+    published: z.boolean(),
+  })
+  .strict();
+
+export const leadInput = z
+  .object({
+    name: text(80).min(2, 'الاسم قصير.'),
+    business: text(120).min(2, 'اسم المحل أو الجهة مطلوب.'),
+    phone,
+    email: emailInput.nullable().optional(),
+    city: text(60).min(2, 'المدينة مطلوبة.'),
+    quantity: optionalText(200),
+    message: text(2000).min(10, 'اكتب ما تحتاجه بتفصيل أكثر.'),
+  })
+  .strict();
+
+export const leadStatusInput = z
+  .object({
+    status: z.enum(['NEW', 'CONTACTED', 'QUOTED', 'WON', 'LOST']),
+    notes: text(2000)
+      .transform((v) => (v.length ? v : null))
+      .nullable(),
+  })
+  .strict();
+
+// ---- موسوعة النحّال ----
+export const glossaryInput = z
+  .object({
+    slug,
+    name: text(120).min(2, 'الاسم قصير.'),
+    /** تصنيف نصّي حر — يوسّعه الأدمن بلا ترحيل قاعدة بيانات */
+    category: text(60).min(2, 'التصنيف مطلوب.'),
+    summary: text(2000).min(20, 'الشرح قصير جداً.'),
+    /** نصيحة النحّال — اختيارية، وهي ما يميّز الموسوعة عن أي دليل عام */
+    tip: optionalText(2000),
+    image: localImage,
+    published: z.boolean(),
+    sortOrder: z.number().int().min(0).max(10000),
+    /** منتجاتنا المرتبطة بهذه الأداة */
+    productIds: z.array(text(50).min(1)).max(12),
   })
   .strict();

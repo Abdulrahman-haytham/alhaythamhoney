@@ -79,6 +79,9 @@ model Product {
   /// خصائص الفلترة (نوع الزهرة، المنطقة، الموسم…)
   attributes   AttributeValue[]
   stockAlerts  StockAlert[]
+  batches      Batch[]
+  /// مداخل موسوعة النحّال المرتبطة بهذا المنتج (أدوات صناعته)
+  glossary     GlossaryEntry[]
 
   @@index([published, sortOrder])
   @@map("products")
@@ -436,10 +439,6 @@ model Customer {
   phone              String
   city               String?
   marketingOptIn     Boolean             @default(false)
-  cartJson           Json?
-  cartUpdatedAt      DateTime?
-  cartRemindedAt     DateTime?
-  unsubscribeToken   String?             @unique
   referralRewardedAt DateTime?
   lastLoginAt        DateTime?
   /// رصيد نقاط الولاء الحالي (مجموع الحركات)
@@ -449,6 +448,12 @@ model Customer {
   referredById       String?
   referredBy         Customer?           @relation("Referrals", fields: [referredById], references: [id], onDelete: SetNull)
   referrals          Customer[]          @relation("Referrals")
+  /// نسخة السلة الأخيرة للمسجّل (لبريد السلة المتروكة) وتوقيتها وآخر تذكير
+  cartJson           Json?
+  cartUpdatedAt      DateTime?
+  cartRemindedAt     DateTime?
+  /// رمز إلغاء الاشتراك في الرسائل (رابط في كل حملة)
+  unsubscribeToken   String?             @unique
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
   reviews            Review[]
@@ -551,7 +556,11 @@ model DrawEntry {
 model JarCode {
   id        String     @id @default(cuid())
   code      String     @unique
+  /// اسم دفعة الطباعة (نص حر) — للتصدير والعدّ
   batch     String
+  /// جواز الدفعة المرتبط (اختياري): يفتح رمز المرطبان صفحة الجواز
+  batchId   String?
+  passport  Batch?     @relation(fields: [batchId], references: [id], onDelete: SetNull)
   createdAt DateTime   @default(now())
   usedAt    DateTime?
   usedById  String?
@@ -559,7 +568,90 @@ model JarCode {
   entry     DrawEntry?
 
   @@index([batch])
+  @@index([batchId])
   @@map("jar_codes")
+}
+
+/// جواز الدفعة (Odoo lots): من أين جاء هذا العسل ومتى قُطف وما نتيجة فحصه — يُفتح من QR المرطبان.
+model Batch {
+  id           String    @id @default(cuid())
+  /// رمز الدفعة المطبوع (مثل B-2026-SDR-01)
+  code         String    @unique
+  title        String
+  productId    String?
+  product      Product?  @relation(fields: [productId], references: [id], onDelete: SetNull)
+  /// المنحل / المنطقة
+  region       String?
+  harvestDate  DateTime?
+  /// المصدر الزهري
+  floralSource String?
+  /// نسبة الرطوبة أو ملخّص الفحص (نص قصير)
+  moisture     String?
+  /// تقرير المخبر PDF من الاستديو
+  labReportUrl String?
+  /// مقطع من الاستديو أو رابط خارجي
+  videoUrl     String?
+  /// قصة الدفعة (Markdown)
+  notes        String?
+  published    Boolean   @default(false)
+  jarCodes     JarCode[]
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([productId, published])
+  @@map("batches")
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  QUOTED
+  WON
+  LOST
+}
+
+/// طلب عرض سعر للجملة (Odoo CRM lead): من محل أو مطعم — يُدار بحالات من اللوحة.
+model Lead {
+  id        String     @id @default(cuid())
+  name      String
+  business  String
+  phone     String
+  email     String?
+  city      String
+  message   String
+  /// الكميات المطلوبة كما كتبها الطالب
+  quantity  String?
+  status    LeadStatus @default(NEW)
+  notes     String?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@index([status, createdAt])
+  @@map("leads")
+}
+
+/// مدخل في «موسوعة النحّال»: أداة أو مصطلح يشرحه الموقع تعليمياً — لا يُباع.
+/// التصنيف نصّ حر لا Enum حتى يضيف الأدمن محاور جديدة (مصطلحات، أمراض النحل…) بلا ترحيل.
+model GlossaryEntry {
+  id        String    @id @default(cuid())
+  slug      String    @unique
+  name      String
+  category  String
+  /// شرح الوظيفة والأهمية — يظهر في البطاقة وصفحة المدخل
+  summary   String
+  /// نصيحة عملية من نحّالي الهيثم — تُكتب من اللوحة وتميّز المحتوى عن أي دليل عام
+  tip       String?
+  image     String
+  published Boolean   @default(true)
+  sortOrder Int       @default(0)
+  /// منتجاتنا المرتبطة بهذه الأداة — تربط المحتوى التعليمي بالمتجر في الاتجاهين
+  products  Product[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([published, sortOrder])
+  @@index([category])
+  @@map("glossary_entries")
 }
 
 /// إعدادات الموقع — صف واحد (id = "site") يحرّره الأدمن بلا نشر جديد.
@@ -618,6 +710,8 @@ model SiteSettings {
   referralCouponDays        Int      @default(30)
   /// أقصى عدد إحالات مكافأة في الشهر (0 = بلا سقف)
   referralMonthlyCap        Int      @default(0)
+  /// صفحة طلب الجملة /wholesale
+  wholesaleEnabled          Boolean  @default(true)
   // ---- بريد السلة المتروكة ----
   abandonedCartEmailEnabled Boolean  @default(false)
   /// بعد كم ساعة من آخر تعديل تُرسل رسالة «سلتك بانتظارك» للمسجّلين

@@ -34,7 +34,7 @@ test('mobile storefront, wishlist links, cart and WhatsApp checkout', async ({
     else await route.continue();
   });
   await checkout.click();
-  await expect(page.getByRole('alert')).toContainText('تعذّر حفظ الطلب');
+  await expect(page.getByRole('alert').filter({ hasText: 'تعذّر حفظ الطلب' })).toBeVisible();
   await expect(page.getByText('سُجّل طلبك برقم', { exact: false })).toHaveCount(0);
   await expect(page.getByText('عسل الاختبار', { exact: true })).toBeVisible();
   const savedResponse = page.waitForResponse(

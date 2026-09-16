@@ -5,6 +5,7 @@ import { requireAdmin } from '@/lib/auth';
 import { readJson } from '@/lib/request-security';
 import { generateCodesInput } from '@/lib/validation';
 import { generateJarCodes } from '@/lib/draws.server';
+import { SITE } from '@/lib/config';
 
 /** توليد دفعة رموز للطباعة على الملصقات. */
 export async function POST(request: Request) {
@@ -16,7 +17,11 @@ export async function POST(request: Request) {
       { error: parsed.error.issues[0]?.message || 'تحقق من الحقول.' },
       { status: 400 },
     );
-  const count = await generateJarCodes(parsed.data.batch, parsed.data.count);
+  const batchId = parsed.data.batchId
+    ? ((await db.batch.findUnique({ where: { id: parsed.data.batchId }, select: { id: true } }))
+        ?.id ?? null)
+    : null;
+  const count = await generateJarCodes(parsed.data.batch, parsed.data.count, batchId);
   return NextResponse.json({ ok: true, count }, { status: 201 });
 }
 
@@ -27,12 +32,20 @@ export async function GET(request: Request) {
   const rows = await db.jarCode.findMany({
     where: batch ? { batch } : {},
     orderBy: { createdAt: 'asc' },
-    select: { code: true, batch: true, usedAt: true },
+    select: { code: true, batch: true, usedAt: true, passport: { select: { code: true } } },
   });
   const escape = (v: string) => `"${v.replace(/"/g, '""')}"`;
   const csv = [
-    'code,batch,used',
-    ...rows.map((r) => [r.code, escape(r.batch), r.usedAt ? 'yes' : 'no'].join(',')),
+    'code,batch,used,url,passport',
+    ...rows.map((r) =>
+      [
+        r.code,
+        escape(r.batch),
+        r.usedAt ? 'yes' : 'no',
+        `${SITE.url}/j/${r.code}`,
+        r.passport?.code ?? '',
+      ].join(','),
+    ),
   ].join('\r\n');
   return new Response(`﻿${csv}`, {
     headers: {

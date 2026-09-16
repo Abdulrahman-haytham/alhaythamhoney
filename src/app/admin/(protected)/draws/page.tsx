@@ -6,7 +6,7 @@ import { JarCodesPanel } from './JarCodesPanel';
 export const dynamic = 'force-dynamic';
 
 export default async function AdminDrawsPage() {
-  const [draws, batches, unused] = await Promise.all([
+  const [draws, batches, unused, passports, linked] = await Promise.all([
     db.draw.findMany({
       orderBy: { createdAt: 'desc' },
       include: {
@@ -25,8 +25,21 @@ export default async function AdminDrawsPage() {
       orderBy: { batch: 'asc' },
     }),
     db.jarCode.groupBy({ by: ['batch'], where: { usedAt: null }, _count: { _all: true } }),
+    db.batch.findMany({
+      orderBy: { createdAt: 'desc' },
+      select: { id: true, code: true, title: true },
+    }),
+    // جواز كل دفعة طباعة (إن رُبطت): أول رمز فيها يكفي
+    db.jarCode.findMany({
+      where: { batchId: { not: null } },
+      distinct: ['batch'],
+      select: { batch: true, passport: { select: { code: true } } },
+    }),
   ]);
   const unusedByBatch = Object.fromEntries(unused.map((u) => [u.batch, u._count._all]));
+  const passportByBatch = Object.fromEntries(
+    linked.map((l) => [l.batch, l.passport?.code ?? null]),
+  );
 
   return (
     <>
@@ -41,7 +54,9 @@ export default async function AdminDrawsPage() {
           batch: b.batch,
           total: b._count._all,
           unused: unusedByBatch[b.batch] ?? 0,
+          passport: passportByBatch[b.batch] ?? null,
         }))}
+        passports={passports}
       />
       <DrawsPanel
         draws={draws.map((d) => ({

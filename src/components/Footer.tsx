@@ -1,10 +1,11 @@
 import Link from 'next/link';
 import { MessageCircle, Globe, Phone, Heart, MapPin } from 'lucide-react';
-import { SITE, getTelLink, getWhatsAppLink } from '@/lib/config';
+import { SITE, getTelLink, getWhatsAppLink, getRuntimeSettings } from '@/lib/config';
 
 /** تذييل الموقع — مكوّن خادم بلا تفاعلية، يعتمد فقط على ثوابت SITE. */
 export default function Footer() {
   const phoneNumber = SITE.phoneNumber;
+  const { wholesaleEnabled } = getRuntimeSettings();
   const facebookLink = SITE.social.facebook;
 
   return (
@@ -148,10 +149,22 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
+                <Link href="/beekeeping" className="hover:text-amber-500 transition-colors">
+                  موسوعة النحّال
+                </Link>
+              </li>
+              <li>
                 <Link href="/faq" className="hover:text-amber-500 transition-colors">
                   الأسئلة الشائعة
                 </Link>
               </li>
+              {wholesaleEnabled && (
+                <li>
+                  <Link href="/wholesale" className="hover:text-amber-500 transition-colors">
+                    الجملة والمحلات
+                  </Link>
+                </li>
+              )}
             </ul>
           </div>
           <div>

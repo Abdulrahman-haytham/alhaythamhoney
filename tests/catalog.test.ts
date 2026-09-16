@@ -16,6 +16,12 @@ import {
   stockAlertInput,
   registerInput,
   pointsAdjustInput,
+  campaignInput,
+  cartSyncInput,
+  batchInput,
+  leadInput,
+  leadStatusInput,
+  glossaryInput,
 } from '@/lib/validation';
 import {
   createSessionToken,
@@ -46,7 +52,10 @@ import {
   variantCartId,
 } from '@/lib/variants';
 import { diffRecords } from '@/lib/audit.server';
+import { orderCategories } from '@/lib/glossary.server';
+import { SEED_GLOSSARY } from '../prisma/seed-glossary';
 import { pointsForAmount, redeemablePoints } from '@/lib/loyalty';
+import { campaignHtml } from '@/lib/campaigns.server';
 import {
   bundleAvailable,
   bundleComponentsValue,
@@ -923,5 +932,123 @@ describe('loyalty, referral and personal coupons', () => {
     ).toBe('AB2C3D');
     expect(pointsAdjustInput.safeParse({ delta: 0, note: 'تصحيح' }).success).toBe(false);
     expect(pointsAdjustInput.safeParse({ delta: -5, note: 'تصحيح' }).success).toBe(true);
+  });
+});
+
+describe('campaigns and cart sync', () => {
+  it('wraps campaign html with unsubscribe link and tracking pixel', () => {
+    const html = campaignHtml('<p>مرحباً</p>', {
+      unsubscribeUrl: 'https://x/unsubscribe?t=abc',
+      pixelUrl: 'https://x/api/c/abc',
+    });
+    expect(html).toContain('https://x/unsubscribe?t=abc');
+    expect(html).toContain('<img src="https://x/api/c/abc"');
+    expect(campaignHtml('<p>x</p>', { unsubscribeUrl: 'u' })).not.toContain('<img');
+  });
+  it('validates campaign and cart-sync payloads', () => {
+    expect(campaignInput.safeParse({ subject: 'عرض', body: 'قصير' }).success).toBe(false);
+    expect(
+      campaignInput.safeParse({ subject: 'وصل السدر', body: 'نص كافٍ للحملة البريدية' }).success,
+    ).toBe(true);
+    expect(
+      cartSyncInput.safeParse({
+        items: [{ id: 'p', name: 'عسل', quantity: 2, price: 1000, image: null }],
+      }).success,
+    ).toBe(true);
+    expect(cartSyncInput.safeParse({ items: [{ id: 'p', quantity: 0 }] }).success).toBe(false);
+  });
+});
+
+describe('batch passports and wholesale leads', () => {
+  it('validates batch input and normalizes the code', () => {
+    const base = {
+      code: 'b-2026-sdr-01',
+      title: 'قطاف السدر',
+      productId: null,
+      region: '',
+      harvestDate: '2026-09-01',
+      floralSource: 'سدر',
+      moisture: null,
+      labReportUrl: '/uploads/studio/00000000-0000-4000-8000-000000000001.pdf',
+      videoUrl: '/uploads/studio/00000000-0000-4000-8000-000000000002.mp4',
+      notes: '',
+      published: true,
+    };
+    const ok = batchInput.safeParse(base);
+    expect(ok.success).toBe(true);
+    expect(ok.data?.code).toBe('B-2026-SDR-01');
+    expect(ok.data?.region).toBeNull();
+    expect(ok.data?.notes).toBeNull();
+    expect(batchInput.safeParse({ ...base, labReportUrl: '/etc/passwd' }).success).toBe(false);
+    expect(batchInput.safeParse({ ...base, videoUrl: 'javascript:x' }).success).toBe(false);
+    expect(batchInput.safeParse({ ...base, videoUrl: 'https://youtu.be/x' }).success).toBe(true);
+    expect(batchInput.safeParse({ ...base, code: 'bad code!' }).success).toBe(false);
+  });
+  it('validates wholesale leads and normalizes phone/email', () => {
+    const lead = leadInput.safeParse({
+      name: 'أبو أحمد',
+      business: 'سوبرماركت النور',
+      phone: '0947 931 959',
+      email: ' Shop@Example.com ',
+      city: 'حماة',
+      quantity: '',
+      message: 'نحتاج 20 كغ سدر شهرياً بعبوات 500 غرام',
+    });
+    expect(lead.success).toBe(true);
+    expect(lead.data?.phone).toBe('0947931959');
+    expect(lead.data?.email).toBe('shop@example.com');
+    expect(lead.data?.quantity).toBeNull();
+    expect(
+      leadInput.safeParse({ name: 'x', business: 'y', phone: '1', city: '', message: 'short' })
+        .success,
+    ).toBe(false);
+    expect(leadStatusInput.safeParse({ status: 'WON', notes: '' }).data?.notes).toBeNull();
+  });
+});
+
+describe('beekeeping glossary hub', () => {
+  const entry = {
+    slug: 'bee-smoker',
+    name: 'المدخّن',
+    category: 'أدوات النحّال',
+    summary: 'الدخان البارد يهدّئ الطائفة قبل فتح الخلية للفحص، وهو أهم أداة في يد النحّال.',
+    tip: '',
+    image: '/images/beekeeping/beekeeping-tools/bee-smoker.webp',
+    published: true,
+    sortOrder: 0,
+    productIds: [],
+  };
+
+  it('accepts educational entries and normalizes the optional beekeeper tip', () => {
+    const ok = glossaryInput.safeParse(entry);
+    expect(ok.success).toBe(true);
+    // النصيحة اختيارية: الفراغ يُحفظ null لا نصاً فارغاً، فلا يظهر إطار نصيحة خالٍ
+    expect(ok.data?.tip).toBeNull();
+    expect(glossaryInput.safeParse({ ...entry, tip: 'نستخدم قشّ القمح الجاف.' }).data?.tip).toBe(
+      'نستخدم قشّ القمح الجاف.',
+    );
+  });
+
+  it('rejects a thin summary, a foreign image host and a bad slug', () => {
+    expect(glossaryInput.safeParse({ ...entry, summary: 'قصير' }).success).toBe(false);
+    expect(
+      glossaryInput.safeParse({ ...entry, image: 'https://evil.example/x.webp' }).success,
+    ).toBe(false);
+    expect(glossaryInput.safeParse({ ...entry, slug: 'Bee Smoker' }).success).toBe(false);
+    expect(glossaryInput.safeParse({ ...entry, category: '' }).success).toBe(false);
+  });
+
+  it('keeps known categories first and appends admin-invented ones', () => {
+    const ordered = orderCategories(['معدات أخرى', 'أمراض النحل', 'أدوات النحّال', 'معدات أخرى']);
+    expect(ordered).toEqual(['أدوات النحّال', 'معدات أخرى', 'أمراض النحل']);
+  });
+
+  it('ships every seeded entry with a real image file and a unique slug', () => {
+    const slugs = SEED_GLOSSARY.map((e) => e.slug);
+    expect(new Set(slugs).size).toBe(slugs.length);
+    for (const e of SEED_GLOSSARY) {
+      expect(existsSync(path.join(process.cwd(), 'public', e.image))).toBe(true);
+      expect(e.summary.length).toBeGreaterThan(40);
+    }
   });
 });

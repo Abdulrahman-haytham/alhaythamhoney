@@ -62,6 +62,7 @@ export async function getDashboard() {
     cohort,
     losses,
     delivered,
+    newLeads,
   ] = await Promise.all([
     countEvents('WHATSAPP_CLICK', today),
     countEvents('WHATSAPP_CLICK', week),
@@ -113,6 +114,7 @@ export async function getDashboard() {
       _sum: { total: true },
       _count: { _all: true },
     }),
+    db.lead.count({ where: { status: 'NEW' } }),
   ]);
 
   // أسماء المنتجات للمفاتيح (المفتاح = معرّف المنتج)
@@ -155,6 +157,7 @@ export async function getDashboard() {
     redemptionsMonth,
     openDraw,
     recentAudit,
+    newLeads,
   };
 }
 

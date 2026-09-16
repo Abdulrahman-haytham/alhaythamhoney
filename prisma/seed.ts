@@ -1,6 +1,7 @@
 import { PrismaClient, ProductCategory } from '@prisma/client';
 import { hashPassword } from '../src/lib/password';
 import { SEED_ARTICLES, readSeedArticleBody } from './seed-articles';
+import { SEED_GLOSSARY } from './seed-glossary';
 
 const db = new PrismaClient();
 
@@ -459,6 +460,18 @@ async function main() {
   }
 
   console.log(`${SEED_ARTICLES.length} مقالات جاهزة.`);
+
+  // موسوعة النحّال: محتوى تعليمي لا يُباع — يُزرع مرة واحدة ثم يُدار من /admin/glossary
+  for (const [index, entry] of SEED_GLOSSARY.entries()) {
+    await db.glossaryEntry.upsert({
+      where: { slug: entry.slug },
+      // لا نلمس مدخلاً عدّله الأدمن؛ الترتيب يأتي من ترتيب المصفوفة (مجموعات متجاورة)
+      update: {},
+      create: { ...entry, sortOrder: index },
+    });
+  }
+
+  console.log(`${SEED_GLOSSARY.length} مدخل موسوعة جاهز.`);
 }
 
 main()

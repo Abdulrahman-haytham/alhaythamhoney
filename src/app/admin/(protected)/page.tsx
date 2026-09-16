@@ -9,6 +9,7 @@ import {
   TicketPercent,
   Trophy,
   History,
+  Building2,
 } from 'lucide-react';
 import { getDashboard } from '@/lib/dashboard.server';
 import { fmtSyp } from '@/lib/pricing';
@@ -135,6 +136,15 @@ export default async function AdminDashboardPage() {
                 <ShoppingBag className="h-4 w-4 text-amber-500" /> طلبات لم تُؤكَّد
               </Link>
               <b className="tabular-nums text-white">{pending}</b>
+            </li>
+            <li className="flex items-center justify-between">
+              <Link
+                href="/admin/leads"
+                className="flex items-center gap-2 text-zinc-300 hover:text-white"
+              >
+                <Building2 className="h-4 w-4 text-amber-500" /> طلبات جملة جديدة
+              </Link>
+              <b className="tabular-nums text-white">{d.newLeads}</b>
             </li>
             <li className="flex items-center justify-between">
               <Link

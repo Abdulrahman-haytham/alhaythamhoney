@@ -17,13 +17,16 @@ export async function GET(request: Request, { params }: { params: Promise<{ file
   } catch {
     return new Response(null, { status: 404 });
   }
+  const ext = path.extname(filename).slice(1);
   const headers = new Headers({
-    'Content-Type': MEDIA_TYPES[path.extname(filename).slice(1)],
+    'Content-Type': MEDIA_TYPES[ext],
     'X-Content-Type-Options': 'nosniff',
     'Accept-Ranges': 'bytes',
     'Cache-Control': 'public, max-age=86400',
-    'Content-Security-Policy': "default-src 'none'; sandbox",
+    // PDF: عارض المتصفح لا يعمل داخل sandbox، فنكتفي بمنع أي تحميل فرعي
+    'Content-Security-Policy': ext === 'pdf' ? "default-src 'none'" : "default-src 'none'; sandbox",
   });
+  if (ext === 'pdf') headers.set('Content-Disposition', 'inline; filename="lab-report.pdf"');
   const rangeHeader = request.headers.get('range');
   const range = rangeHeader ? parseRange(rangeHeader, size) : { start: 0, end: size - 1 };
   if (!range)

@@ -327,6 +327,12 @@ export function SettingsForm({ initial }: { initial: SiteSettingsData }) {
           checked={s.promotionsEnabled}
           onChange={(v) => set('promotionsEnabled', v)}
         />
+        <Toggle
+          label="صفحة الجملة والمحلات"
+          hint="طلب عرض سعر للجملة من المحلات والمطاعم، مع متابعة الطلب من الإدارة."
+          checked={s.wholesaleEnabled}
+          onChange={(v) => set('wholesaleEnabled', v)}
+        />
       </Section>
 
       <Section

@@ -18,6 +18,7 @@ import {
   Megaphone,
   UserRound,
   Gift,
+  BookOpen,
 } from 'lucide-react';
 import { SITE, getWhatsAppLink } from '@/lib/config';
 import { useCart } from '@/store/cartStore';
@@ -203,6 +204,12 @@ export default function Header() {
               <Link href="/articles" className="hover:text-amber-500 transition-colors">
                 المدونة
               </Link>
+              <Link
+                href="/beekeeping"
+                className="hidden lg:block hover:text-amber-500 transition-colors"
+              >
+                الموسوعة
+              </Link>
               <Link href="/custom-mixtures" className="hover:text-amber-500 transition-colors">
                 الخلطات الخاصة
               </Link>
@@ -325,6 +332,14 @@ export default function Header() {
                     className="text-zinc-300 hover:text-amber-500 transition-colors py-3 text-lg border-b border-zinc-800/50"
                   >
                     المدونة
+                  </Link>
+                  <Link
+                    href="/beekeeping"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center gap-4 text-zinc-300 hover:text-amber-500 transition-colors py-3 text-lg border-b border-zinc-800/50"
+                  >
+                    <BookOpen className="w-6 h-6 text-amber-500" />
+                    <span className="font-medium">موسوعة النحّال</span>
                   </Link>
                   <Link
                     href="/custom-mixtures"
