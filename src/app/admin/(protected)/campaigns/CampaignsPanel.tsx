@@ -39,9 +39,8 @@ function Editor({ campaign, adminEmail }: { campaign?: CampaignRow; adminEmail: 
   const [testEmail, setTestEmail] = useState(adminEmail ?? '');
   const [busy, setBusy] = useState<'' | 'save' | 'test' | 'send'>('');
   const [message, setMessage] = useState<{ text: string; ok: boolean } | null>(null);
-  const [progress, setProgress] = useState<{ sent: number; remaining: number } | null>(null);
-  const [done, setDone] = useState(campaign?.status === 'SENT');
-  const locked = campaign ? campaign.status !== 'DRAFT' : false;
+  const [queued, setQueued] = useState(false);
+  const locked = queued || (campaign ? campaign.status !== 'DRAFT' : false);
 
   async function save(): Promise<string | null> {
     setBusy('save');
@@ -98,25 +97,19 @@ function Editor({ campaign, adminEmail }: { campaign?: CampaignRow; adminEmail: 
     const cid = locked ? id : await save();
     if (!cid) return;
     setBusy('send');
-    let sentTotal = campaign?.sentCount ?? 0;
-    // دفعات متتالية حتى ينتهي الإرسال — يظهر التقدّم للأدمن
-    for (let guard = 0; guard < 500; guard++) {
-      const res = await fetch(`/api/admin/campaigns/${cid}/send`, { method: 'POST' }).catch(
-        () => null,
-      );
-      const data = res ? await res.json().catch(() => ({})) : {};
-      if (!res?.ok) {
-        setMessage({ text: data.error || 'توقف الإرسال.', ok: false });
-        break;
-      }
-      sentTotal += data.sent;
-      setProgress({ sent: sentTotal, remaining: data.remaining });
-      if (data.remaining === 0) {
-        setMessage({ text: `اكتمل الإرسال: ${sentTotal} رسالة.`, ok: true });
-        setDone(true);
-        break;
-      }
-    }
+    const res = await fetch(`/api/admin/campaigns/${cid}/send`, { method: 'POST' }).catch(
+      () => null,
+    );
+    const data = res ? await res.json().catch(() => ({})) : {};
+    setMessage(
+      res?.ok
+        ? {
+            text: 'أُدرجت الحملة للإرسال. يمكنك إغلاق الصفحة؛ حدّثها لاحقاً لمراجعة النتائج.',
+            ok: true,
+          }
+        : { text: data.error || 'تعذّر بدء الإرسال.', ok: false },
+    );
+    if (res?.ok) setQueued(true);
     setBusy('');
     router.refresh();
   }
@@ -209,7 +202,7 @@ function Editor({ campaign, adminEmail }: { campaign?: CampaignRow; adminEmail: 
             <FlaskConical className="h-3.5 w-3.5" /> رسالة تجريبية
           </button>
         </div>
-        {!done && (
+        {!locked && (
           <button
             type="button"
             onClick={sendAll}
@@ -217,14 +210,10 @@ function Editor({ campaign, adminEmail }: { campaign?: CampaignRow; adminEmail: 
             className="inline-flex items-center gap-1.5 rounded-lg bg-amber-500 px-4 py-2 text-sm font-bold text-zinc-950 hover:bg-amber-400 disabled:opacity-50"
           >
             <Send className="h-4 w-4" />
-            {busy === 'send'
-              ? 'جارٍ الإرسال…'
-              : campaign?.status === 'SENDING'
-                ? 'متابعة الإرسال'
-                : 'إرسال للجميع'}
+            {busy === 'send' ? 'جارٍ إضافة الحملة للإرسال…' : 'إرسال للجميع'}
           </button>
         )}
-        {campaign && (
+        {campaign && !locked && (
           <button
             type="button"
             onClick={remove}
@@ -234,11 +223,6 @@ function Editor({ campaign, adminEmail }: { campaign?: CampaignRow; adminEmail: 
           </button>
         )}
       </div>
-      {progress && (
-        <p className="text-xs text-amber-200">
-          أُرسل {progress.sent} · بقي {progress.remaining}
-        </p>
-      )}
       {message && (
         <p role="status" className={`text-sm ${message.ok ? 'text-green-400' : 'text-red-400'}`}>
           {message.text}
@@ -278,7 +262,8 @@ export function CampaignsPanel({
               </span>
               {c.status !== 'DRAFT' && (
                 <span className="text-xs text-zinc-400">
-                  {c.sentCount}/{c.recipientsCount} أُرسلت · {c.openCount} فتحوا ({openRate}%)
+                  {c.sentCount}/{c.recipientsCount} أُرسلت · {c.openCount} فتحاً مرصوداً ({openRate}
+                  %)
                   {c.failedCount > 0 && ` · ${c.failedCount} فشلت`}
                 </span>
               )}

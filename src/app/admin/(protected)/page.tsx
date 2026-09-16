@@ -4,14 +4,12 @@ import {
   ShoppingBag,
   Eye,
   Search,
-  PackageX,
   Star,
   Users,
   TicketPercent,
   Trophy,
   History,
   Building2,
-  BellRing,
 } from 'lucide-react';
 import { getDashboard } from '@/lib/dashboard.server';
 import { fmtSyp } from '@/lib/pricing';
@@ -60,7 +58,7 @@ const dateFmt = new Intl.DateTimeFormat('ar-SY', { dateStyle: 'short', timeStyle
 export default async function AdminDashboardPage() {
   const d = await getDashboard();
   const pending = d.orders.byStatus.PENDING ?? 0;
-  const conv = d.funnel.views ? Math.round((d.funnel.checkouts / d.funnel.views) * 100) : 0;
+  const conv = d.cohort.total ? Math.round((d.cohort.confirmed / d.cohort.total) * 100) : null;
 
   return (
     <>
@@ -73,7 +71,7 @@ export default async function AdminDashboardPage() {
       <div className="mb-6 grid grid-cols-2 gap-3 md:grid-cols-4">
         <Kpi
           icon={MessageCircle}
-          label="نقرات واتساب اليوم"
+          label="نقرات واتساب (24 ساعة)"
           value={d.whatsapp.today}
           hint={`${d.whatsapp.week} هذا الأسبوع · ${d.whatsapp.month} هذا الشهر`}
         />
@@ -86,7 +84,7 @@ export default async function AdminDashboardPage() {
         />
         <Kpi
           icon={TicketPercent}
-          label="مبيعات مؤكَّدة (30 يوماً)"
+          label="قيمة الطلبات المؤكدة (30 يوماً)"
           value={`${fmtSyp(d.orders.revenueMonth)} ل.س`}
           hint={`${d.orders.confirmedMonth} طلباً مؤكَّداً · ${d.redemptionsMonth} كوبوناً استُخدم`}
           href="/admin/orders?status=CONFIRMED"
@@ -101,12 +99,12 @@ export default async function AdminDashboardPage() {
       </div>
 
       <div className="mb-6 grid gap-3 md:grid-cols-3">
-        <Panel title="قمع الأسبوع (مشاهدة → سلة → واتساب)">
+        <Panel title="نشاط الأسبوع">
           <div className="grid grid-cols-3 gap-2 text-center">
             {[
               { label: 'مشاهدات منتج', value: d.funnel.views, icon: Eye },
               { label: 'إضافة للسلة', value: d.funnel.adds, icon: ShoppingBag },
-              { label: 'إكمال عبر واتساب', value: d.funnel.checkouts, icon: MessageCircle },
+              { label: 'بدء طلب واتساب', value: d.funnel.checkouts, icon: MessageCircle },
             ].map((s) => (
               <div key={s.label} className="rounded-xl bg-zinc-950/60 p-3">
                 <s.icon className="mx-auto mb-1 h-4 w-4 text-zinc-500" />
@@ -116,7 +114,7 @@ export default async function AdminDashboardPage() {
             ))}
           </div>
           <p className="mt-2 text-xs text-zinc-500">
-            نسبة التحويل من المشاهدة إلى الطلب: <b className="text-white">{conv}%</b>
+            أحداث وليست زواراً فريدين أو مبيعات. قد ينفذ الزائر الحدث أكثر من مرة.
           </p>
         </Panel>
         <Panel title="ينتظر قرارك">
@@ -150,15 +148,6 @@ export default async function AdminDashboardPage() {
             </li>
             <li className="flex items-center justify-between">
               <Link
-                href="/admin/products"
-                className="flex items-center gap-2 text-zinc-300 hover:text-white"
-              >
-                <BellRing className="h-4 w-4 text-amber-500" /> ينتظرون توفر منتج
-              </Link>
-              <b className="tabular-nums text-white">{d.waitingAlerts}</b>
-            </li>
-            <li className="flex items-center justify-between">
-              <Link
                 href="/admin/draws"
                 className="flex items-center gap-2 text-zinc-300 hover:text-white"
               >
@@ -172,23 +161,29 @@ export default async function AdminDashboardPage() {
             </li>
           </ul>
         </Panel>
-        <Panel title="مخزون منخفض / نافد">
-          {d.lowStock.length === 0 ? (
-            <p className="text-sm text-zinc-500">كل المنتجات متوفرة فوق العتبة.</p>
+        <Panel title="متابعات مستحقة">
+          {d.followUps.length === 0 ? (
+            <p className="text-sm text-zinc-500">لا مواعيد متابعة مستحقة.</p>
           ) : (
-            <ul className="space-y-1.5 text-sm">
-              {d.lowStock.map((p) => (
-                <li key={p.id} className="flex items-center justify-between gap-2">
-                  <span className="flex items-center gap-2 text-zinc-300">
-                    <PackageX className="h-4 w-4 text-red-400" /> {p.name}
-                  </span>
-                  <span className="text-xs text-zinc-500">
-                    {!p.inStock ? 'غير متوفر' : `بقي ${p.stockQty}`}
-                  </span>
+            <ul className="space-y-2 text-sm">
+              {d.followUps.map((o) => (
+                <li key={o.id}>
+                  <Link
+                    href={`/admin/orders?q=${o.reference}`}
+                    className="break-all text-amber-300"
+                  >
+                    {o.customerName ?? o.reference}
+                  </Link>
+                  <time className="block text-xs text-zinc-400">
+                    {o.followUpAt && dateFmt.format(o.followUpAt)}
+                  </time>
                 </li>
               ))}
             </ul>
           )}
+          <Link href="/admin/orders?due=1" className="mt-3 inline-block text-xs text-amber-400">
+            عرض المتابعات
+          </Link>
         </Panel>
       </div>
 
@@ -240,6 +235,40 @@ export default async function AdminDashboardPage() {
         </Panel>
       </div>
 
+      <div className="mb-6 grid gap-3 md:grid-cols-3">
+        <Panel title="نتائج الطلبات الجديدة خلال 30 يوماً">
+          <p className="text-sm text-zinc-300">
+            {d.cohort.total} طلباً · {d.cohort.confirmed} مؤكداً غير ملغى · {d.cohort.delivered}{' '}
+            مسلماً
+          </p>
+          <p className="mt-2 text-sm text-amber-300">
+            نسبة التأكيد: {conv === null ? 'لا بيانات بعد' : `${conv}%`}
+          </p>
+          <p className="mt-2 text-xs text-zinc-500">
+            المقارنة لنفس مجموعة الطلبات؛ النتائج تتغير مع متابعة الفريق.
+          </p>
+        </Panel>
+        <Panel title="قيمة الطلبات المسلّمة خلال 30 يوماً">
+          <p className="text-xl font-bold text-white">{fmtSyp(d.delivered.value)} ل.س</p>
+          <p className="mt-2 text-xs text-zinc-400">
+            {d.delivered.count} طلباً بتاريخ تسليم مسجل. قيمة طلبات وليست تحصيلاً محاسبياً أو ربحاً.
+          </p>
+        </Panel>
+        <Panel title="أسباب الإلغاء خلال 30 يوماً">
+          <ul className="space-y-2 text-sm text-zinc-300">
+            {d.losses.length ? (
+              d.losses.map((l) => (
+                <li key={l.reason} className="flex justify-between gap-2">
+                  <span>{l.reason}</span>
+                  <b>{l.count}</b>
+                </li>
+              ))
+            ) : (
+              <li>لا إلغاءات مسجلة.</li>
+            )}
+          </ul>
+        </Panel>
+      </div>
       <Panel title="آخر التغييرات">
         <ul className="divide-y divide-zinc-800 text-sm">
           {d.recentAudit.length === 0 && (

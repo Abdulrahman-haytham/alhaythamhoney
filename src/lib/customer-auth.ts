@@ -80,10 +80,22 @@ export async function consumeLoginCode(email: string, code: string): Promise<boo
   if (!row) return false;
   if (row.attempts >= MAX_ATTEMPTS) return false;
   if (row.codeHash !== hashCode(email, code)) {
-    await db.loginCode.update({ where: { id: row.id }, data: { attempts: { increment: 1 } } });
+    await db.loginCode.updateMany({
+      where: { id: row.id, consumedAt: null, attempts: { lt: MAX_ATTEMPTS } },
+      data: { attempts: { increment: 1 } },
+    });
     return false;
   }
-  await db.loginCode.update({ where: { id: row.id }, data: { consumedAt: new Date() } });
+  const consumed = await db.loginCode.updateMany({
+    where: {
+      id: row.id,
+      consumedAt: null,
+      expiresAt: { gt: new Date() },
+      attempts: { lt: MAX_ATTEMPTS },
+    },
+    data: { consumedAt: new Date() },
+  });
+  if (consumed.count !== 1) return false;
   // تنظيف خفيف للرموز القديمة
   if (Math.random() < 0.05)
     await db.loginCode

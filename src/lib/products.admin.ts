@@ -73,7 +73,6 @@ export async function syncVariants(
     const data = {
       label: v.label,
       price: v.price,
-      stockQty: v.stockQty,
       inStock: v.inStock,
       isDefault: sortOrder === defaultIdx,
       sortOrder,
@@ -104,7 +103,6 @@ export async function getAdminProducts() {
       tiers: { orderBy: { minQty: 'asc' } },
       bundleItems: { orderBy: { sortOrder: 'asc' }, select: { productId: true, quantity: true } },
       attributes: { select: { id: true } },
-      _count: { select: { stockAlerts: { where: { notifiedAt: null } } } },
     },
   });
 }

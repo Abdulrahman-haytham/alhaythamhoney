@@ -9,11 +9,9 @@ import { defaultVariant, priceFrom, variantCartId } from '@/lib/variants';
 import { useCart } from '@/store/cartStore';
 import { useWishlist } from '@/store/wishlistStore';
 import { trackAddToCart } from '@/lib/analytics';
-import StockAlertButton from '@/components/StockAlertButton';
+import ProductInquiryButton from '@/components/ProductInquiryButton';
 import { catalogAvailable } from '@/lib/bundles';
 import { useHydrated } from '@/lib/useHydrated';
-import { lowStockLabel } from '@/lib/settings';
-import { useSettings } from '@/components/SettingsProvider';
 
 function formatPrice(price: number) {
   return new Intl.NumberFormat('en-US').format(price);
@@ -29,12 +27,9 @@ export default function ProductCard({ product }: { product: CatalogProduct }) {
   const { addItem: addWishlist, removeItem: removeWishlist, isWishlisted } = useWishlist();
   const hydrated = useHydrated();
   const wishlisted = hydrated && isWishlisted(product.id);
-  const { lowStockThreshold } = useSettings();
-  // inStock من الأدمن + الكمية المتتبَّعة (0 = نفد) — والشارة «بقي X» تحت العتبة
   const variants = product.variants ?? [];
   const variant = defaultVariant(variants);
   const available = catalogAvailable(product);
-  const lowStock = lowStockLabel(variant ? variant.stockQty : product.stockQty, lowStockThreshold);
   const display = priceFrom(product);
   const canOrder = available && display.price !== null;
   const [added, setAdded] = useState(false);
@@ -83,14 +78,7 @@ export default function ProductCard({ product }: { product: CatalogProduct }) {
 
         {!available && (
           <span className="absolute inset-x-0 bottom-0 z-10 bg-zinc-950/85 py-1.5 text-center text-[11px] font-bold text-amber-300 backdrop-blur-sm sm:text-xs">
-            نفد المخزون — سيعود قريباً
-          </span>
-        )}
-
-        {available && lowStock && (
-          <span className="absolute inset-x-0 bottom-0 z-10 flex items-center justify-center gap-1.5 bg-red-950/85 py-1.5 text-center text-[11px] font-bold text-red-200 backdrop-blur-sm sm:text-xs">
-            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-red-400" />
-            {lowStock}
+            الطلب بالتواصل
           </span>
         )}
 
@@ -172,13 +160,13 @@ export default function ProductCard({ product }: { product: CatalogProduct }) {
             تفاصيل
           </Link>
           {/* الصنف النافد لا يُترك زراً ميتاً — يتحوّل إلى طلب إشعار عبر واتساب */}
-          {available ? (
+          {canOrder ? (
             <button
               type="button"
               onClick={handleAdd}
               disabled={!canOrder}
               aria-label={`أضف ${product.name} إلى السلة`}
-              className={`flex h-10 flex-1 items-center justify-center gap-1.5 rounded-xl text-[13px] font-bold transition-all duration-300 sm:h-auto sm:py-2.5 sm:text-sm ${
+              className={`flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-xl text-[13px] font-bold transition-all duration-300 sm:h-auto sm:py-2.5 sm:text-sm ${
                 added
                   ? 'bg-green-600 text-white'
                   : 'bg-amber-500 text-zinc-950 shadow-lg shadow-amber-500/20 hover:-translate-y-0.5 hover:bg-amber-400 hover:shadow-amber-500/40'
@@ -188,11 +176,9 @@ export default function ProductCard({ product }: { product: CatalogProduct }) {
               {display.price === null ? 'استفسر عن السعر' : added ? 'أُضيف' : 'أضف للسلة'}
             </button>
           ) : (
-            <StockAlertButton
-              productId={product.id}
+            <ProductInquiryButton
               productName={product.name}
-              compact
-              className="flex h-10 flex-1 items-center justify-center gap-1.5 rounded-xl border border-amber-500/40 bg-amber-500/10 text-[13px] font-bold text-amber-300 transition-colors hover:bg-amber-500/20 sm:h-auto sm:py-2.5 sm:text-sm"
+              className="flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-xl border border-amber-500/40 bg-amber-500/10 text-[13px] font-bold text-amber-300 transition-colors hover:bg-amber-500/20 sm:h-auto sm:py-2.5 sm:text-sm"
             />
           )}
         </div>

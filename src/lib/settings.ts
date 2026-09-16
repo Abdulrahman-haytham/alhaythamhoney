@@ -66,7 +66,7 @@ export const DEFAULT_SETTINGS: SiteSettingsData = {
   announcementEnabled: false,
   announcementText: null,
   announcementLink: null,
-  lowStockThreshold: 3,
+  lowStockThreshold: 0,
   showRecentlyViewed: true,
   autoRelatedProducts: true,
   cartReminderEnabled: true,
@@ -75,8 +75,8 @@ export const DEFAULT_SETTINGS: SiteSettingsData = {
   tieredPricingEnabled: true,
   promotionsEnabled: true,
   shippingZonesEnabled: false,
-  stockAlertsEnabled: true,
-  productFeedEnabled: true,
+  stockAlertsEnabled: false,
+  productFeedEnabled: false,
   loyaltyEnabled: false,
   pointsPerSyp: 10000,
   pointValue: 500,
@@ -102,21 +102,14 @@ export const DEFAULT_SETTINGS: SiteSettingsData = {
 /** الحقول التي يقرؤها المتصفح — كل شيء هنا عام (لا أسرار). */
 export type PublicSettings = SiteSettingsData;
 
-/**
- * الشارة «بقي X فقط»: تُعرض فقط عندما يتتبّع الأدمن الكمية (stockQty ليست null)،
- * وهي أقل من العتبة أو تساويها، وأكبر من صفر (الصفر = نفد).
- */
-export function lowStockLabel(
-  stockQty: number | null | undefined,
-  threshold: number,
-): string | null {
-  if (stockQty == null || threshold <= 0 || stockQty <= 0 || stockQty > threshold) return null;
-  if (stockQty === 1) return 'بقيت قطعة واحدة فقط';
-  if (stockQty === 2) return 'بقيت قطعتان فقط';
-  return `بقي ${stockQty} قطع فقط`;
+/** Manual acceptance of requests, never a physical inventory assertion. */
+export function isAvailable(product: { inStock: boolean; stockQty?: number | null }): boolean {
+  return product.inStock;
 }
 
-/** المنتج قابل للطلب إذا كان متوفراً ولم تصل الكمية المتتبَّعة إلى الصفر. */
-export function isAvailable(product: { inStock: boolean; stockQty?: number | null }): boolean {
-  return product.inStock && product.stockQty !== 0;
-}
+/** Legacy database flags cannot turn numerical inventory features back on. */
+export const NO_INVENTORY_SETTINGS = {
+  lowStockThreshold: 0,
+  stockAlertsEnabled: false,
+  productFeedEnabled: false,
+} as const;

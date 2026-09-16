@@ -1,6 +1,7 @@
 import 'server-only';
 import type { z } from 'zod';
 import { db } from '@/lib/db';
+import type { CommerceTx } from '@/lib/commerce.server';
 import type { couponInput } from '@/lib/validation';
 import { applyCoupon, type CouponResult } from '@/lib/coupons';
 
@@ -16,25 +17,16 @@ export async function checkCoupon(
   code: string,
   subtotal: number,
   customerId: string | null,
+  tx: CommerceTx = db,
 ): Promise<CouponResult> {
-  const coupon = await db.coupon.findUnique({ where: { code } });
+  const coupon = await tx.coupon.findUnique({ where: { code } });
   const alreadyRedeemed =
     coupon && customerId
-      ? (await db.couponRedemption.count({ where: { couponId: coupon.id, customerId } })) > 0
+      ? (await tx.couponRedemption.count({ where: { couponId: coupon.id, customerId } })) > 0
       : false;
   return applyCoupon(coupon, subtotal, new Date(), {
     loggedIn: !!customerId,
     alreadyRedeemed,
     customerId,
   });
-}
-
-/** يسجّل استخدام الكوبون لحساب لحظة إرسال الطلب إلى واتساب (لـ«مرة لكل حساب»). */
-export async function redeemCoupon(code: string, subtotal: number, customerId: string) {
-  const result = await checkCoupon(code, subtotal, customerId);
-  if (!result.ok) return result;
-  const coupon = await db.coupon.findUnique({ where: { code }, select: { id: true } });
-  if (coupon)
-    await db.couponRedemption.create({ data: { couponId: coupon.id, customerId, subtotal } });
-  return result;
 }

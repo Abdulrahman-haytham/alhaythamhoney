@@ -23,6 +23,7 @@ COPY --from=builder --chown=node:node /app/.next/static ./.next/static
 COPY --from=builder --chown=node:node /app/public ./public
 COPY --from=builder --chown=node:node /app/content ./content
 COPY --from=builder --chown=node:node /app/scripts/validate-env.mjs ./scripts/validate-env.mjs
+COPY --from=builder --chown=node:node /app/scripts/run-jobs.mjs ./scripts/run-jobs.mjs
 USER node
 EXPOSE 3005
 CMD ["sh", "-c", "node scripts/validate-env.mjs && exec node server.js"]

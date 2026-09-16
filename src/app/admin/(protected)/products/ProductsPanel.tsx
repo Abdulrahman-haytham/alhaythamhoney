@@ -10,7 +10,6 @@ type Input = z.infer<typeof productInput>;
 type ProductRow = Omit<Input, 'detailedInfo'> & {
   id: string;
   detailedInfo: Prisma.JsonValue;
-  waitingAlerts: number;
 };
 type AttributeOption = { id: string; name: string; values: { id: string; value: string }[] };
 const empty: Input = {
@@ -24,7 +23,6 @@ const empty: Input = {
   weight: null,
   category: 'HONEY',
   inStock: true,
-  stockQty: null,
   published: false,
   sortOrder: 0,
   relatedIds: [],
@@ -39,7 +37,6 @@ const emptyVariant = (): VariantForm => ({
   id: null,
   label: '',
   price: 0,
-  stockQty: null,
   inStock: true,
   isDefault: false,
 });
@@ -61,7 +58,7 @@ function Editor({
   const router = useRouter();
   const [form, setForm] = useState<Omit<Input, 'detailedInfo'>>(() => {
     if (!product) return empty;
-    const { id: _id, detailedInfo: _d, waitingAlerts: _w, ...rest } = product;
+    const { id: _id, detailedInfo: _d, ...rest } = product;
     return rest;
   });
   const [details, setDetails] = useState(JSON.stringify(product?.detailedInfo ?? {}, null, 2));
@@ -182,17 +179,6 @@ function Editor({
           />
         </label>
         <label>
-          الكمية المتبقية (اختياري — فارغ = بلا تتبّع)
-          <input
-            className={inputClass}
-            type="number"
-            min={0}
-            max={1000000}
-            value={form.stockQty ?? ''}
-            onChange={(e) => set('stockQty', e.target.value === '' ? null : Number(e.target.value))}
-          />
-        </label>
-        <label>
           شارة البطاقة
           <input
             className={inputClass}
@@ -270,7 +256,7 @@ function Editor({
           <legend className="px-1 text-sm text-amber-400">مكوّنات الباقة</legend>
           <p className="mb-2 text-xs text-zinc-500">
             سعر الباقة هو حقل «السعر» أعلاه؛ الموقع يعرض للزبون كم يوفّر مقارنة بشراء المكوّنات
-            منفصلة. الباقة تنفد تلقائياً إن نفد أحد مكوّناتها.
+            منفصلة. إيقاف استقبال طلبات أحد المكوّنات يحوّل الباقة للاستفسار عبر واتساب.
           </p>
           <div className="space-y-2">
             {form.bundleItems.map((b, i) => (
@@ -412,21 +398,6 @@ function Editor({
                   required
                 />
               </label>
-              <label className="text-xs">
-                الكمية
-                <input
-                  className={inputClass}
-                  type="number"
-                  min={0}
-                  value={v.stockQty ?? ''}
-                  onChange={(e) =>
-                    setVariant(i, {
-                      stockQty: e.target.value === '' ? null : Number(e.target.value),
-                    })
-                  }
-                  placeholder="بلا تتبّع"
-                />
-              </label>
               <div className="flex flex-col gap-1 text-xs">
                 <label>
                   <input
@@ -434,7 +405,7 @@ function Editor({
                     checked={v.inStock}
                     onChange={(e) => setVariant(i, { inStock: e.target.checked })}
                   />{' '}
-                  متوفر
+                  استقبال الطلبات
                 </label>
                 <label>
                   <input
@@ -576,7 +547,7 @@ function Editor({
             checked={form.inStock}
             onChange={(e) => set('inStock', e.target.checked)}
           />{' '}
-          متوفر
+          استقبال الطلبات
         </label>
       </div>
       <div className="flex items-center gap-4">
@@ -619,13 +590,10 @@ export function ProductsPanel({
           <summary className="cursor-pointer p-4">
             {product.name}{' '}
             <span className="text-sm text-zinc-400">
-              — {product.published ? 'منشور' : 'مخفي'} · {product.inStock ? 'متوفر' : 'غير متوفر'}
-              {product.stockQty != null && ` · الكمية ${product.stockQty}`}
+              — {product.published ? 'منشور' : 'مخفي'} ·{' '}
+              {product.inStock ? 'استقبال الطلبات مفتوح' : 'الطلب بالتواصل'}
               {product.variants.length > 0 && ` · ${product.variants.length} أحجام`}
               {product.category === 'BUNDLE' && ' · باقة'}
-              {product.waitingAlerts > 0 && (
-                <span className="text-amber-300"> · {product.waitingAlerts} ينتظرون توفره</span>
-              )}
             </span>
           </summary>
           <Editor product={product} all={all} attributes={attributes} />

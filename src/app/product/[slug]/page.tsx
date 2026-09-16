@@ -111,7 +111,6 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                 }
               : { price: display.price }),
             priceCurrency: 'SYP',
-            availability: `https://schema.org/${available ? 'InStock' : 'OutOfStock'}`,
           },
         }
       : {}),
@@ -145,7 +144,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               )}
               {!available && (
                 <div className="absolute inset-0 bg-zinc-950/70 flex items-center justify-center">
-                  <span className="text-zinc-300 font-bold text-lg">نفدت الكمية حالياً</span>
+                  <span className="text-zinc-300 font-bold text-lg">الطلب بالتواصل</span>
                 </div>
               )}
             </div>
@@ -190,7 +189,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                           {b.product.name}
                           <span className="text-zinc-500"> × {b.quantity}</span>
                         </Link>
-                        {!ok && <span className="text-xs text-red-300">نفد</span>}
+                        {!ok && <span className="text-xs text-red-300">بالتواصل</span>}
                       </li>
                     );
                   })}
@@ -205,7 +204,6 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
             <BuyBox
               product={cartProduct}
-              stockQty={product.stockQty}
               variants={product.variants}
               tiers={product.tiers.map((t) => ({
                 minQty: t.minQty,

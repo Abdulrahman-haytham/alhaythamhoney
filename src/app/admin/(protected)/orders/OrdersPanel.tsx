@@ -3,9 +3,9 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ExternalLink, Trash2 } from 'lucide-react';
+import { ExternalLink } from 'lucide-react';
 import type { OrderStatus } from '@prisma/client';
-import { ORDER_STATUS_LABELS, ORDER_STATUSES } from '@/lib/orders';
+import { ORDER_STATUS_LABELS, ORDER_STATUSES, canTransitionOrder } from '@/lib/orders';
 import { fmtSyp } from '@/lib/pricing';
 
 export interface AdminOrder {
@@ -24,6 +24,8 @@ export interface AdminOrder {
   total: number;
   couponCode: string | null;
   notes: string | null;
+  followUpAt: string | null;
+  cancellationReason: string | null;
   items: {
     id: string;
     name: string;
@@ -49,6 +51,19 @@ function OrderRow({ order }: { order: AdminOrder }) {
   const router = useRouter();
   const [status, setStatus] = useState<OrderStatus>(order.status);
   const [notes, setNotes] = useState(order.notes ?? '');
+  const [customerName, setCustomerName] = useState(order.customerName ?? '');
+  const [customerPhone, setCustomerPhone] = useState(order.customerPhone ?? '');
+  const [followUpAt, setFollowUpAt] = useState(
+    order.followUpAt
+      ? new Date(
+          new Date(order.followUpAt).getTime() -
+            new Date(order.followUpAt).getTimezoneOffset() * 60000,
+        )
+          .toISOString()
+          .slice(0, 16)
+      : '',
+  );
+  const [reason, setReason] = useState(order.cancellationReason ?? '');
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
 
@@ -58,7 +73,14 @@ function OrderRow({ order }: { order: AdminOrder }) {
     const res = await fetch(`/api/admin/orders/${order.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status, notes: notes.trim() || null }),
+      body: JSON.stringify({
+        status,
+        customerName: customerName.trim() || null,
+        customerPhone: customerPhone.trim() || null,
+        notes: notes.trim() || null,
+        followUpAt: followUpAt ? new Date(followUpAt).toISOString() : null,
+        cancellationReason: reason.trim() || null,
+      }),
     }).catch(() => null);
     const data = res ? await res.json().catch(() => ({})) : {};
     setBusy(false);
@@ -67,18 +89,10 @@ function OrderRow({ order }: { order: AdminOrder }) {
     router.refresh();
   }
 
-  async function remove() {
-    if (!confirm(`حذف الطلب ${order.reference} نهائياً؟`)) return;
-    const res = await fetch(`/api/admin/orders/${order.id}`, { method: 'DELETE' }).catch(
-      () => null,
-    );
-    if (res?.ok) router.refresh();
-  }
-
   return (
     <details className="rounded-xl border border-zinc-800 bg-zinc-900/40">
       <summary className="flex cursor-pointer flex-wrap items-center gap-3 p-4 text-sm">
-        <span className="font-mono font-bold text-white" dir="ltr">
+        <span className="break-all font-mono text-xs font-bold text-white" dir="ltr">
           {order.reference}
         </span>
         <span
@@ -91,6 +105,11 @@ function OrderRow({ order }: { order: AdminOrder }) {
           {order.customerCity ? ` · ${order.customerCity}` : ''}
         </span>
         <span className="mr-auto tabular-nums text-amber-300">{fmtSyp(order.total)} ل.س</span>
+        {order.followUpAt && (
+          <span className="text-xs text-amber-300">
+            متابعة: {dateFmt.format(new Date(order.followUpAt))}
+          </span>
+        )}
         <time className="text-xs text-zinc-500">{dateFmt.format(new Date(order.createdAt))}</time>
       </summary>
       <div className="grid gap-4 border-t border-zinc-800 p-4 md:grid-cols-2">
@@ -158,19 +177,63 @@ function OrderRow({ order }: { order: AdminOrder }) {
             )}
           </div>
           <label className="block text-sm">
+            اسم العميل للمتابعة
+            <input
+              value={customerName}
+              onChange={(e) => setCustomerName(e.target.value)}
+              maxLength={80}
+              className="mt-1 min-h-11 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-white"
+            />
+          </label>
+          <label className="block text-sm">
+            هاتف العميل (من محادثة واتساب)
+            <input
+              type="tel"
+              dir="ltr"
+              value={customerPhone}
+              onChange={(e) => setCustomerPhone(e.target.value)}
+              maxLength={20}
+              placeholder="+963…"
+              className="mt-1 min-h-11 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-white"
+            />
+          </label>
+          <label className="block text-sm">
             الحالة
             <select
               value={status}
               onChange={(e) => setStatus(e.target.value as OrderStatus)}
               className="mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-white"
             >
-              {ORDER_STATUSES.map((s) => (
+              {ORDER_STATUSES.filter((s) => canTransitionOrder(order.status, s)).map((s) => (
                 <option key={s} value={s}>
                   {ORDER_STATUS_LABELS[s]}
                 </option>
               ))}
             </select>
           </label>
+          {status !== 'CANCELLED' && status !== 'DELIVERED' && (
+            <label className="block text-sm">
+              موعد المتابعة (بتوقيت جهازك)
+              <input
+                type="datetime-local"
+                value={followUpAt}
+                onChange={(e) => setFollowUpAt(e.target.value)}
+                className="mt-1 min-h-11 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-white"
+              />
+            </label>
+          )}
+          {status === 'CANCELLED' && (
+            <label className="block text-sm">
+              سبب الإلغاء
+              <input
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                maxLength={300}
+                placeholder="مثلاً: موعد التوصيل، السعر، تغيير رغبة العميل"
+                className="mt-1 min-h-11 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-white"
+              />
+            </label>
+          )}
           <label className="block text-sm">
             ملاحظات داخلية
             <textarea
@@ -197,13 +260,6 @@ function OrderRow({ order }: { order: AdminOrder }) {
             >
               <ExternalLink className="h-3.5 w-3.5" /> صفحة التتبع
             </Link>
-            <button
-              type="button"
-              onClick={remove}
-              className="mr-auto inline-flex items-center gap-1 text-xs text-red-400 hover:text-red-300"
-            >
-              <Trash2 className="h-3.5 w-3.5" /> حذف
-            </button>
             <p role="status" className="w-full text-xs text-zinc-400">
               {message}
             </p>
@@ -219,20 +275,28 @@ export function OrdersPanel({
   counts,
   activeStatus,
   query,
+  dueOnly,
 }: {
   orders: AdminOrder[];
   counts: Partial<Record<OrderStatus, number>>;
   activeStatus: OrderStatus | null;
   query: string;
+  dueOnly: boolean;
 }) {
   const router = useRouter();
   const [q, setQ] = useState(query);
   const total = Object.values(counts).reduce((s, n) => s + (n ?? 0), 0);
   const link = (status: OrderStatus | null) =>
-    `/admin/orders?${new URLSearchParams({ ...(status ? { status } : {}), ...(q ? { q } : {}) })}`;
+    `/admin/orders?${new URLSearchParams({ ...(status ? { status } : {}), ...(q ? { q } : {}), ...(dueOnly ? { due: '1' } : {}) })}`;
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-2">
+        <Link
+          href={dueOnly ? '/admin/orders' : '/admin/orders?due=1'}
+          className="flex min-h-11 items-center rounded-full border border-amber-500/50 px-3 text-xs text-amber-300"
+        >
+          {dueOnly ? 'عرض كل الطلبات' : 'المتابعات المستحقة'}
+        </Link>
         <Link
           href={link(null)}
           className={`rounded-full border px-3 py-1 text-xs ${!activeStatus ? 'border-amber-500 text-amber-300' : 'border-zinc-700 text-zinc-400'}`}
@@ -259,9 +323,9 @@ export function OrdersPanel({
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="مرجع / اسم / هاتف"
-            className="h-8 rounded-lg border border-zinc-700 bg-zinc-950 px-3 text-sm text-white"
+            className="min-h-11 rounded-lg border border-zinc-700 bg-zinc-950 px-3 text-sm text-white"
           />
-          <button className="h-8 rounded-lg border border-zinc-700 px-3 text-xs text-zinc-300">
+          <button className="min-h-11 rounded-lg border border-zinc-700 px-3 text-xs text-zinc-300">
             بحث
           </button>
         </form>
@@ -271,7 +335,9 @@ export function OrdersPanel({
           لا طلبات بعد. يظهر الطلب هنا حين يضغط الزبون «أكمل الطلب عبر واتساب».
         </p>
       ) : (
-        orders.map((o) => <OrderRow key={o.id} order={o} />)
+        orders.map((o) => (
+          <OrderRow key={`${o.id}:${o.status}:${o.followUpAt}:${o.cancellationReason}`} order={o} />
+        ))
       )}
     </div>
   );

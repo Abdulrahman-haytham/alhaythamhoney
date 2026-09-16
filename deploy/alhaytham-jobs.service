@@ -1,0 +1,10 @@
+[Unit]
+Description=Alhaytham approved campaigns and cart reminders
+Requires=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/alhaytham
+ExecStart=/usr/bin/docker compose --env-file .env.production exec -T app node scripts/run-jobs.mjs
+TimeoutStartSec=60

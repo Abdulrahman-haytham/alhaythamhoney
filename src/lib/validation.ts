@@ -22,7 +22,6 @@ export const variantInput = z
     id: text(50).nullable().optional(),
     label: text(60).min(1, 'اسم المتغيّر مطلوب.'),
     price: amount,
-    stockQty: z.number().int().min(0).max(1_000_000).nullable(),
     inStock: z.boolean(),
     isDefault: z.boolean(),
   })
@@ -54,8 +53,6 @@ export const productInput = z
     weight: text(80).nullable(),
     category: z.enum(['HONEY', 'SUPPLEMENT', 'BUNDLE']),
     inStock: z.boolean(),
-    /** null = لا تتبّع للكمية */
-    stockQty: z.number().int().min(0).max(1_000_000).nullable(),
     published: z.boolean(),
     sortOrder: z.number().int().min(0).max(10000),
     /** معرّفات «يُشترى معه عادةً» بالترتيب */
@@ -348,7 +345,13 @@ const cartLine = z
   .strict();
 export const quoteInput = z
   .object({
-    items: z.array(cartLine).max(60),
+    items: z
+      .array(cartLine)
+      .max(60)
+      .refine(
+        (items) => new Set(items.map((i) => i.id)).size === items.length,
+        'بنود مكررة في السلة.',
+      ),
     couponCode: couponCode.nullable(),
     zoneId: text(50).nullable().optional(),
     /** استبدال نقاط الولاء (للحساب المسجّل) */
@@ -357,13 +360,18 @@ export const quoteInput = z
   .strict();
 export const orderInput = quoteInput
   .extend({
-    reference: z.string().regex(/^HY-[A-Z2-9]{6}$/, 'مرجع الطلب غير صالح.'),
+    reference: z.string().regex(/^HY-(?:[A-Z2-9]{6}|[A-Z2-9]{18})$/, 'مرجع الطلب غير صالح.'),
+    expectedTotal: amount.optional(),
   })
   .strict()
   .refine((o) => o.items.length > 0, 'السلة فارغة.');
 export const orderStatusInput = z
   .object({
     status: z.enum(['PENDING', 'CONFIRMED', 'PREPARING', 'SHIPPED', 'DELIVERED', 'CANCELLED']),
+    customerName: optionalText(80).optional(),
+    customerPhone: phone.nullable().optional(),
+    followUpAt: z.string().datetime().nullable().optional(),
+    cancellationReason: optionalText(300).optional(),
     notes: text(2000)
       .transform((v) => (v.length ? v : null))
       .nullable(),

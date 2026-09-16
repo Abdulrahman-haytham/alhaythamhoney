@@ -8,9 +8,9 @@ export const dynamic = 'force-dynamic';
 export default async function AdminOrdersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string; q?: string }>;
+  searchParams: Promise<{ status?: string; q?: string; due?: string }>;
 }) {
-  const { status, q } = await searchParams;
+  const { status, q, due } = await searchParams;
   const statusFilter = ORDER_STATUSES.includes(status as OrderStatus)
     ? (status as OrderStatus)
     : null;
@@ -18,6 +18,12 @@ export default async function AdminOrdersPage({
     db.order.findMany({
       where: {
         ...(statusFilter ? { status: statusFilter } : {}),
+        ...(due === '1'
+          ? {
+              followUpAt: { lte: new Date() },
+              status: { notIn: ['CANCELLED', 'DELIVERED'] as OrderStatus[] },
+            }
+          : {}),
         ...(q
           ? {
               OR: [
@@ -28,7 +34,7 @@ export default async function AdminOrdersPage({
             }
           : {}),
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: [{ followUpAt: { sort: 'asc', nulls: 'last' } }, { createdAt: 'desc' }],
       take: 100,
       include: { items: true, customer: { select: { email: true } } },
     }),
@@ -58,6 +64,8 @@ export default async function AdminOrdersPage({
           total: o.total,
           couponCode: o.couponCode,
           notes: o.notes,
+          followUpAt: o.followUpAt?.toISOString() ?? null,
+          cancellationReason: o.cancellationReason,
           items: o.items.map((i) => ({
             id: i.id,
             name: i.name,
@@ -70,6 +78,7 @@ export default async function AdminOrdersPage({
         counts={Object.fromEntries(counts.map((c) => [c.status, c._count._all]))}
         activeStatus={statusFilter}
         query={q ?? ''}
+        dueOnly={due === '1'}
       />
     </>
   );

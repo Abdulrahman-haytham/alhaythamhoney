@@ -95,7 +95,7 @@ export default function ShopBrowser({
                 onChange={(e) => update({ stock: e.target.checked })}
                 className="accent-amber-500"
               />
-              المتوفر فقط
+              يُضاف للسلة
             </label>
           )}
           <select
