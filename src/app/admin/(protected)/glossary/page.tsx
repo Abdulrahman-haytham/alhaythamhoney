@@ -1,14 +1,19 @@
 import { db } from '@/lib/db';
-import { GLOSSARY_CATEGORIES } from '../../../../../prisma/seed-glossary';
+import { orderCategories } from '@/lib/glossary.server';
 import { GlossaryPanel } from './GlossaryPanel';
+import { StagesPanel } from './StagesPanel';
 
 export const dynamic = 'force-dynamic';
 
 export default async function AdminGlossaryPage() {
-  const [entries, products] = await Promise.all([
+  const [entries, stageRows, products] = await Promise.all([
     db.glossaryEntry.findMany({
-      orderBy: [{ category: 'asc' }, { sortOrder: 'asc' }, { name: 'asc' }],
+      orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
       include: { products: { select: { id: true } } },
+    }),
+    db.glossaryCategory.findMany({
+      orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
+      select: { id: true, name: true, intro: true, icon: true, sortOrder: true },
     }),
     db.product.findMany({
       where: { published: true },
@@ -16,7 +21,15 @@ export default async function AdminGlossaryPage() {
       select: { id: true, name: true },
     }),
   ]);
-  const categories = [...new Set([...GLOSSARY_CATEGORIES, ...entries.map((e) => e.category)])];
+
+  // أسماء المراحل من القاعدة أولاً بترتيبها، ثم أي تصنيف كتبه الأدمن حرّاً ولم يُسجَّل بعد
+  const categories = orderCategories([
+    ...stageRows.map((s) => s.name),
+    ...entries.map((e) => e.category),
+  ]);
+  const rank = new Map(categories.map((c, i) => [c, i]));
+  const usage = new Map<string, number>();
+  for (const e of entries) usage.set(e.category, (usage.get(e.category) ?? 0) + 1);
   const withTip = entries.filter((e) => e.tip?.trim()).length;
 
   return (
@@ -30,21 +43,52 @@ export default async function AdminGlossaryPage() {
         </b>{' '}
         — وهي أهم حقل: نصيحتك من خبرتك هي ما لا يستطيع أي موقع آخر نسخه.
       </p>
+
+      <section className="mb-10">
+        <h2 className="mb-1 font-amiri text-2xl font-bold">المراحل</h2>
+        <p className="mb-4 text-xs text-zinc-500">
+          الزائر يقرأ الموسوعة كرحلة مرقّمة بهذا الترتيب. المقدّمة تظهر تحت عنوان كل مرحلة،
+          والأيقونة في شريط التنقّل. المرحلة بلا مداخل منشورة لا تظهر للزوار.
+        </p>
+        <StagesPanel
+          stages={[
+            ...stageRows,
+            // تصنيفات كُتبت في المدخل قبل أن يكون لها صفّ مرحلة — تظهر هنا لتُضبط أيقونتها ومقدّمتها
+            ...categories
+              .filter((c) => !stageRows.some((s) => s.name === c))
+              .map((name, i) => ({
+                id: null,
+                name,
+                intro: null,
+                icon: null,
+                sortOrder: stageRows.length + i,
+              })),
+          ]
+            .map((s) => ({ ...s, used: usage.get(s.name) ?? 0 }))
+            .sort((a, b) => (rank.get(a.name) ?? 999) - (rank.get(b.name) ?? 999))}
+        />
+      </section>
+
+      <h2 className="mb-1 font-amiri text-2xl font-bold">المداخل</h2>
       <GlossaryPanel
         categories={categories}
         products={products}
-        entries={entries.map((e) => ({
-          id: e.id,
-          slug: e.slug,
-          name: e.name,
-          category: e.category,
-          summary: e.summary,
-          tip: e.tip,
-          image: e.image,
-          published: e.published,
-          sortOrder: e.sortOrder,
-          productIds: e.products.map((p) => p.id),
-        }))}
+        entries={entries
+          .map((e) => ({
+            id: e.id,
+            slug: e.slug,
+            name: e.name,
+            category: e.category,
+            summary: e.summary,
+            tip: e.tip,
+            image: e.image,
+            published: e.published,
+            sortOrder: e.sortOrder,
+            aliases: e.aliases,
+            sources: e.sources,
+            productIds: e.products.map((p) => p.id),
+          }))
+          .sort((a, b) => (rank.get(a.category) ?? 999) - (rank.get(b.category) ?? 999))}
       />
     </>
   );

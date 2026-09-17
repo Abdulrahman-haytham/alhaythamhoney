@@ -22,6 +22,7 @@ import {
   leadInput,
   leadStatusInput,
   glossaryInput,
+  glossaryCategoryInput,
 } from '@/lib/validation';
 import {
   createSessionToken,
@@ -52,8 +53,21 @@ import {
   variantCartId,
 } from '@/lib/variants';
 import { diffRecords } from '@/lib/audit.server';
-import { orderCategories } from '@/lib/glossary.server';
-import { SEED_GLOSSARY } from '../prisma/seed-glossary';
+import {
+  GLOSSARY_ICON_KEYS,
+  groupByStage,
+  journeyPreview,
+  orderCategories,
+  parseAliases,
+  parseLines,
+  toArabicIndic,
+  type GlossaryCard,
+} from '@/lib/glossary';
+import {
+  GLOSSARY_CATEGORIES,
+  SEED_GLOSSARY,
+  SEED_GLOSSARY_CATEGORIES,
+} from '../prisma/seed-glossary';
 import { pointsForAmount, redeemablePoints } from '@/lib/loyalty';
 import { campaignHtml } from '@/lib/campaigns.server';
 import {
@@ -1024,6 +1038,8 @@ describe('beekeeping glossary hub', () => {
     published: true,
     sortOrder: 0,
     productIds: [],
+    aliases: [],
+    sources: [],
   };
 
   it('accepts educational entries and normalizes the optional beekeeper tip', () => {
@@ -1045,17 +1061,136 @@ describe('beekeeping glossary hub', () => {
     expect(glossaryInput.safeParse({ ...entry, category: '' }).success).toBe(false);
   });
 
-  it('keeps known categories first and appends admin-invented ones', () => {
-    const ordered = orderCategories(['معدات أخرى', 'أمراض النحل', 'أدوات النحّال', 'معدات أخرى']);
+  it('trims aliases and sources, and caps them at eight short items', () => {
+    const ok = glossaryInput.safeParse({
+      ...entry,
+      aliases: ['  الدخّان ', 'المُدَخِّنة'],
+      sources: [' https://example.org/smoker ', 'نشرة وزارة الزراعة'],
+    });
+    expect(ok.success).toBe(true);
+    expect(ok.data?.aliases).toEqual(['الدخّان', 'المُدَخِّنة']);
+    expect(ok.data?.sources[0]).toBe('https://example.org/smoker');
+    expect(glossaryInput.safeParse({ ...entry, aliases: Array(9).fill('اسم') }).success).toBe(
+      false,
+    );
+    expect(glossaryInput.safeParse({ ...entry, aliases: ['ا'.repeat(41)] }).success).toBe(false);
+    expect(glossaryInput.safeParse({ ...entry, aliases: [''] }).success).toBe(false);
+  });
+
+  it('parses the admin free-text fields into deduplicated lists', () => {
+    expect(parseAliases(' الدخّان، المُدَخِّنة , الدخّان\nالمبخرة ')).toEqual([
+      'الدخّان',
+      'المُدَخِّنة',
+      'المبخرة',
+    ]);
+    // المصادر تُفصل على الأسطر فقط — عنوان URL أو اسم كتاب قد يحوي فاصلة
+    expect(parseLines('كتاب تربية النحل، ج1\n\nhttps://a.example/x?a=1,2\n')).toEqual([
+      'كتاب تربية النحل، ج1',
+      'https://a.example/x?a=1,2',
+    ]);
+  });
+
+  it('validates a stage: icon from the allow-list only, blank intro becomes null', () => {
+    const ok = glossaryCategoryInput.safeParse({
+      name: 'تربية الملكات',
+      intro: '  ',
+      icon: 'crown',
+      sortOrder: 2,
+    });
+    expect(ok.success).toBe(true);
+    expect(ok.data?.intro).toBeNull();
+    expect(
+      glossaryCategoryInput.safeParse({ name: 'x', intro: null, icon: null, sortOrder: 0 }).success,
+    ).toBe(false);
+    expect(
+      glossaryCategoryInput.safeParse({ name: 'مرحلة', intro: null, icon: 'rocket', sortOrder: 0 })
+        .success,
+    ).toBe(false);
+    expect(
+      glossaryCategoryInput.safeParse({ name: 'مرحلة', intro: null, icon: null, sortOrder: 0 })
+        .success,
+    ).toBe(true);
+  });
+
+  it('keeps ranked categories first and appends admin-invented ones', () => {
+    const ordered = orderCategories(
+      ['معدات أخرى', 'أمراض النحل', 'أدوات النحّال', 'معدات أخرى'],
+      GLOSSARY_CATEGORIES,
+    );
     expect(ordered).toEqual(['أدوات النحّال', 'معدات أخرى', 'أمراض النحل']);
   });
 
-  it('ships every seeded entry with a real image file and a unique slug', () => {
+  const card = (slug: string, category: string): GlossaryCard => ({
+    slug,
+    name: slug,
+    category,
+    summary: 'ملخّص',
+    image: `/images/beekeeping/x/${slug}.webp`,
+    aliases: [],
+    hasTip: false,
+  });
+
+  it('groups entries into numbered stages: db order first, empty stages skipped, unknown icons dropped', () => {
+    const stages = groupByStage(
+      [
+        card('a', 'معدات أخرى'),
+        card('b', 'أدوات النحّال'),
+        card('c', 'أمراض النحل'),
+        card('d', 'أدوات النحّال'),
+      ],
+      [
+        { name: 'أدوات النحّال', intro: 'قبل أن تلمس إطاراً', icon: 'wrench' },
+        { name: 'ملابس الحماية', intro: null, icon: 'shield' }, // بلا مداخل → تُتجاهل
+        { name: 'معدات أخرى', intro: null, icon: 'rocket' }, // أيقونة مجهولة → null
+      ],
+      GLOSSARY_CATEGORIES,
+    );
+    expect(stages.map((s) => [s.id, s.index, s.name, s.count])).toEqual([
+      ['stage-1', 1, 'أدوات النحّال', 2],
+      ['stage-2', 2, 'معدات أخرى', 1],
+      ['stage-3', 3, 'أمراض النحل', 1],
+    ]);
+    expect(stages[0].icon).toBe('wrench');
+    expect(stages[0].intro).toBe('قبل أن تلمس إطاراً');
+    expect(stages[1].icon).toBeNull();
+    expect(stages[0].entries.map((e) => e.slug)).toEqual(['b', 'd']);
+  });
+
+  it('previews one representative entry per stage, capped, and nothing below three stages', () => {
+    const two = groupByStage([card('a', 'س'), card('b', 'ص')], []);
+    expect(journeyPreview(two)).toEqual([]);
+    const many = groupByStage(
+      ['١', '٢', '٣', '٤', '٥', '٦', '٧'].flatMap((c) => [card(`${c}-x`, c), card(`${c}-y`, c)]),
+      [],
+    );
+    const preview = journeyPreview(many);
+    expect(preview).toHaveLength(6);
+    expect(preview.map((p) => p.entry.slug)).toEqual(
+      ['١', '٢', '٣', '٤', '٥', '٦'].map((c) => `${c}-x`),
+    );
+    expect(preview[0].index).toBe(1);
+  });
+
+  it('renders stage numbers in Arabic-Indic digits', () => {
+    expect(toArabicIndic(17)).toBe('١٧');
+    expect(toArabicIndic(0)).toBe('٠');
+  });
+
+  it('ships every seeded entry with a real image file, a unique slug and a seeded stage', () => {
     const slugs = SEED_GLOSSARY.map((e) => e.slug);
     expect(new Set(slugs).size).toBe(slugs.length);
     for (const e of SEED_GLOSSARY) {
       expect(existsSync(path.join(process.cwd(), 'public', e.image))).toBe(true);
       expect(e.summary.length).toBeGreaterThan(40);
+      expect(GLOSSARY_CATEGORIES).toContain(e.category);
+    }
+    const names = SEED_GLOSSARY_CATEGORIES.map((c) => c.name);
+    expect(new Set(names).size).toBe(names.length);
+    for (const c of SEED_GLOSSARY_CATEGORIES) {
+      expect(GLOSSARY_ICON_KEYS).toContain(c.icon);
+      expect(c.intro.length).toBeGreaterThanOrEqual(20);
+      expect(c.intro.length).toBeLessThanOrEqual(300);
+      expect(glossaryCategoryInput.safeParse({ ...c, sortOrder: 0 }).success).toBe(true);
     }
   });
 });

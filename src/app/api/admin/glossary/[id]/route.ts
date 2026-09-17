@@ -4,7 +4,7 @@ import { guardAdmin } from '@/lib/admin-request';
 import { readJson } from '@/lib/request-security';
 import { glossaryInput } from '@/lib/validation';
 import { logAudit } from '@/lib/audit.server';
-import { toGlossaryData } from '@/lib/glossary.admin';
+import { ensureGlossaryCategory, toGlossaryData } from '@/lib/glossary.admin';
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -28,10 +28,13 @@ export async function PATCH(request: Request, { params }: Ctx) {
       { error: 'رابط المدخل ثابت لحماية الروابط المنشورة ونتائج البحث.' },
       { status: 400 },
     );
-  const after = await db.glossaryEntry.update({
-    where: { id },
-    data: toGlossaryData(parsed.data),
-    include: { products: { select: { id: true } } },
+  const after = await db.$transaction(async (tx) => {
+    await ensureGlossaryCategory(tx, parsed.data.category);
+    return tx.glossaryEntry.update({
+      where: { id },
+      data: toGlossaryData(parsed.data),
+      include: { products: { select: { id: true } } },
+    });
   });
   await logAudit({
     entity: 'glossary',

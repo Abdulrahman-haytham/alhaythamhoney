@@ -87,6 +87,7 @@ export const ENTITY_LABELS: Record<string, string> = {
   lead: 'طلب جملة',
   customer: 'زبون',
   glossary: 'مدخل موسوعة',
+  glossaryCategory: 'مرحلة موسوعة',
 };
 
 export const ACTION_LABELS: Record<string, string> = {

@@ -6,6 +6,7 @@ import MixturesSection from '@/components/MixturesSection';
 import { SpecialOffers } from '@/components/SpecialOffers';
 import CustomerReviews from '@/components/CustomerReviews';
 import WhyChooseUs from '@/components/WhyChooseUs';
+import { GlossaryTeaser } from '@/components/GlossaryTeaser';
 import FAQ from '@/components/FAQ';
 import { Location } from '@/components/Location';
 import { getProducts } from '@/lib/products.server';
@@ -21,7 +22,7 @@ export const dynamic = 'force-dynamic';
 
 /**
  * ترتيب الأقسام مبنيّ على قمع الشراء لا على السرد:
- * خطاف ← ثقة ← بضاعة ← عرض ← دليل اجتماعي ← تمايز ← خدمة ← حكاية ← اعتراضات ← ختام.
+ * خطاف ← ثقة ← بضاعة ← عرض ← دليل اجتماعي ← تمايز ← معرفة ← حكاية ← اعتراضات ← ختام.
  * الحكاية أُخّرت لأن الزائر على الجوال يريد رؤية ما يُباع قبل تاريخ العلامة.
  */
 export default async function HomePage() {
@@ -37,6 +38,7 @@ export default async function HomePage() {
       <SpecialOffers />
       <CustomerReviews />
       <WhyChooseUs />
+      <GlossaryTeaser />
       <Story />
       <FAQ limit={3} />
       <Location />

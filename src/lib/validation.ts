@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { GLOSSARY_ICON_KEYS } from '@/lib/glossary';
 import { MIN_JAR_SIZE, MAX_JAR_SIZE, normalizeSizes } from '@/lib/mixturePricing';
 
 const amount = z.number().int().min(0).max(1_000_000_000);
@@ -532,5 +533,19 @@ export const glossaryInput = z
     sortOrder: z.number().int().min(0).max(10000),
     /** منتجاتنا المرتبطة بهذه الأداة */
     productIds: z.array(text(50).min(1)).max(12),
+    /** أسماء بديلة/محلية — يرسلها المحرّر مصفوفةً بعد فصل الفواصل في المتصفح */
+    aliases: z.array(text(40).min(1, 'اسم بديل فارغ.')).max(8, 'ثمانية أسماء بديلة كحدّ أقصى.'),
+    /** مصادر ومراجع (رابط أو نص) — سطر لكل مصدر */
+    sources: z.array(text(300).min(2, 'مصدر قصير جداً.')).max(8, 'ثمانية مصادر كحدّ أقصى.'),
+  })
+  .strict();
+
+/** مرحلة في رحلة الموسوعة (تصنيف): مقدّمة وأيقونة وترتيب — من قائمة أيقونات ثابتة. */
+export const glossaryCategoryInput = z
+  .object({
+    name: text(60).min(2, 'اسم المرحلة مطلوب.'),
+    intro: optionalText(300),
+    icon: z.enum(GLOSSARY_ICON_KEYS).nullable(),
+    sortOrder: z.number().int().min(0).max(1000),
   })
   .strict();

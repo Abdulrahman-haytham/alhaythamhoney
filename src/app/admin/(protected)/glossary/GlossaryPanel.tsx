@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { ExternalLink, ImagePlus, Lightbulb, Trash2 } from 'lucide-react';
 import type { z } from 'zod';
 import type { glossaryInput } from '@/lib/validation';
+import { parseAliases, parseLines } from '@/lib/glossary';
 
 type Input = z.infer<typeof glossaryInput>;
 export type GlossaryRow = Input & { id: string };
@@ -19,6 +20,8 @@ const empty: Input = {
   published: true,
   sortOrder: 0,
   productIds: [],
+  aliases: [],
+  sources: [],
 };
 
 const inputClass =
@@ -41,6 +44,8 @@ function Editor({
     const { id: _id, ...rest } = entry;
     return rest;
   });
+  const [aliasesText, setAliasesText] = useState(() => (entry?.aliases ?? []).join('، '));
+  const [sourcesText, setSourcesText] = useState(() => (entry?.sources ?? []).join('\n'));
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
   const fileRef = useRef<HTMLInputElement>(null);
@@ -63,7 +68,12 @@ function Editor({
     const res = await fetch(entry ? `/api/admin/glossary/${entry.id}` : '/api/admin/glossary', {
       method: entry ? 'PATCH' : 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...form, tip: form.tip?.trim() ? form.tip : null }),
+      body: JSON.stringify({
+        ...form,
+        tip: form.tip?.trim() ? form.tip : null,
+        aliases: parseAliases(aliasesText),
+        sources: parseLines(sourcesText),
+      }),
     }).catch(() => null);
     const data = res ? await res.json().catch(() => ({})) : {};
     setBusy(false);
@@ -153,6 +163,34 @@ function Editor({
         />
       </label>
 
+      <div className="grid gap-4 sm:grid-cols-2">
+        <label className="text-sm">
+          أسماء بديلة (بفاصلة)
+          <input
+            className={inputClass}
+            value={aliasesText}
+            onChange={(e) => setAliasesText(e.target.value)}
+            placeholder="المُدَخِّنة، الدخّان"
+          />
+          <span className="mt-1 block text-[11px] text-zinc-500">
+            ما يسمّيه النحّالون في مناطق أخرى — يُبحث بها في الموقع وتظهر لغوغل كأسماء مرادفة. حتى
+            8.
+          </span>
+        </label>
+        <label className="text-sm">
+          المصادر والمراجع (سطر لكل مصدر)
+          <textarea
+            className={`${inputClass} min-h-[42px]`}
+            value={sourcesText}
+            onChange={(e) => setSourcesText(e.target.value)}
+            placeholder="https://… أو اسم كتاب/نشرة"
+          />
+          <span className="mt-1 block text-[11px] text-zinc-500">
+            اختيارية — تُعرض أسفل المدخل وتزيد ثقة القارئ ومحرّك البحث. حتى 8.
+          </span>
+        </label>
+      </div>
+
       <label className="block rounded-lg border border-amber-500/30 bg-amber-500/[0.04] p-3 text-sm">
         <span className="flex items-center gap-1.5 font-bold text-amber-300">
           <Lightbulb className="h-4 w-4" /> نصيحة الهيثم (اختيارية)
@@ -173,7 +211,11 @@ function Editor({
       <div className="rounded-lg border border-zinc-800 p-3 text-sm">
         <p className="mb-2 text-zinc-300">الصورة</p>
         <div className="flex flex-wrap items-center gap-3">
-          <img src={form.image} alt="" className="h-16 w-16 rounded-lg bg-white object-contain" />
+          <img
+            src={form.image}
+            alt=""
+            className="h-16 w-16 rounded-lg bg-[#f6f1e7] object-contain"
+          />
           <input
             ref={fileRef}
             type="file"
@@ -320,9 +362,17 @@ export function GlossaryPanel({
       </div>
 
       {shown.map((e) => (
-        <details key={e.id} className="rounded-xl border border-zinc-800 bg-zinc-900/40">
+        <details
+          key={e.id}
+          id={e.id}
+          className="scroll-mt-24 rounded-xl border border-zinc-800 bg-zinc-900/40"
+        >
           <summary className="flex cursor-pointer flex-wrap items-center gap-3 p-4 text-sm">
-            <img src={e.image} alt="" className="h-10 w-10 rounded-lg bg-white object-contain" />
+            <img
+              src={e.image}
+              alt=""
+              className="h-10 w-10 rounded-lg bg-[#f6f1e7] object-contain"
+            />
             <span className="font-bold text-white">{e.name}</span>
             <span className="text-xs text-zinc-500">{e.category}</span>
             {e.tip?.trim() ? (

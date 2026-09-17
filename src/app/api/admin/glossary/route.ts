@@ -5,7 +5,7 @@ import { guardAdmin } from '@/lib/admin-request';
 import { readJson } from '@/lib/request-security';
 import { glossaryInput } from '@/lib/validation';
 import { logAudit } from '@/lib/audit.server';
-import { toGlossaryData } from '@/lib/glossary.admin';
+import { ensureGlossaryCategory, toGlossaryData } from '@/lib/glossary.admin';
 
 export async function POST(request: Request) {
   const denied = await guardAdmin(request);
@@ -18,8 +18,9 @@ export async function POST(request: Request) {
     );
   try {
     const { products, ...data } = toGlossaryData(parsed.data);
-    const entry = await db.glossaryEntry.create({
-      data: { ...data, products: { connect: products.set } },
+    const entry = await db.$transaction(async (tx) => {
+      await ensureGlossaryCategory(tx, data.category);
+      return tx.glossaryEntry.create({ data: { ...data, products: { connect: products.set } } });
     });
     await logAudit({ entity: 'glossary', entityId: entry.id, action: 'create', label: entry.name });
     return NextResponse.json({ id: entry.id }, { status: 201 });

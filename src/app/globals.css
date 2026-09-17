@@ -76,6 +76,12 @@ body {
   color: var(--color-zinc-100);
   scroll-behavior: smooth;
 }
+@media (prefers-reduced-motion: reduce) {
+  html,
+  body {
+    scroll-behavior: auto;
+  }
+}
 
 ::-webkit-scrollbar {
   width: 6px;

@@ -35,7 +35,7 @@ export async function GET() {
     }),
     db.glossaryEntry.findMany({
       where: { published: true },
-      select: { slug: true, name: true, summary: true, image: true, category: true },
+      select: { slug: true, name: true, summary: true, image: true, category: true, aliases: true },
       orderBy: { sortOrder: 'asc' },
     }),
   ]);
@@ -87,7 +87,7 @@ export async function GET() {
       image: g.image,
       price: null,
       inStock: true,
-      terms: `${g.name} ${g.category} ${g.summary}`.toLowerCase(),
+      terms: `${g.name} ${g.aliases.join(' ')} ${g.category} ${g.summary}`.toLowerCase(),
     })),
   ];
   return NextResponse.json(

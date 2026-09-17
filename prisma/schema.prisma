@@ -623,6 +623,10 @@ model GlossaryEntry {
   summary   String
   /// نصيحة عملية من نحّالي الهيثم — تُكتب من اللوحة وتميّز المحتوى عن أي دليل عام
   tip       String?
+  /// أسماء بديلة أو محلية («يُعرف أيضاً بـ») — تظهر تحت العنوان وتدخل في البحث
+  aliases   String[]  @default([])
+  /// مصادر ومراجع اختيارية (رابط أو نص) — تدعم موثوقية المحتوى
+  sources   String[]  @default([])
   image     String
   published Boolean   @default(true)
   sortOrder Int       @default(0)
@@ -634,6 +638,23 @@ model GlossaryEntry {
   @@index([published, sortOrder])
   @@index([category])
   @@map("glossary_entries")
+}
+
+/// مرحلة في «رحلة العسل»: بيانات عرض التصنيف (مقدّمة، أيقونة، ترتيب) يحرّرها الأدمن.
+/// الربط بالاسم لا بمفتاح أجنبي حتى يبقى إنشاء تصنيف جديد من محرّر المدخل بكتابة اسمه فقط.
+model GlossaryCategory {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  /// جملة واحدة: ماذا يحدث في هذه المرحلة
+  intro     String?
+  /// مفتاح أيقونة lucide من قائمة ثابتة في الكود (GLOSSARY_ICON_KEYS)
+  icon      String?
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([sortOrder])
+  @@map("glossary_categories")
 }
 
 /// إعدادات الموقع — صف واحد (id = "site") يحرّره الأدمن بلا نشر جديد.
