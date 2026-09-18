@@ -26,6 +26,12 @@ const nextConfig: NextConfig = {
     ];
   },
   images: {
+    // AVIF أولاً: نحو نصف حجم WebP لنفس الجودة على صور المنتجات
+    formats: ['image/avif', 'image/webp'],
+    // مقاسات تتبع تخطيط البطاقات عندنا بدل الافتراضيات العريضة
+    deviceSizes: [360, 480, 640, 828, 1080, 1280, 1920],
+    imageSizes: [96, 160, 240, 320],
+    minimumCacheTTL: 2592000,
     remotePatterns: [{ protocol: 'https', hostname: 'images.unsplash.com' }],
   },
   turbopack: {

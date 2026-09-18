@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next';
+import { Cairo, Amiri } from 'next/font/google';
 import Script from 'next/script';
 import './globals.css';
 import { SITE } from '@/lib/config';
@@ -10,6 +11,29 @@ import { SettingsProvider } from '@/components/SettingsProvider';
 import { getSettings } from '@/lib/settings.server';
 import { CustomerProvider } from '@/components/CustomerProvider';
 import { currentCustomer } from '@/lib/customer-auth';
+
+/**
+ * الخطوط تُستضاف معنا لا من fonts.gstatic: كانت ٣٠٦ كيلوبايت على المسار الحرج
+ * مع اتصال إضافي بنطاق ثالث. `subsets: arabic` يقصّ ما لا نحتاجه، و`display: swap`
+ * يرسم النص بخط احتياطي فوراً بدل أن يحجبه.
+ */
+const cairo = Cairo({
+  subsets: ['arabic'],
+  weight: ['400', '600', '700', '900'],
+  display: 'swap',
+  variable: '--font-cairo-src',
+  fallback: ['ui-sans-serif', 'system-ui', 'sans-serif'],
+});
+
+const amiri = Amiri({
+  subsets: ['arabic'],
+  // الوزن الثقيل وحده: ١٤٠ من ١٤٨ استعمالاً لهذا الخط عناوين بـ font-bold،
+  // وإسقاط الوزن العادي يوفّر نحو ١٠٠ كيلوبايت من المسار الحرج للعنوان الرئيسي.
+  weight: ['700'],
+  display: 'swap',
+  variable: '--font-amiri-src',
+  fallback: ['ui-serif', 'Georgia', 'serif'],
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE.url),
@@ -38,13 +62,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   // إعدادات لوحة التحكم (واتساب، الشحن، الإعلان…) تُقرأ هنا وتُوزَّع على الخادم والمتصفح
   const [settings, customer] = await Promise.all([getSettings(), currentCustomer()]);
   return (
-    <html lang="ar" dir="rtl">
-      <head>
-        <link
-          rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Amiri:wght@400;700&display=swap"
-        />
-      </head>
+    <html lang="ar" dir="rtl" className={`${cairo.variable} ${amiri.variable}`}>
       <body className="bg-zinc-950 text-zinc-100 antialiased">
         <Script src="/haytham-loader.js" strategy="beforeInteractive" />
         <StructuredData />

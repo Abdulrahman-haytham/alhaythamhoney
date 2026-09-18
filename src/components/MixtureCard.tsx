@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { ArrowLeft, SlidersHorizontal } from 'lucide-react';
 
 export interface MixtureCardData {
@@ -23,12 +24,15 @@ export default function MixtureCard({ mixture }: { mixture: MixtureCardData }) {
     <article className="group relative flex snap-start flex-col overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-zinc-900/60 to-zinc-950/80 shadow-lg shadow-black/40 ring-1 ring-white/10 transition-all duration-500 hover:-translate-y-1 hover:border-amber-500/40 hover:shadow-2xl hover:ring-amber-500/20 sm:rounded-[2rem] md:rounded-[2.5rem]">
       <Link href={`/custom-mixtures/${mixture.slug}`} className="relative block flex-shrink-0">
         {mixture.image ? (
-          <img
-            src={mixture.image}
-            alt={`خلطة ${mixture.name}`}
-            loading="lazy"
-            className="aspect-[4/5] w-full object-cover transition-transform duration-700 group-hover:scale-105 sm:aspect-[4/3]"
-          />
+          <span className="relative block aspect-[4/5] w-full sm:aspect-[4/3]">
+            <Image
+              src={mixture.image}
+              alt={`خلطة ${mixture.name}`}
+              fill
+              sizes="(max-width: 640px) 46vw, (max-width: 1024px) 50vw, 33vw"
+              className="object-cover transition-transform duration-700 group-hover:scale-105"
+            />
+          </span>
         ) : (
           <div className="flex aspect-[4/5] w-full items-center justify-center bg-zinc-900 sm:aspect-[4/3]">
             <SlidersHorizontal className="h-10 w-10 text-zinc-700" />

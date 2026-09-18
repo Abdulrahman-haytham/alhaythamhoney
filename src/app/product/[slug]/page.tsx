@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { CheckCircle2, Heart, Zap, Award, ShieldCheck, Truck, Leaf, Package } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { ArrowLeft, BookOpen, Sparkles } from 'lucide-react';
 import { getProductBySlug, getRelatedProducts, getProductArticles } from '@/lib/products.server';
 import { getProductPromotionLabels } from '@/lib/promotions.server';
@@ -137,7 +138,15 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           {/* Image Section */}
           <div className="relative">
             <div className="aspect-square rounded-3xl overflow-hidden border border-amber-500/20 bg-zinc-900/50 relative">
-              <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+              {/* صورة LCP لهذه الصفحة: priority لتُحمَّل أولاً، وبمقاس العمود لا بمقاسها الأصلي */}
+              <Image
+                src={product.image}
+                alt={product.name}
+                fill
+                priority
+                sizes="(max-width: 1024px) 100vw, 50vw"
+                className="object-cover"
+              />
               {product.badge && (
                 <div className="absolute top-6 right-6 bg-amber-500 text-zinc-950 text-sm font-black px-4 py-2 rounded-full uppercase z-10 shadow-lg shadow-amber-500/20">
                   {product.badge}
@@ -178,9 +187,12 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                     const ok = componentAvailable(b);
                     return (
                       <li key={b.product.id} className="flex items-center gap-3 text-sm">
-                        <img
+                        <Image
                           src={b.product.image}
                           alt=""
+                          width={44}
+                          height={44}
+                          sizes="44px"
                           className="h-11 w-11 rounded-lg object-cover"
                         />
                         <Link

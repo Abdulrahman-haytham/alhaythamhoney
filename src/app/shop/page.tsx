@@ -4,6 +4,7 @@ import { Suspense } from 'react';
 import { getProducts, getFilterAttributes } from '@/lib/products.server';
 import Products from '@/components/Products';
 import ShopBrowser from '@/components/ShopBrowser';
+import { ShopFilterSkeleton } from '@/components/ShopFilterSkeleton';
 
 // Query at request time: production builds do not need a live database.
 export const dynamic = 'force-dynamic';
@@ -37,7 +38,14 @@ export default async function ShopPage() {
       </div>
 
       {/* الفلاتر تقرأ عنوان الصفحة في المتصفح؛ الخادم يقدّم القائمة كاملة كبديل فوري */}
-      <Suspense fallback={<Products products={products} />}>
+      <Suspense
+        fallback={
+          <>
+            <ShopFilterSkeleton count={products.length} />
+            <Products products={products} />
+          </>
+        }
+      >
         <ShopBrowser products={products} attributes={attributes} />
       </Suspense>
     </div>

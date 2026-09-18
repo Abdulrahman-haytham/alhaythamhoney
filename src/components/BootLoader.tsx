@@ -1,32 +1,24 @@
-'use client';
-
-import { useHydrated } from '@/lib/useHydrated';
-
 /**
- * شاشة افتتاح بشعار الهيثم المتحرك — تظهر مرة واحدة عند التحميل الأول للصفحة
- * (لا تظهر مجدداً عند التنقّل بين الصفحات، لأن هذا المكوّن يعيش في التخطيط الجذري).
- * لا يوجد تأخير مقصود: المحتوى مُصيّر على الخادم فعلاً منذ البداية، فالشاشة
- * تُخفى فوراً بمجرد أن يكتمل تحميل React وترطيبه (useEffect عند التركيب) —
- * أي أن مدة ظهورها الفعلية تتبع سرعة تحميل الصفحة نفسها: قصيرة على اتصال
- * سريع، أطول على اتصال بطيء، دون فرض مدة ثابتة.
+ * شاشة افتتاح بشعار الهيثم — تظهر لحظة ثم تنزاح بمؤقّت CSS (`.boot-veil`)،
+ * لا بانتظار اكتمال ترطيب React كما كانت. الفرق ليس تجميلياً: الشاشة التي تغطّي
+ * المحتوى حتى الترطيب تؤجّل ما يقيسه كروم كـ LCP نحو ثانية كاملة على الجوال،
+ * وهو أحد عوامل ترتيب البحث. تعمل الآن بلا JavaScript أيضاً.
  */
 export default function BootLoader() {
-  const visible = !useHydrated();
-
-  if (!visible) return null;
-
   return (
-    <haytham-loader
-      active
-      overlay
-      theme="dark"
-      label="جارٍ التحميل…"
-      style={
-        {
-          '--haytham-size': '190px',
-          '--haytham-overlay-background': '#09090b',
-        } as React.CSSProperties
-      }
-    />
+    <div className="boot-veil" aria-hidden>
+      <haytham-loader
+        active
+        overlay
+        theme="dark"
+        label="جارٍ التحميل…"
+        style={
+          {
+            '--haytham-size': '190px',
+            '--haytham-overlay-background': '#09090b',
+          } as React.CSSProperties
+        }
+      />
+    </div>
   );
 }

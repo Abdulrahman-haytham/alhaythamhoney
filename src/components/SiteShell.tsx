@@ -32,10 +32,14 @@ export default function SiteShell({
           <Header />
         </>
       )}
+      {/* `min-h-screen`: الهيكل يصل المتصفح قبل محتوى الصفحة أثناء البثّ، فلولا هذا
+          الحجز لرُسم التذييل في منتصف الشاشة ثم قفز لأسفل — وهو ما يقيسه كروم كـ CLS. */}
       <main
         id="main-content"
         tabIndex={-1}
-        className={minimal ? '' : 'pb-[calc(4rem+env(safe-area-inset-bottom))] sm:pb-0'}
+        className={
+          minimal ? '' : 'min-h-screen pb-[calc(4rem+env(safe-area-inset-bottom))] sm:pb-0'
+        }
       >
         {children}
       </main>

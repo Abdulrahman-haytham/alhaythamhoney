@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { ShoppingCart, Eye, Heart, Check, Package } from 'lucide-react';
 import type { CatalogProduct } from '@/lib/products.server';
@@ -70,14 +71,20 @@ export default function ProductCard({ product }: { product: CatalogProduct }) {
       className="group relative flex snap-start flex-col overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-zinc-900/60 to-zinc-950/80 shadow-lg shadow-black/40 ring-1 ring-white/10 transition-all duration-500 hover:-translate-y-1 hover:border-amber-500/40 hover:shadow-2xl hover:ring-amber-500/20 sm:rounded-[2rem] md:rounded-[2.5rem]"
     >
       <div className="relative flex-shrink-0 overflow-hidden">
-        <Link href={`/product/${product.slug}`} className="block">
-          <img
+        <Link
+          href={`/product/${product.slug}`}
+          className="relative block aspect-[4/5] w-full sm:aspect-[4/3]"
+        >
+          {/* next/image: يولّد AVIF/WebP بمقاسات البطاقة بدل إرسال الصورة الأصلية كاملة
+              إلى شاشة الجوال — كانت بعض الصور تتجاوز ٢٠٠ كيلوبايت للبطاقة الواحدة. */}
+          <Image
             src={product.image}
             alt={`${product.name} - عسل طبيعي 100% من الهيثم — نحل وعسل في سوريا`}
-            className={`aspect-[4/5] w-full object-cover transition-transform duration-700 group-hover:scale-105 sm:aspect-[4/3] ${
+            fill
+            sizes="(max-width: 640px) 46vw, (max-width: 1024px) 50vw, 33vw"
+            className={`object-cover transition-transform duration-700 group-hover:scale-105 ${
               available ? '' : 'opacity-45 grayscale'
             }`}
-            loading="lazy"
           />
         </Link>
 

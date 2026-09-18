@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { ArrowLeft, Lightbulb } from 'lucide-react';
 import { toArabicIndic, type GlossaryCard as GlossaryCardData } from '@/lib/glossary';
 
@@ -23,14 +24,12 @@ export function GlossaryCard({
       className="group flex h-full flex-col overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900/40 transition-all duration-300 hover:-translate-y-1 hover:border-amber-500/40 hover:bg-zinc-900/70"
     >
       <div className="relative aspect-square overflow-hidden bg-[#f6f1e7]">
-        <img
+        <Image
           src={entry.image}
           alt={entry.name}
-          loading="lazy"
-          decoding="async"
-          width={700}
-          height={700}
-          className="h-full w-full object-contain p-3 mix-blend-multiply transition-transform duration-500 group-hover:scale-[1.04]"
+          fill
+          sizes="(max-width: 640px) 46vw, (max-width: 1024px) 33vw, 25vw"
+          className="object-contain p-3 mix-blend-multiply transition-transform duration-500 group-hover:scale-[1.04]"
         />
         {entry.hasTip && (
           <span className="absolute top-2 right-2 inline-flex items-center gap-1 rounded-full bg-zinc-950/85 px-2 py-0.5 text-[10px] font-bold text-amber-300 ring-1 ring-amber-500/40">
