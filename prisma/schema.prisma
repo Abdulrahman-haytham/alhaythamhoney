@@ -185,37 +185,49 @@ model ProductRelation {
 /// طلب مسجَّل لحظة ضغط «أكمل الطلب عبر واتساب». الدفع والتأكيد يتمّان خارج الموقع،
 /// فيبدأ بحالة PENDING ويحدّثها الأدمن من اللوحة؛ الأسعار محسوبة على الخادم لا من المتصفح.
 model Order {
-  id            String         @id @default(cuid())
+  id                 String             @id @default(cuid())
   /// مرجع قصير يظهر في رسالة واتساب وصفحة التتبع (HY-XXXXXX)
-  reference     String         @unique
-  status        OrderStatus    @default(PENDING)
-  customerId    String?
-  customer      Customer?      @relation(fields: [customerId], references: [id], onDelete: SetNull)
-  customerName  String?
-  customerPhone String?
-  customerCity  String?
-  subtotal      Int
-  discount      Int            @default(0)
-  shipping      Int            @default(0)
-  total         Int
-  couponCode    String?
+  reference          String             @unique
+  /// بصمة محاولة الإنشاء ونسخة عرض السعر — إعادة المحاولة بالمرجع نفسه تُعيد الطلب لا تكرّره
+  requestHash        String?
+  quoteSnapshot      Json?
+  status             OrderStatus        @default(PENDING)
+  customerId         String?
+  customer           Customer?          @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  customerName       String?
+  customerPhone      String?
+  customerCity       String?
+  subtotal           Int
+  discount           Int                @default(0)
+  shipping           Int                @default(0)
+  total              Int
+  couponCode         String?
   /// منطقة الشحن المختارة (اسم المحافظة) وقت الطلب
-  zoneName      String?
+  zoneName           String?
   /// نقاط استُخدمت في هذا الطلب (تُعاد عند الإلغاء) ونقاط مُنحت عند التأكيد
-  pointsUsed    Int            @default(0)
-  pointsEarned  Int            @default(0)
-  promotionUses PromotionUse[]
+  pointsUsed         Int                @default(0)
+  pointsEarned       Int                @default(0)
+  /// قيمة النقاط المستبدَلة بالليرة كما عُرضت — عليها تُحسب ميزانية الولاء الشهرية
+  pointsDiscount     Int                @default(0)
+  rewardCoupons      Coupon[]           @relation("OrderRewards")
+  redemptions        CouponRedemption[]
+  promotionUses      PromotionUse[]
   /// تفصيل الحساب كما عُرض للزبون (خصومات، عروض، شحن) — للمراجعة لا لإعادة الحساب
-  breakdown     Json?
+  breakdown          Json?
   /// ملاحظات داخلية للأدمن
-  notes         String?
-  confirmedAt   DateTime?
-  items         OrderItem[]
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  notes              String?
+  /// موعد المتابعة الذي يضبطه الأدمن، وسبب الإلغاء، ولحظة التسليم
+  followUpAt         DateTime?
+  cancellationReason String?
+  deliveredAt        DateTime?
+  confirmedAt        DateTime?
+  items              OrderItem[]
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
 
   @@index([customerId, createdAt])
   @@index([status, createdAt])
+  @@index([status, followUpAt])
   @@index([createdAt])
   @@map("orders")
 }
@@ -395,6 +407,9 @@ model Coupon {
   customer        Customer?          @relation(fields: [customerId], references: [id], onDelete: Cascade)
   /// مصدر الكوبون الآلي: WELCOME أو REFERRAL — لحساب السقف الشهري
   source          String?
+  /// الطلب الذي منح هذا الكوبون — يُعطَّل الكوبون إن أُلغي ذلك الطلب
+  rewardOrderId   String?
+  rewardOrder     Order?             @relation("OrderRewards", fields: [rewardOrderId], references: [id], onDelete: SetNull)
   redemptions     CouponRedemption[]
   createdAt       DateTime           @default(now())
   updatedAt       DateTime           @updatedAt
@@ -412,9 +427,12 @@ model CouponRedemption {
   customerId String
   customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
   subtotal   Int
+  orderId    String?
+  order      Order?   @relation(fields: [orderId], references: [id], onDelete: SetNull)
   createdAt  DateTime @default(now())
 
   @@index([couponId, customerId])
+  @@index([orderId])
   @@map("coupon_redemptions")
 }
 
@@ -426,6 +444,8 @@ model Customer {
   phone              String
   city               String?
   marketingOptIn     Boolean             @default(true)
+  /// لحظة صرف مكافأة الإحالة لهذا الحساب — تمنع تكرارها مع كل طلب
+  referralRewardedAt DateTime?
   lastLoginAt        DateTime?
   /// رصيد نقاط الولاء الحالي (مجموع الحركات)
   points             Int                 @default(0)
@@ -473,6 +493,8 @@ model PointsTransaction {
   reason     PointsReason
   orderId    String?
   note       String?
+  /// مفتاح الحدث (order:<id>:earn …) — يمنع منح النقاط أو سحبها مرتين
+  eventKey   String?      @unique
   createdAt  DateTime     @default(now())
 
   @@index([customerId, createdAt])
@@ -883,6 +905,8 @@ model CampaignRecipient {
   customer   Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
   /// رمز صورة التتبّع الشفافة
   token      String    @unique
+  /// حجز المستلم قبل استدعاء SMTP — عاملان متوازيان لا يراسلان الشخص نفسه مرتين
+  claimedAt  DateTime?
   sentAt     DateTime?
   openedAt   DateTime?
   error      String?

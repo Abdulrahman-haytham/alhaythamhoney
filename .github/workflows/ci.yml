@@ -19,6 +19,7 @@ jobs:
           --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
     env:
       DATABASE_URL: postgresql://postgres:test-only-password@127.0.0.1:5432/haytham_test
+      TEST_DATABASE_URL: postgresql://postgres:test-only-password@127.0.0.1:5432/haytham_test
       NEXT_PUBLIC_SITE_URL: http://127.0.0.1:3005
       ADMIN_SESSION_SECRET: ci-only-session-secret-never-use-in-production-123456789
       NEXT_TELEMETRY_DISABLED: '1'
@@ -30,9 +31,9 @@ jobs:
       - run: npm run lint
       - run: npm run format:check
       - run: npm run typecheck
+      - run: npm run db:deploy
+      - run: npm run db:deploy
       - run: npm run test:run
-      - run: npm run db:deploy
-      - run: npm run db:deploy
       - run: npx prisma migrate diff --from-url "$DATABASE_URL" --to-schema-datamodel prisma/schema.prisma --exit-code
       - run: npm run build
       - run: npx playwright install --with-deps chromium

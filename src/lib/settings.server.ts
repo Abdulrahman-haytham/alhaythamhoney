@@ -1,6 +1,7 @@
 import 'server-only';
 import { cache } from 'react';
 import { db } from '@/lib/db';
+import type { CommerceTx } from '@/lib/commerce.server';
 import { applyRuntimeSettings } from '@/lib/config';
 import { DEFAULT_SETTINGS, type SiteSettingsData } from '@/lib/settings';
 
@@ -33,4 +34,13 @@ export async function saveSettings(data: SiteSettingsData) {
     create: { id: SETTINGS_ID, ...data },
     update: data,
   });
+}
+
+/**
+ * إعدادات طازجة داخل معاملة تجارية — بلا ذاكرة `cache` وبلا احتياطيّ صامت:
+ * الكتابة التجارية يجب أن تفشل إن تعذّرت قراءة الإعدادات بدل أن تسعّر بقيم افتراضية.
+ */
+export async function getCommerceSettings(tx: CommerceTx = db): Promise<SiteSettingsData> {
+  const row = await tx.siteSettings.findUnique({ where: { id: SETTINGS_ID } });
+  return { ...DEFAULT_SETTINGS, ...row };
 }

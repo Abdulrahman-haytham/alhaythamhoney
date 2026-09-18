@@ -37,7 +37,7 @@ import { applyCoupon } from '@/lib/coupons';
 import { DEFAULT_SETTINGS, lowStockLabel, isAvailable } from '@/lib/settings';
 import { applyRuntimeSettings, getWhatsAppLink, SHIPPING } from '@/lib/config';
 import { renderMarkdown } from '@/lib/markdown';
-import { generateOrderReference, normalizeOrderReference } from '@/lib/orders';
+import { canTransitionOrder, generateOrderReference, normalizeOrderReference } from '@/lib/orders';
 import {
   buildQuote,
   bestTier,
@@ -448,7 +448,8 @@ describe('orders and pricing engine', () => {
 
   it('generates and normalizes unambiguous order references', () => {
     const ref = generateOrderReference();
-    expect(ref).toMatch(/^HY-[A-Z2-9]{6}$/);
+    // المرجع الجديد ١٨ حرفاً (لا يُخمَّن رابط التتبّع)، والقديم ذو الستة يبقى مقبولاً
+    expect(ref).toMatch(/^HY-[A-Z2-9]{18}$/);
     expect(ref).not.toMatch(/[O0I1]/);
     expect(normalizeOrderReference(' hy-abcd23 ')).toBe('HY-ABCD23');
     expect(normalizeOrderReference('abcd23')).toBe('HY-ABCD23');
@@ -503,6 +504,17 @@ describe('orders and pricing engine', () => {
     expect(msg).toContain('الوصفة: 500غ — سدر');
     expect(msg).toContain('الإجمالي: 575,000');
     expect(msg).toContain('https://example.com/orders/HY-ABCD23');
+  });
+
+  it('moves an order forward only, and never out of cancellation', () => {
+    expect(canTransitionOrder('PENDING', 'CONFIRMED')).toBe(true);
+    expect(canTransitionOrder('CONFIRMED', 'DELIVERED')).toBe(true);
+    expect(canTransitionOrder('SHIPPED', 'CONFIRMED')).toBe(false);
+    expect(canTransitionOrder('DELIVERED', 'PENDING')).toBe(false);
+    // الإلغاء متاح من أي مرحلة، ونهائي بعدها
+    expect(canTransitionOrder('SHIPPED', 'CANCELLED')).toBe(true);
+    expect(canTransitionOrder('CANCELLED', 'PENDING')).toBe(false);
+    expect(canTransitionOrder('CANCELLED', 'CANCELLED')).toBe(true);
   });
 
   it('keeps only changed fields in audit diffs', () => {

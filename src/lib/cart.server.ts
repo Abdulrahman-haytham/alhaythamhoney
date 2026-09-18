@@ -1,5 +1,6 @@
 import 'server-only';
 import { db } from '@/lib/db';
+import type { CommerceTx } from '@/lib/commerce.server';
 import { computePrice, describeRecipe } from '@/lib/mixturePricing';
 import { getHoneyOptions } from '@/lib/mixtures.server';
 import { parseCartId, variantAvailable } from '@/lib/variants';
@@ -21,18 +22,21 @@ const MIX_PREFIX = 'mix:';
  * يعيد تسعير خلطة من معرّفها في السلة `mix:<slug>:<size>:<honeySlug>:<g1-g2-…>`
  * بنفس دالة التسعير التي يستخدمها بنّاء الخلطة — فلا يمكن للمتصفح اختلاق سعر.
  */
-async function resolveMixture(cartId: string): Promise<Omit<ResolvedLine, 'quantity'> | null> {
+async function resolveMixture(
+  cartId: string,
+  tx: CommerceTx,
+): Promise<Omit<ResolvedLine, 'quantity'> | null> {
   const parts = cartId.slice(MIX_PREFIX.length).split(':');
   if (parts.length !== 4) return null;
   const [slug, sizeRaw, honeySlug, gramsRaw] = parts;
   const size = Number(sizeRaw);
   if (!Number.isInteger(size)) return null;
   const [mixture, honeys] = await Promise.all([
-    db.mixture.findFirst({
+    tx.mixture.findFirst({
       where: { slug, published: true },
       include: { ingredients: { orderBy: { sortOrder: 'asc' } } },
     }),
-    getHoneyOptions(),
+    getHoneyOptions(tx),
   ]);
   const honey = honeys.find((h) => h.slug === honeySlug);
   if (!mixture || !honey || !mixture.sizes.includes(size)) return null;
@@ -63,14 +67,18 @@ async function resolveMixture(cartId: string): Promise<Omit<ResolvedLine, 'quant
  * يحوّل بنود السلة إلى أسطر مسعّرة من قاعدة البيانات. البنود التي لم تعد متاحة
  * (حُذفت، أُخفيت، نفدت) تُسقَط وتُعاد أسماؤها ليخبر المتصفح الزبون.
  */
-export async function resolveCartLines(items: CartLineInput[], tiersEnabled: boolean) {
+export async function resolveCartLines(
+  items: CartLineInput[],
+  tiersEnabled: boolean,
+  tx: CommerceTx = db,
+) {
   const productIds = [
     ...new Set(
       items.filter((i) => !i.id.startsWith(MIX_PREFIX)).map((i) => parseCartId(i.id).productId),
     ),
   ];
   const products = productIds.length
-    ? await db.product.findMany({
+    ? await tx.product.findMany({
         where: { id: { in: productIds }, published: true },
         include: productListInclude,
       })
@@ -79,7 +87,7 @@ export async function resolveCartLines(items: CartLineInput[], tiersEnabled: boo
   const dropped: { cartId: string; name: string }[] = [];
   for (const item of items) {
     if (item.id.startsWith(MIX_PREFIX)) {
-      const mix = await resolveMixture(item.id);
+      const mix = await resolveMixture(item.id, tx);
       if (mix) lines.push({ ...mix, quantity: item.quantity });
       else dropped.push({ cartId: item.id, name: 'خلطة مخصّصة' });
       continue;

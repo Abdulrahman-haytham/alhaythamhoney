@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { ORDER_REFERENCE_RE } from '@/lib/orders';
 import { GLOSSARY_ICON_KEYS } from '@/lib/glossary';
 import { HARVEST_STEP_KEYS } from '@/lib/harvest';
 import { MIN_JAR_SIZE, MAX_JAR_SIZE, normalizeSizes } from '@/lib/mixturePricing';
@@ -359,13 +360,22 @@ export const quoteInput = z
   .strict();
 export const orderInput = quoteInput
   .extend({
-    reference: z.string().regex(/^HY-[A-Z2-9]{6}$/, 'مرجع الطلب غير صالح.'),
+    // المراجع القديمة ستة أحرف والجديدة ١٨ — كلاهما مقبول لتبقى روابط التتبّع تعمل
+    reference: z.string().regex(ORDER_REFERENCE_RE, 'مرجع الطلب غير صالح.'),
+    /// المجموع كما رآه الزبون — يختلف عنه الخادم ⇒ يُراجع قبل الحجز
+    expectedTotal: amount.optional(),
   })
   .strict()
   .refine((o) => o.items.length > 0, 'السلة فارغة.');
 export const orderStatusInput = z
   .object({
     status: z.enum(['PENDING', 'CONFIRMED', 'PREPARING', 'SHIPPED', 'DELIVERED', 'CANCELLED']),
+    /// اسم ورقم الزبون يملؤهما الأدمن للطلبات التي وصلت من سلة بلا حساب
+    customerName: optionalText(80).optional(),
+    customerPhone: phone.nullable().optional(),
+    /// موعد المتابعة وسبب الإلغاء — يظهران في لوحة الطلبات فقط
+    followUpAt: z.string().datetime().nullable().optional(),
+    cancellationReason: optionalText(300).optional(),
     notes: text(2000)
       .transform((v) => (v.length ? v : null))
       .nullable(),

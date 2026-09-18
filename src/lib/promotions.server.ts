@@ -1,5 +1,6 @@
 import 'server-only';
 import { db } from '@/lib/db';
+import type { CommerceTx } from '@/lib/commerce.server';
 import type { PromotionRule } from '@/lib/pricing';
 
 /** بداية الشهر الحالي (UTC) — نافذة الميزانية الشهرية */
@@ -11,8 +12,11 @@ export function monthStart(now = new Date()) {
  * العروض السارية الآن مع ما تبقّى من ميزانيتها الشهرية ومنتجات الهدايا —
  * جاهزة للمحرّك الخالص buildQuote.
  */
-export async function getActivePromotionRules(now = new Date()): Promise<PromotionRule[]> {
-  const promotions = await db.promotion.findMany({
+export async function getActivePromotionRules(
+  now = new Date(),
+  tx: CommerceTx = db,
+): Promise<PromotionRule[]> {
+  const promotions = await tx.promotion.findMany({
     where: {
       active: true,
       OR: [{ startsAt: null }, { startsAt: { lte: now } }],
@@ -28,14 +32,15 @@ export async function getActivePromotionRules(now = new Date()): Promise<Promoti
   ];
   const [products, usage] = await Promise.all([
     productIds.length
-      ? db.product.findMany({
+      ? tx.product.findMany({
           where: { id: { in: productIds } },
           select: { id: true, name: true, image: true, price: true, published: true },
         })
       : [],
-    db.promotionUse.groupBy({
+    tx.promotionUse.groupBy({
       by: ['promotionId'],
-      where: { createdAt: { gte: monthStart(now) } },
+      // الطلب الملغى لا يستهلك ميزانية العرض
+      where: { createdAt: { gte: monthStart(now) }, order: { status: { not: 'CANCELLED' } } },
       _sum: { amount: true },
     }),
   ]);

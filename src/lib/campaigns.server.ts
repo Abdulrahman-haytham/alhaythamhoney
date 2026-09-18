@@ -5,19 +5,23 @@ import { renderMarkdown, stripHtml } from '@/lib/markdown';
 import { sendMail } from '@/lib/mail';
 import { SITE } from '@/lib/config';
 
-const BATCH = 20;
+// دفعة صغيرة: كل دورة مؤقّت تنهي عملها قبل أن تنتهي مهلة الطلب
+const BATCH = 5;
 const token = () => randomBytes(16).toString('hex');
 
 /** رمز إلغاء الاشتراك للزبون — يُولَّد مرة ويثبت */
 export async function ensureUnsubscribeToken(customerId: string) {
-  const c = await db.customer.findUnique({
-    where: { id: customerId },
-    select: { unsubscribeToken: true },
+  // الكتابة مشروطة بالفراغ: رابط إلغاء اشتراك أُرسل سابقاً يبقى صالحاً
+  await db.customer.updateMany({
+    where: { id: customerId, unsubscribeToken: null },
+    data: { unsubscribeToken: token() },
   });
-  if (c?.unsubscribeToken) return c.unsubscribeToken;
-  const t = token();
-  await db.customer.update({ where: { id: customerId }, data: { unsubscribeToken: t } });
-  return t;
+  return (
+    await db.customer.findUniqueOrThrow({
+      where: { id: customerId },
+      select: { unsubscribeToken: true },
+    })
+  ).unsubscribeToken!;
 }
 
 /** قالب البريد: الشعار، النص، صورة التتبّع، ورابط إلغاء الاشتراك (إلزامي في كل حملة) */
@@ -51,87 +55,144 @@ export async function sendCampaignTest(campaignId: string, email: string) {
  * الإرسال نفسه على دفعات عبر processCampaign حتى لا تنتهي مهلة الطلب مع القوائم الكبيرة.
  */
 export async function startCampaign(campaignId: string) {
-  const campaign = await db.campaign.findUnique({ where: { id: campaignId } });
-  if (!campaign) throw new Error('الحملة غير موجودة.');
-  if (campaign.status !== 'DRAFT') throw new Error('الحملة أُرسلت من قبل.');
-  const audience = await db.customer.findMany({
-    where: { marketingOptIn: true },
-    select: { id: true },
-  });
-  await db.$transaction([
-    db.campaignRecipient.createMany({
+  return db.$transaction(async (tx) => {
+    // الانتقال DRAFT → SENDING شرطي: ضغطتان على «إرسال» لا تبنيان القائمة مرتين
+    const claimed = await tx.campaign.updateMany({
+      where: { id: campaignId, status: 'DRAFT' },
+      data: { status: 'SENDING' },
+    });
+    if (!claimed.count)
+      return (await tx.campaign.findUniqueOrThrow({ where: { id: campaignId } })).recipientsCount;
+    const audience = await tx.customer.findMany({
+      where: { marketingOptIn: true },
+      select: { id: true },
+    });
+    await tx.campaignRecipient.createMany({
       data: audience.map((c) => ({ campaignId, customerId: c.id, token: token() })),
       skipDuplicates: true,
-    }),
-    db.campaign.update({
+    });
+    await tx.campaign.update({
       where: { id: campaignId },
-      data: { status: 'SENDING', recipientsCount: audience.length },
-    }),
-  ]);
-  return audience.length;
+      data: {
+        recipientsCount: audience.length,
+        ...(audience.length ? {} : { status: 'SENT', sentAt: new Date() }),
+      },
+    });
+    return audience.length;
+  });
 }
 
-/** يرسل دفعة ويعيد ما تبقّى؛ حين لا يبقى شيء تُختم الحملة SENT */
+/**
+ * يرسل دفعة ويعيد ما تبقّى؛ حين لا يبقى شيء تُختم الحملة SENT.
+ * كل مستلم يُحجز في القاعدة قبل استدعاء SMTP، فلا يراسله عاملان معاً. وانقطاع العامل
+ * بعد الحجز حالة غامضة (قد يكون المزوّد قبل الرسالة): تُعلَّم للمراجعة ولا يُعاد إرسالها آلياً.
+ */
 export async function processCampaign(campaignId: string) {
   const campaign = await db.campaign.findUnique({ where: { id: campaignId } });
   if (!campaign || campaign.status !== 'SENDING') return { sent: 0, failed: 0, remaining: 0 };
+  await db.campaignRecipient.updateMany({
+    where: {
+      campaignId,
+      sentAt: null,
+      error: null,
+      claimedAt: { lt: new Date(Date.now() - 10 * 60 * 1000) },
+    },
+    data: {
+      error: 'تسليم غير مؤكَّد: انقطع العامل بعد الحجز — راجع سجل المزوّد قبل أي إعادة إرسال',
+    },
+  });
   const html = renderMarkdown(campaign.body);
-  const text = stripHtml(html);
+  const plain = stripHtml(html);
   const batch = await db.campaignRecipient.findMany({
-    where: { campaignId, sentAt: null, error: null },
+    where: { campaignId, sentAt: null, error: null, claimedAt: null },
     take: BATCH,
-    include: { customer: { select: { id: true, email: true, marketingOptIn: true } } },
+    orderBy: { id: 'asc' },
   });
   let sent = 0;
   let failed = 0;
+  const deadline = Date.now() + 15000;
   for (const r of batch) {
-    // من ألغى اشتراكه بعد بدء الحملة لا يُراسَل
-    if (!r.customer.marketingOptIn) {
+    if (Date.now() >= deadline) break;
+    const claimed = await db.campaignRecipient.updateMany({
+      where: { id: r.id, sentAt: null, error: null, claimedAt: null },
+      data: { claimedAt: new Date() },
+    });
+    if (!claimed.count) continue;
+    // الموافقة تُراجَع لحظة الإرسال — من ألغى اشتراكه بعد بناء القائمة لا يُراسَل
+    const customer = await db.customer.findUnique({ where: { id: r.customerId } });
+    if (!customer?.marketingOptIn) {
       await db.campaignRecipient.update({ where: { id: r.id }, data: { error: 'unsubscribed' } });
       failed++;
       continue;
     }
     try {
-      const unsub = await ensureUnsubscribeToken(r.customer.id);
+      const unsub = await ensureUnsubscribeToken(customer.id);
+      const unsubscribeUrl = `${SITE.url}/unsubscribe?t=${unsub}`;
       await sendMail(
-        r.customer.email,
+        customer.email,
         campaign.subject,
-        text,
-        campaignHtml(html, {
-          unsubscribeUrl: `${SITE.url}/unsubscribe?t=${unsub}`,
-          pixelUrl: `${SITE.url}/api/c/${r.token}`,
-        }),
+        `${plain}\n\nإلغاء الاشتراك: ${unsubscribeUrl}`,
+        campaignHtml(html, { unsubscribeUrl, pixelUrl: `${SITE.url}/api/c/${r.token}` }),
       );
       await db.campaignRecipient.update({ where: { id: r.id }, data: { sentAt: new Date() } });
       sent++;
-    } catch (error) {
+    } catch {
       await db.campaignRecipient.update({
         where: { id: r.id },
-        data: { error: error instanceof Error ? error.message.slice(0, 200) : 'failed' },
+        data: {
+          error: 'فشل الإرسال أو نتيجته غير مؤكَّدة: راجع سجل المزوّد — لا إعادة إرسال آلية',
+        },
       });
       failed++;
     }
   }
-  const remaining = await db.campaignRecipient.count({
-    where: { campaignId, sentAt: null, error: null },
-  });
-  await db.campaign.update({
-    where: { id: campaignId },
-    data: {
-      sentCount: { increment: sent },
-      failedCount: { increment: failed },
-      ...(remaining === 0 ? { status: 'SENT', sentAt: new Date() } : {}),
-    },
+  // العدّادات تُحسب مطلقة تحت قفل صفّ الحملة — لا زيادة على رقم قديم
+  const remaining = await db.$transaction(async (tx) => {
+    await tx.$executeRaw`SELECT id FROM campaigns WHERE id = ${campaignId} FOR UPDATE`;
+    const [sentCount, failedCount, pending] = await Promise.all([
+      tx.campaignRecipient.count({ where: { campaignId, sentAt: { not: null } } }),
+      tx.campaignRecipient.count({ where: { campaignId, sentAt: null, error: { not: null } } }),
+      tx.campaignRecipient.count({ where: { campaignId, sentAt: null, error: null } }),
+    ]);
+    await tx.campaign.update({
+      where: { id: campaignId },
+      data: {
+        sentCount,
+        failedCount,
+        ...(pending === 0 ? { status: 'SENT', sentAt: new Date() } : {}),
+      },
+    });
+    return pending;
   });
   return { sent, failed, remaining };
 }
 
+/** حملة واحدة لكل دورة مؤقّت — إغلاق لوحة الإدارة لا يوقف الإرسال. */
+export async function processPendingCampaigns() {
+  const campaigns = await db.campaign.findMany({
+    where: { status: 'SENDING' },
+    orderBy: { updatedAt: 'asc' },
+    take: 1,
+    select: { id: true },
+  });
+  for (const campaign of campaigns) await processCampaign(campaign.id);
+  return { processed: campaigns.length };
+}
+
 /** تسجيل فتح الرسالة (مرة واحدة لكل مستلم) */
 export async function trackOpen(recipientToken: string) {
-  const r = await db.campaignRecipient.findUnique({ where: { token: recipientToken } });
-  if (!r || r.openedAt) return;
-  await db.$transaction([
-    db.campaignRecipient.update({ where: { id: r.id }, data: { openedAt: new Date() } }),
-    db.campaign.update({ where: { id: r.campaignId }, data: { openCount: { increment: 1 } } }),
-  ]);
+  await db.$transaction(async (tx) => {
+    const r = await tx.campaignRecipient.findUnique({ where: { token: recipientToken } });
+    if (!r) return;
+    // أول طلب للصورة فقط يُحتسب — وهو لا يثبت أن شخصاً قرأ الرسالة
+    const opened = await tx.campaignRecipient.updateMany({
+      where: { id: r.id, openedAt: null },
+      data: { openedAt: new Date() },
+    });
+    if (opened.count)
+      await tx.campaign.update({
+        where: { id: r.campaignId },
+        data: { openCount: { increment: 1 } },
+      });
+  });
 }

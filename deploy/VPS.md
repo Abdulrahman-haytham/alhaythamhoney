@@ -96,3 +96,23 @@ docker compose --env-file .env.production ps
 - رفع صورة وفيديو، تقديم Range للفيديو، وإعادة إنشاء حاوية التطبيق دون فقد الملفات.
 - PWA وأيقوناتها وصفحة عدم الاتصال، وغياب التخزين لصفحات الإدارة.
 - اختبار موبايل فعلي وLighthouse بعد تركيب HTTPS؛ لا يُفترض تحسن رقمي للأداء دون القياس.
+
+## المهام الدورية والحملات
+
+اضبط `SMTP_URL` و`MAIL_FROM` للبريد، و`CRON_SECRET` عشوائياً (32 حرفاً على الأقل: `openssl rand -hex 32`). ثم ثبّت مؤقّت systemd المرفق بعد تشغيل التطبيق في `/opt/alhaytham` (عدّل `WorkingDirectory` إن اختلف مجلدك):
+
+```bash
+sudo cp deploy/alhaytham-jobs.service deploy/alhaytham-jobs.timer /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now alhaytham-jobs.timer
+sudo systemctl start alhaytham-jobs.service
+sudo journalctl -u alhaytham-jobs.service -n 20 --no-pager
+```
+
+كل دورة تعالج دفعة من **الحملات التي بدأها المسؤول فقط**، وتذكير السلة إن فعّله، وتنظّف السجلات القديمة. إغلاق لوحة الإدارة لا يوقف الإرسال. لمراقبة الموعد التالي: `systemctl list-timers alhaytham-jobs.timer`، ولإيقاف المعالجة: `sudo systemctl disable --now alhaytham-jobs.timer`.
+
+كل مستلم يُحجز في القاعدة قبل استدعاء SMTP. الرسالة التي فشلت أو انقطع العامل خلالها لا تُعاد آلياً لأن المزوّد قد يكون قبلها فعلاً؛ تظهر ضمن العدد المتعذر، فراجع `campaign_recipients.error` وسجل المزوّد قبل أي إعادة إرسال. عدّاد الفتح لا يثبت أن شخصاً قرأ الرسالة.
+
+## ترحيل تحصين الطلبات
+
+ترحيل `20260916130000_order_workflow_hardening` إضافي ولا يحذف بيانات: يضيف بصمة محاولة الطلب ونسخة عرض السعر، وموعد المتابعة وسبب الإلغاء وتاريخ التسليم، ومفتاح حدث لحركات النقاط، وحجز مستلم الحملة — ويعبّئ `pointsDiscount` للطلبات القديمة من تفصيل حسابها المحفوظ. المراجع القديمة ذات الستة أحرف تبقى مقبولة، والمراجع الجديدة أطول لحماية روابط التتبّع. أوقف المؤقّت أثناء الترقية وخذ النسخة الاحتياطية، ثم أعد تشغيله بعد التحقق.

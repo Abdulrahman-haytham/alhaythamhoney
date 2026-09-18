@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useHydrated } from '@/lib/useHydrated';
 import Link from 'next/link';
 import {
@@ -21,7 +21,6 @@ import {
   Coins,
 } from 'lucide-react';
 import { useCart } from '@/store/cartStore';
-import { getWhatsAppLink } from '@/lib/config';
 import { useSettings } from '@/components/SettingsProvider';
 import { trackBeginCheckout, trackWhatsAppClick } from '@/lib/analytics';
 import { normalizeCouponCode, LOGIN_REQUIRED_REASON } from '@/lib/coupons';
@@ -138,10 +137,18 @@ function CouponField({ quote, busy }: { quote: Quote; busy: boolean }) {
 }
 
 /** ما يُعرض بعد الضغط على واتساب: رقم الطلب ورابط المتابعة. */
-function OrderPlaced({ reference, onClear }: { reference: string; onClear: () => void }) {
+function OrderPlaced({
+  reference,
+  whatsappUrl,
+  onClear,
+}: {
+  reference: string;
+  whatsappUrl: string;
+  onClear: () => void;
+}) {
   return (
     <div className="rounded-2xl border border-green-500/30 bg-green-500/10 p-5">
-      <p className="flex items-center gap-2 font-bold text-green-300">
+      <p className="flex flex-wrap items-center gap-2 font-bold text-green-300">
         <PackageCheck className="h-5 w-5" />
         سُجّل طلبك برقم <b dir="ltr">{reference}</b>
       </p>
@@ -149,6 +156,15 @@ function OrderPlaced({ reference, onClear }: { reference: string; onClear: () =>
         أرسل الرسالة في واتساب لنؤكده معك. يمكنك متابعة حالته في أي وقت من صفحة التتبع.
       </p>
       <div className="mt-3 flex flex-wrap gap-2">
+        <a
+          href={whatsappUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={() => trackWhatsAppClick('cart-order')}
+          className="flex min-h-11 items-center rounded-xl bg-green-600 px-4 py-2 text-sm font-bold text-white"
+        >
+          فتح واتساب وإرسال الطلب
+        </a>
         <Link
           href={`/orders/${reference}`}
           className="rounded-xl bg-green-600 px-4 py-2 text-sm font-bold text-white hover:bg-green-500"
@@ -180,10 +196,29 @@ export function CartClient() {
   const [serverQuote, setServerQuote] = useState<Quote | null>(null);
   const [quoting, setQuoting] = useState(false);
   const [quoteError, setQuoteError] = useState<string | null>(null);
-  const [placed, setPlaced] = useState<string | null>(null);
+  const [placed, setPlaced] = useState<{
+    reference: string;
+    whatsappUrl: string;
+    key: string;
+  } | null>(null);
+  const [placing, setPlacing] = useState(false);
+  const placingRef = useRef(false);
+  const attempt = useRef<{ key: string; reference: string } | null>(null);
+  const [orderError, setOrderError] = useState<string | null>(null);
+  const [serverQuoteKey, setServerQuoteKey] = useState('');
+
+  function resetCart() {
+    clearCart();
+    setPlaced(null);
+    attempt.current = null;
+    try {
+      sessionStorage.removeItem('haytham-order-attempt');
+    } catch {}
+  }
 
   // توقيع السلة: أي تغيير في البنود أو الكميات أو الكوبون يعيد التسعير من الخادم
   const signature = items.map((i) => `${i.id}:${i.quantity}`).join('|');
+  const quoteKey = JSON.stringify([signature, couponCode, zoneId, usePoints]);
   useEffect(() => {
     if (!mounted || !signature) return;
     let cancelled = false;
@@ -203,6 +238,7 @@ export function CartClient() {
         .then((q) => {
           if (cancelled) return;
           setServerQuote(q);
+          setServerQuoteKey(quoteKey);
           setQuoteError(null);
           // ما لم يعد متاحاً يُحذف من السلة بدل أن يبقى بسعر قديم
           for (const d of q.dropped) removeItem(d.cartId);
@@ -240,7 +276,13 @@ export function CartClient() {
   if (items.length === 0) {
     return (
       <div className="space-y-6">
-        {placed && <OrderPlaced reference={placed} onClear={() => setPlaced(null)} />}
+        {placed && (
+          <OrderPlaced
+            reference={placed.reference}
+            whatsappUrl={placed.whatsappUrl}
+            onClear={() => setPlaced(null)}
+          />
+        )}
         <div className="rounded-3xl border border-zinc-800/60 bg-zinc-900/30 py-20 text-center">
           <ShoppingCart className="mx-auto mb-6 h-16 w-16 text-zinc-700" strokeWidth={1.5} />
           <p className="mb-2 text-xl text-zinc-300">سلتك فارغة</p>
@@ -276,6 +318,7 @@ export function CartClient() {
   });
   const stale =
     !serverQuote ||
+    serverQuoteKey !== quoteKey ||
     serverQuote.lines.map((l) => `${l.cartId}:${l.quantity}`).join('|') !== signature;
   const quote = stale
     ? {
@@ -288,33 +331,82 @@ export function CartClient() {
     : serverQuote;
   const afterDiscount = quote.subtotal - quote.discount;
 
-  function placeOrder() {
-    const reference = generateOrderReference();
-    const trackUrl = `${window.location.origin}/orders/${reference}`;
-    // فتح واتساب متزامن مع النقرة (سفاري يحجبه بعد أي انتظار)، والتسجيل يلحق في الخلفية
-    window.open(
-      getWhatsAppLink(whatsappOrderMessage(quote, reference, trackUrl)),
-      '_blank',
-      'noopener,noreferrer',
-    );
-    void fetch('/api/orders', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        reference,
-        items: items.map(({ id, quantity }) => ({ id, quantity })),
-        couponCode: quote.coupon?.ok ? quote.coupon.code : null,
-        zoneId: quote.zoneId,
-        usePoints: (quote.loyalty?.pointsUsed ?? 0) > 0,
-      }),
-      keepalive: true,
-    }).catch(() => null);
-    trackWhatsAppClick('cart-order');
-    trackBeginCheckout(
-      quote.total,
-      items.map((i) => ({ id: i.id, name: i.name, price: i.price ?? 0, quantity: i.quantity })),
-    );
-    setPlaced(reference);
+  async function placeOrder() {
+    if (placingRef.current) return;
+    const key = JSON.stringify([quoteKey, quote.total]);
+    if (placed?.key === key) {
+      window.open(placed.whatsappUrl, '_blank', 'noopener,noreferrer');
+      return;
+    }
+    placingRef.current = true;
+    setPlacing(true);
+    setOrderError(null);
+    // تُحجز نافذة فارغة أثناء النقرة نفسها (سفاري يحجب الفتح بعد أي انتظار)،
+    // ولا يُرسَل إلى واتساب مرجعٌ لم يُحفظ بعد.
+    const popup = window.open('about:blank', '_blank');
+    if (popup) popup.opener = null;
+    if (!attempt.current) {
+      try {
+        attempt.current = JSON.parse(sessionStorage.getItem('haytham-order-attempt') || 'null');
+      } catch {}
+    }
+    if (attempt.current?.key !== key)
+      attempt.current = { key, reference: generateOrderReference() };
+    try {
+      sessionStorage.setItem('haytham-order-attempt', JSON.stringify(attempt.current));
+    } catch {}
+    try {
+      const response = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          reference: attempt.current.reference,
+          items: items.map(({ id, quantity }) => ({ id, quantity })),
+          couponCode,
+          zoneId,
+          usePoints,
+          expectedTotal: quote.total,
+        }),
+        signal: AbortSignal.timeout(25000),
+      });
+      const result = await response.json();
+      if (!response.ok) {
+        if (result.quote) {
+          setServerQuote(result.quote);
+          setServerQuoteKey(quoteKey);
+        }
+        throw new Error(result.error || 'تعذّر حفظ الطلب. أعد المحاولة.');
+      }
+      const saved = result.quote as Quote;
+      const trackUrl = `${window.location.origin}/orders/${result.reference}`;
+      const whatsappUrl = `https://wa.me/${settings.whatsappNumber}?text=${encodeURIComponent(whatsappOrderMessage(saved, result.reference, trackUrl))}`;
+      setPlaced({ reference: result.reference, whatsappUrl, key });
+      setServerQuote(saved);
+      setServerQuoteKey(quoteKey);
+      if (popup && !popup.closed) {
+        popup.location.replace(whatsappUrl);
+        trackWhatsAppClick('cart-order');
+      }
+      trackBeginCheckout(
+        saved.total,
+        saved.lines.map((l) => ({
+          id: l.cartId,
+          name: l.name,
+          price: l.unitPrice,
+          quantity: l.quantity,
+        })),
+      );
+    } catch (error) {
+      if (popup && !popup.closed) popup.close();
+      setOrderError(
+        error instanceof Error && error.name !== 'TimeoutError' && error.name !== 'TypeError'
+          ? error.message
+          : 'الاتصال بطيء. أعد المحاولة بنفس السلة؛ لن يتكرر الطلب.',
+      );
+    } finally {
+      placingRef.current = false;
+      setPlacing(false);
+    }
   }
 
   return (
@@ -322,9 +414,10 @@ export function CartClient() {
       <div className="space-y-4 lg:col-span-2">
         {placed && (
           <OrderPlaced
-            reference={placed}
+            reference={placed.reference}
+            whatsappUrl={placed.whatsappUrl}
             onClear={() => {
-              clearCart();
+              resetCart();
             }}
           />
         )}
@@ -332,7 +425,7 @@ export function CartClient() {
           <p className="text-sm text-zinc-400">{getTotalItems()} قطعة في السلة</p>
           <button
             type="button"
-            onClick={clearCart}
+            onClick={resetCart}
             className="text-sm text-zinc-500 transition-colors hover:text-red-400"
           >
             إفراغ السلة
@@ -348,7 +441,6 @@ export function CartClient() {
                 key={item.id}
                 className="flex gap-4 rounded-2xl border border-zinc-800 bg-zinc-900/40 p-3 sm:p-4"
               >
-                {}
                 <img
                   src={item.image}
                   alt={item.name}
@@ -377,7 +469,7 @@ export function CartClient() {
                       type="button"
                       onClick={() => removeItem(item.id)}
                       aria-label={`إزالة ${item.name}`}
-                      className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg text-zinc-500 transition-colors hover:bg-red-500/10 hover:text-red-400"
+                      className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-lg text-zinc-500 transition-colors hover:bg-red-500/10 hover:text-red-400"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
@@ -389,7 +481,7 @@ export function CartClient() {
                         type="button"
                         onClick={() => updateQuantity(item.id, item.quantity - 1)}
                         aria-label="تقليل الكمية"
-                        className="flex h-9 w-9 items-center justify-center text-zinc-300 transition-colors hover:text-amber-400"
+                        className="flex h-11 w-11 items-center justify-center text-zinc-300 transition-colors hover:text-amber-400"
                       >
                         <Minus className="h-4 w-4" />
                       </button>
@@ -400,7 +492,7 @@ export function CartClient() {
                         type="button"
                         onClick={() => updateQuantity(item.id, item.quantity + 1)}
                         aria-label="زيادة الكمية"
-                        className="flex h-9 w-9 items-center justify-center text-zinc-300 transition-colors hover:text-amber-400"
+                        className="flex h-11 w-11 items-center justify-center text-zinc-300 transition-colors hover:text-amber-400"
                       >
                         <Plus className="h-4 w-4" />
                       </button>
@@ -554,14 +646,26 @@ export function CartClient() {
             </div>
           </dl>
 
+          {orderError && (
+            <p
+              role="alert"
+              className="mt-4 rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-300"
+            >
+              {orderError}
+            </p>
+          )}
           <button
             type="button"
-            onClick={placeOrder}
-            disabled={quote.lines.length === 0}
+            onClick={() => void placeOrder()}
+            disabled={placing || quoting || quote.lines.length === 0}
             className="mt-6 flex h-13 w-full items-center justify-center gap-2.5 rounded-xl bg-green-600 py-4 font-bold text-white shadow-lg shadow-green-600/20 transition-colors hover:bg-green-500 disabled:opacity-50"
           >
-            <MessageCircle className="h-5 w-5" />
-            أكمل الطلب عبر واتساب
+            {placing ? (
+              <Loader2 className="h-5 w-5 animate-spin" />
+            ) : (
+              <MessageCircle className="h-5 w-5" />
+            )}
+            {placing ? 'جارٍ حفظ طلبك…' : 'أكمل الطلب عبر واتساب'}
           </button>
           <p className="mt-3 text-center text-xs leading-relaxed text-zinc-500">
             الأسعار في السلة تقديرية وقد تتغير. نؤكد السعر النهائي والشحن والتوفر على واتساب قبل
