@@ -58,30 +58,26 @@ function AnimatedCounter({ target }: { target: number }) {
 }
 
 export default function Stats() {
+  // حشو سفلي أقل: قسم المنتجات التالي يضيف حشوه فوقه، فكانت الفجوة تقارب ١٥٠ بكسل
   return (
-    <section className="relative overflow-hidden bg-zinc-950 py-20 sm:py-28">
+    <section className="relative overflow-hidden bg-zinc-950 pt-10 pb-4 sm:pt-14 sm:pb-6">
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute top-1/2 left-1/2 h-[28rem] w-[48rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-amber-500/[0.04] blur-3xl" />
       </div>
 
       <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+        {/* عنوان واحد قصير: الأرقام تحتَه تشرح نفسها، وثلاثة عناوين متتالية كانت
+            تُبعد الزائر عن المنتجات بشاشة كاملة */}
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-100px' }}
           transition={{ duration: 0.6 }}
-          className="mb-14 text-center"
+          className="mb-6 text-center sm:mb-8"
         >
-          <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-amber-500/25 bg-amber-500/[0.07] px-4 py-1.5">
-            <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
-            <span className="text-xs font-semibold tracking-wide text-amber-300">أرقامنا</span>
-          </div>
-          <h2 className="mb-4 text-3xl font-bold text-white sm:text-4xl md:text-5xl">
-            أرقام تتحدث عن <span className="gold-text">جودة عسل الهيثم</span>
+          <h2 className="text-2xl font-bold text-white sm:text-3xl">
+            أرقام <span className="gold-text">نفتخر بها</span>
           </h2>
-          <p className="mx-auto max-w-xl text-base text-zinc-400 sm:text-lg">
-            أرقام نفتخر بها تعكس التزامنا بتقديم أجود أنواع العسل الطبيعي لعملائنا
-          </p>
         </motion.div>
 
         {/* ثلاثة أعمدة دائماً — حتى على أضيق الشاشات — مع تصغير الحشو والخط بدل التكديس رأسياً */}
