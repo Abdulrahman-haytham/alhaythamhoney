@@ -13,6 +13,7 @@ export const metadata: Metadata = {
 };
 
 // الرقم وأجور الشحن تُقرأ من الإعدادات وقت الطلب (لا من ثوابت البناء)
+// الاستعلام وقت الطلب: بناء الإنتاج لا يحتاج قاعدة بيانات حيّة.
 export const dynamic = 'force-dynamic';
 
 export default async function FAQPage() {

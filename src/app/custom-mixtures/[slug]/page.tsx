@@ -6,8 +6,16 @@ import { getMixtureBySlug, getHoneyOptions } from '@/lib/mixtures.server';
 import { MixtureBuilder } from '@/components/MixtureBuilder';
 import { SITE } from '@/lib/config';
 
-// Query at request time: production builds do not need a live database.
-export const dynamic = 'force-dynamic';
+/**
+ * صفحة مخزّنة بعد أول زيارة (ISR): زيارات الزوار وزحف غوغل لا تضرب القاعدة في كل مرة،
+ * وتعديل اللوحة يُبطل التخزين فوراً عبر `revalidatePublic`.
+ * `generateStaticParams` فارغة عمداً: بناء الإنتاج يجري بلا قاعدة بيانات.
+ */
+export const revalidate = 3600;
+
+export function generateStaticParams() {
+  return [];
+}
 
 export async function generateMetadata({
   params,

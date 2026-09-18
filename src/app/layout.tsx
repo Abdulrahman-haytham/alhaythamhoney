@@ -10,7 +10,6 @@ import Footer from '@/components/Footer';
 import { SettingsProvider } from '@/components/SettingsProvider';
 import { getSettings } from '@/lib/settings.server';
 import { CustomerProvider } from '@/components/CustomerProvider';
-import { currentCustomer } from '@/lib/customer-auth';
 
 /**
  * الخطوط تُستضاف معنا لا من fonts.gstatic: كانت ٣٠٦ كيلوبايت على المسار الحرج
@@ -59,27 +58,16 @@ export const metadata: Metadata = {
 export const viewport: Viewport = { themeColor: '#09090b', viewportFit: 'cover' };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  // إعدادات لوحة التحكم (واتساب، الشحن، الإعلان…) تُقرأ هنا وتُوزَّع على الخادم والمتصفح
-  const [settings, customer] = await Promise.all([getSettings(), currentCustomer()]);
+  // إعدادات لوحة التحكم (واتساب، الشحن، الإعلان…) تُقرأ هنا وتُوزَّع على الخادم والمتصفح.
+  // لا تُقرأ الكوكي هنا عمداً — انظر CustomerProvider.
+  const settings = await getSettings();
   return (
     <html lang="ar" dir="rtl" className={`${cairo.variable} ${amiri.variable}`}>
       <body className="bg-zinc-950 text-zinc-100 antialiased">
         <Script src="/haytham-loader.js" strategy="beforeInteractive" />
         <StructuredData />
         <SettingsProvider settings={settings}>
-          <CustomerProvider
-            customer={
-              customer
-                ? {
-                    id: customer.id,
-                    name: customer.name,
-                    email: customer.email,
-                    phone: customer.phone,
-                    city: customer.city,
-                  }
-                : null
-            }
-          >
+          <CustomerProvider>
             <SiteShell footer={<Footer />}>{children}</SiteShell>
           </CustomerProvider>
         </SettingsProvider>

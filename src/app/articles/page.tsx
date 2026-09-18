@@ -5,6 +5,7 @@ import { getAllArticles, formatArticleDate, formatReadingTime } from '@/lib/arti
 import { SITE, getWhatsAppLink } from '@/lib/config';
 import { getSettings } from '@/lib/settings.server';
 
+// الاستعلام وقت الطلب: بناء الإنتاج لا يحتاج قاعدة بيانات حيّة.
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {

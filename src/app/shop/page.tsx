@@ -6,7 +6,7 @@ import Products from '@/components/Products';
 import ShopBrowser from '@/components/ShopBrowser';
 import { ShopFilterSkeleton } from '@/components/ShopFilterSkeleton';
 
-// Query at request time: production builds do not need a live database.
+// الاستعلام وقت الطلب: بناء الإنتاج لا يحتاج قاعدة بيانات حيّة.
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {

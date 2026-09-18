@@ -19,6 +19,7 @@ import { SITE } from '@/lib/config';
 import { StageIcon } from '@/components/glossary/StageIcon';
 import { GlossaryAuthorBox } from '@/components/glossary/GlossaryAuthorBox';
 
+// تقرأ جلسة الأدمن لمعاينة المسودّات، فلا تُخزَّن.
 export const dynamic = 'force-dynamic';
 
 export async function generateMetadata({

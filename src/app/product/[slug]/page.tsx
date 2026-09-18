@@ -19,7 +19,16 @@ import { ProductReviews } from '@/components/ProductReviews';
 import ProductCard from '@/components/ProductCard';
 import RecentlyViewed, { RecentlyViewedTracker } from '@/components/RecentlyViewed';
 import BuyBox from './BuyBox';
-export const dynamic = 'force-dynamic';
+/**
+ * صفحة مخزّنة بعد أول زيارة (ISR): زيارات الزوار وزحف غوغل لا تضرب القاعدة في كل مرة،
+ * وتعديل اللوحة يُبطل التخزين فوراً عبر `revalidatePublic`.
+ * `generateStaticParams` فارغة عمداً: بناء الإنتاج يجري بلا قاعدة بيانات.
+ */
+export const revalidate = 3600;
+
+export function generateStaticParams() {
+  return [];
+}
 
 interface DetailedInfo {
   uses?: string[];

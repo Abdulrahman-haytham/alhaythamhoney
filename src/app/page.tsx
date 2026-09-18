@@ -17,7 +17,7 @@ import type { Metadata } from 'next';
 
 export const metadata: Metadata = { alternates: { canonical: '/' } };
 
-// Query at request time: production builds do not need a live database.
+// الاستعلام وقت الطلب: بناء الإنتاج لا يحتاج قاعدة بيانات حيّة.
 export const dynamic = 'force-dynamic';
 
 /**

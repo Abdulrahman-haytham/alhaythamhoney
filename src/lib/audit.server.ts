@@ -2,6 +2,7 @@ import 'server-only';
 import type { Prisma } from '@prisma/client';
 import { db } from '@/lib/db';
 import { requireAdmin } from '@/lib/auth';
+import { revalidatePublic } from '@/lib/revalidate.server';
 
 type Json = Prisma.InputJsonValue;
 type Record_ = object;
@@ -48,6 +49,8 @@ export async function logAudit(params: {
   before?: Record_ | null;
   after?: Record_ | null;
 }) {
+  // كل كتابة من اللوحة تمرّ هنا، فهو الموضع الطبيعي لتحديث ما يراه الزائر
+  revalidatePublic(params.entity);
   try {
     const admin = await requireAdmin();
     const changes =

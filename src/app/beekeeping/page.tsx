@@ -6,6 +6,7 @@ import { SITE } from '@/lib/config';
 import { GlossaryJourney } from './GlossaryJourney';
 import { StageSection } from './StageSection';
 
+// الاستعلام وقت الطلب: بناء الإنتاج لا يحتاج قاعدة بيانات حيّة.
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
