@@ -126,3 +126,17 @@ export async function getStageContext(
     next: next ? { slug: next.slug, name: next.name, image: next.image } : null,
   };
 }
+
+export type GlossaryLookup = GlossaryCard & { summary: string };
+
+/**
+ * مداخل منشورة بحسب slugs — للخلية التفاعلية ورحلة القطاف اللتين تعرفان أدواتهما بالكود.
+ * تُعاد خريطة slug → مدخل؛ ما ليس منشوراً يغيب منها فتتخطاه الصفحة بلا كسر.
+ */
+export async function getEntriesBySlugs(slugs: readonly string[]) {
+  const rows = await db.glossaryEntry.findMany({
+    where: { published: true, slug: { in: [...slugs] } },
+    select: listSelect,
+  });
+  return new Map(rows.map(({ tip, ...row }) => [row.slug, { ...row, hasTip: !!tip?.trim() }]));
+}

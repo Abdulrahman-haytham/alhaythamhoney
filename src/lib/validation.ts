@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { GLOSSARY_ICON_KEYS } from '@/lib/glossary';
+import { HARVEST_STEP_KEYS } from '@/lib/harvest';
 import { MIN_JAR_SIZE, MAX_JAR_SIZE, normalizeSizes } from '@/lib/mixturePricing';
 
 const amount = z.number().int().min(0).max(1_000_000_000);
@@ -547,5 +548,16 @@ export const glossaryCategoryInput = z
     intro: optionalText(300),
     icon: z.enum(GLOSSARY_ICON_KEYS).nullable(),
     sortOrder: z.number().int().min(0).max(1000),
+  })
+  .strict();
+
+/** وسم لقطة الاستديو: خطوة من رحلة القطاف أو لا شيء. */
+export const studioTagInput = z.enum(HARVEST_STEP_KEYS).nullable();
+
+/** تعديل لقطة موجودة في الاستديو — الوصف والوسم فقط (الملف لا يتغيّر). */
+export const studioPatchInput = z
+  .object({
+    caption: optionalText(500).optional(),
+    tag: studioTagInput.optional(),
   })
   .strict();

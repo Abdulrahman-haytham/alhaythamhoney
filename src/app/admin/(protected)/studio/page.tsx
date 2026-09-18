@@ -14,6 +14,14 @@ export default async function StudioPage() {
         <a href="/studio" target="_blank" className="text-amber-500 hover:text-amber-400">
           صفحة الاستديو
         </a>
+        . اللقطة الموسومة بخطوة من رحلة القطاف تظهر أيضاً في{' '}
+        <a
+          href="/beekeeping/harvest"
+          target="_blank"
+          className="text-amber-500 hover:text-amber-400"
+        >
+          «هكذا نعمل في مناحل الهيثم»
+        </a>
         .
       </p>
       <StudioPanel
@@ -21,6 +29,7 @@ export default async function StudioPage() {
           id: p.id,
           url: p.url,
           caption: p.caption,
+          tag: p.tag,
           type: p.type,
           createdAt: p.createdAt.toISOString(),
         }))}

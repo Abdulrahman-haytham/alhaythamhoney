@@ -322,9 +322,12 @@ model StudioPhoto {
   url       String
   caption   String?
   type      MediaType @default(IMAGE)
+  /// وسم اختياري يربط اللقطة بخطوة في رحلة القطاف (`HARVEST_STEPS[].key`) — «هكذا نعمل في مناحل الهيثم»
+  tag       String?
   createdAt DateTime  @default(now())
 
   @@index([createdAt])
+  @@index([tag])
   @@map("studio_photos")
 }
 

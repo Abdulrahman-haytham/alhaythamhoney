@@ -4,6 +4,7 @@ import { requireAdmin } from '@/lib/auth';
 import { guardAdmin } from '@/lib/admin-request';
 import { rateLimit } from '@/lib/rate-limit';
 import { readUploadForm, saveMedia, removeMedia } from '@/lib/uploads';
+import { studioTagInput } from '@/lib/validation';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -20,11 +21,18 @@ export async function POST(request: Request) {
   if (denied) return denied;
   let media;
   let caption: string | null;
+  let tag: string | null = null;
   try {
     const form = await readUploadForm(request);
     const file = form.get('file');
     const rawCaption = form.get('caption');
     caption = typeof rawCaption === 'string' ? rawCaption.trim().slice(0, 500) || null : null;
+    const rawTag = form.get('tag');
+    if (typeof rawTag === 'string' && rawTag) {
+      const parsedTag = studioTagInput.safeParse(rawTag);
+      if (!parsedTag.success) throw new Error('وسم خطوة القطاف غير معروف.');
+      tag = parsedTag.data;
+    }
     if (!(file instanceof File)) throw new Error('لم يرفق ملف.');
     media = await saveMedia(file);
     if (media.type === 'FILE') {
@@ -39,7 +47,7 @@ export async function POST(request: Request) {
   }
   try {
     const photo = await db.studioPhoto.create({
-      data: { url: media.url, type: media.type === 'VIDEO' ? 'VIDEO' : 'IMAGE', caption },
+      data: { url: media.url, type: media.type === 'VIDEO' ? 'VIDEO' : 'IMAGE', caption, tag },
     });
     return NextResponse.json({ photo }, { status: 201 });
   } catch (error) {

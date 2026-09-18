@@ -15,6 +15,8 @@ const STATIC: {
   { path: '/custom-mixtures', priority: 0.9, changeFrequency: 'monthly' },
   { path: '/articles', priority: 0.8, changeFrequency: 'weekly' },
   { path: '/beekeeping', priority: 0.8, changeFrequency: 'weekly' },
+  { path: '/beekeeping/hive', priority: 0.7, changeFrequency: 'monthly' },
+  { path: '/beekeeping/harvest', priority: 0.7, changeFrequency: 'monthly' },
   { path: '/about-us', priority: 0.6, changeFrequency: 'yearly' },
   { path: '/quality-standards', priority: 0.6, changeFrequency: 'yearly' },
   { path: '/faq', priority: 0.6, changeFrequency: 'monthly' },

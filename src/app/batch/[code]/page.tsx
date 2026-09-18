@@ -11,6 +11,7 @@ import {
   Ticket,
   ArrowLeft,
   PlayCircle,
+  Droplets as DropletsIcon,
 } from 'lucide-react';
 import { getBatchByCode } from '@/lib/batches.server';
 import { requireAdmin } from '@/lib/auth';
@@ -171,6 +172,22 @@ export default async function BatchPassportPage({
             dangerouslySetInnerHTML={{ __html: notesHtml }}
           />
         )}
+
+        <Link
+          href="/beekeeping/harvest"
+          className="group mt-6 flex items-center gap-3 rounded-2xl border border-zinc-800 bg-zinc-900/40 p-4 transition hover:border-amber-500/40"
+        >
+          <DropletsIcon className="h-5 w-5 shrink-0 text-amber-500" />
+          <span className="min-w-0 flex-1">
+            <span className="block font-bold text-white group-hover:text-amber-400">
+              كيف قُطف هذا العسل؟
+            </span>
+            <span className="block text-xs text-zinc-500">
+              ثماني خطوات من ختم القرص إلى هذا المرطبان — بالأدوات والصور.
+            </span>
+          </span>
+          <ArrowLeft className="h-4 w-4 shrink-0 text-amber-500" />
+        </Link>
 
         <div className="mt-8 rounded-3xl border border-amber-500/20 bg-gradient-to-br from-amber-500/10 to-transparent p-6">
           <h2 className="flex items-center gap-2 font-amiri text-2xl font-bold text-white">
