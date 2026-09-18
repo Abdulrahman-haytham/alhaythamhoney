@@ -13,7 +13,11 @@ export const metadata: Metadata = {
   description:
     'كل مرطبان من عسل الهيثم يحمل رمزاً على ملصقه — سجّل دخولك، أدخل الرمز، وشارك في السحب الأسبوعي على جوائز من منتجاتنا.',
   alternates: { canonical: '/draw' },
-  openGraph: { title: `السحب الأسبوعي | ${SITE.name}`, url: `${SITE.url}/draw` },
+  openGraph: {
+    title: `السحب الأسبوعي | ${SITE.name}`,
+    url: `${SITE.url}/draw`,
+    images: [{ url: '/og-default.jpg', width: 1200, height: 630, alt: SITE.name }],
+  },
 };
 export const dynamic = 'force-dynamic';
 

@@ -17,6 +17,7 @@ export const metadata: Metadata = {
     description: 'اختر عسلك، عدّل المكوّنات ضمن حدود الخبير، واعرف السعر فوراً.',
     url: `${SITE.url}/custom-mixtures`,
     type: 'website',
+    images: [{ url: '/og-default.jpg', width: 1200, height: 630, alt: SITE.name }],
   },
 };
 

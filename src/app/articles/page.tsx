@@ -18,6 +18,8 @@ export const metadata: Metadata = {
     description: 'أدلة وحقائق موثوقة عن العسل الطبيعي ومملكة النحل من أهل الخبرة.',
     url: `${SITE.url}/articles`,
     type: 'website',
+    // بلا هذا السطر لا صورة أصلاً: تعريف openGraph في الصفحة يلغي صورة التخطيط الأب
+    images: [{ url: '/og-default.jpg', width: 1200, height: 630, alt: SITE.name }],
   },
 };
 

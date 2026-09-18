@@ -16,6 +16,7 @@ export const metadata: Metadata = {
     description: 'لقطات ومقاطع من منحل الهيثم وخلف الكواليس.',
     url: `${SITE.url}/studio`,
     type: 'website',
+    images: [{ url: '/og-story.jpg', width: 1200, height: 630, alt: 'من منحل الهيثم' }],
   },
 };
 
