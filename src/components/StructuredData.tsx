@@ -1,10 +1,12 @@
 import { SITE } from '@/lib/config';
+import { getSettings } from '@/lib/settings.server';
 
 /**
  * بيانات Schema.org على مستوى الموقع: المؤسسة، النشاط المحلي، ومربع البحث.
  * تُحقن مرة واحدة من التخطيط الجذري.
  */
-export function StructuredData() {
+export async function StructuredData() {
+  const { brandAliases } = await getSettings();
   const graph = {
     '@context': 'https://schema.org',
     '@graph': [
@@ -12,7 +14,8 @@ export function StructuredData() {
         '@type': 'Organization',
         '@id': `${SITE.url}/#organization`,
         name: SITE.name,
-        alternateName: 'Al-Haytham Honey',
+        // أسماء العلامة الأخرى من اللوحة — تربط محرّكات البحث صيغ الاسم بكيان واحد
+        ...(brandAliases.length ? { alternateName: brandAliases } : {}),
         url: SITE.url,
         email: SITE.email,
         telephone: SITE.phoneNumber,

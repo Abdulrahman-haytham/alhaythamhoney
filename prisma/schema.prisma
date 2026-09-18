@@ -698,6 +698,11 @@ model SiteSettings {
   heroHighlight             String   @default("الهيثم — نحل وعسل – منذ 1997")
   heroSubtitle              String   @default("نقدّم عسلًا 100% طبيعي، مفحوصًا مخبريًا، من الخلية إلى مائدتك بلا أي إضافات.")
   heroImage                 String?
+  /// عنوان الرئيسية ووصفها كما يظهران في نتائج غوغل — فارغ يعني استخدام اسم المتجر وشعاره
+  seoTitle                  String?
+  seoDescription            String?
+  /// أسماء أخرى تُعرف بها العلامة (عسل الهيثم، مناحل الهيثم…) — تربطها محرّكات البحث بكيان واحد
+  brandAliases              String[] @default(["Al-Haytham Honey"])
   announcementEnabled       Boolean  @default(false)
   announcementText          String?
   announcementLink          String?

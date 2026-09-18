@@ -26,6 +26,17 @@ function Section({
   );
 }
 
+/** عدّاد أحرف: يحمرّ عند تجاوز الحدّ الذي يقصّ غوغل بعده النص. */
+function Counter({ value, limit }: { value: string; limit: number }) {
+  const over = value.length > limit;
+  return (
+    <span className={`text-[11px] ${over ? 'text-red-400' : 'text-zinc-500'}`}>
+      {value.length} / {limit}
+      {over ? ' — سيُقصّ في نتائج البحث' : ''}
+    </span>
+  );
+}
+
 function Toggle({
   label,
   hint,
@@ -169,6 +180,80 @@ export function SettingsForm({ initial }: { initial: SiteSettingsData }) {
           checked={s.shippingZonesEnabled}
           onChange={(v) => set('shippingZonesEnabled', v)}
         />
+      </Section>
+
+      <Section
+        title="الظهور في محركات البحث"
+        hint="ما يظهر في نتيجة غوغل لصفحتك الأولى. اتركه فارغاً ليستعمل الموقع اسم المتجر وشعاره كما كان."
+      >
+        <label className="sm:col-span-2">
+          عنوان الصفحة الأولى في غوغل
+          <input
+            className={inputClass}
+            value={s.seoTitle ?? ''}
+            onChange={(e) => set('seoTitle', e.target.value || null)}
+            maxLength={60}
+            placeholder="عسل سوري طبيعي 100% من مراعي حماة"
+          />
+          <span className="mt-1 flex justify-between">
+            <span className="text-[11px] text-zinc-500">
+              اذكر ما يبحث به الناس: نوع المنتج، المنطقة، واسمك.
+            </span>
+            <Counter value={s.seoTitle ?? ''} limit={60} />
+          </span>
+        </label>
+
+        <label className="sm:col-span-2">
+          الوصف تحت العنوان في غوغل
+          <textarea
+            className={inputClass}
+            rows={2}
+            value={s.seoDescription ?? ''}
+            onChange={(e) => set('seoDescription', e.target.value || null)}
+            maxLength={160}
+            placeholder="عسل مفحوص مخبرياً من مراعي حماة، بالدفع عند الاستلام وشحن لكل المحافظات."
+          />
+          <span className="mt-1 flex justify-between">
+            <span className="text-[11px] text-zinc-500">
+              جملة تقنع بالضغط — لا تؤثر في الترتيب لكنها تؤثر في نسبة النقر.
+            </span>
+            <Counter value={s.seoDescription ?? ''} limit={160} />
+          </span>
+        </label>
+
+        {/* معاينة تقريبية لشكل النتيجة — أسرع من النشر والانتظار لرؤية الأثر */}
+        <div className="sm:col-span-2 rounded-xl border border-zinc-800 bg-white p-4" dir="rtl">
+          <p className="text-[11px] text-[#5f6368]">معاينة نتيجة البحث</p>
+          <p className="mt-2 truncate text-[13px] text-[#202124]">alhaythamhoney.sy</p>
+          <p className="truncate text-[18px] leading-snug text-[#1a0dab]">
+            {s.seoTitle?.trim() || 'الهيثم — نحل وعسل'}
+          </p>
+          <p className="line-clamp-2 text-[13px] leading-relaxed text-[#4d5156]">
+            {s.seoDescription?.trim() || 'عسل طبيعي وخلطات نحل أصيلة من قلب حماة'}
+          </p>
+        </div>
+
+        <label className="sm:col-span-2">
+          أسماء أخرى تُعرف بها (بفاصلة)
+          <input
+            className={inputClass}
+            value={s.brandAliases.join('، ')}
+            onChange={(e) =>
+              set(
+                'brandAliases',
+                e.target.value
+                  .split(/[،,]/)
+                  .map((v) => v.trim())
+                  .filter(Boolean)
+                  .slice(0, 6),
+              )
+            }
+            placeholder="عسل الهيثم، مناحل الهيثم، Al-Haytham Honey"
+          />
+          <span className="mt-1 block text-[11px] text-zinc-500">
+            الصيغ التي يكتبها الناس في البحث عنك. تُرسَل لمحركات البحث لتعرف أنها جميعاً اسمك.
+          </span>
+        </label>
       </Section>
 
       <Section title="الصفحة الأولى (الهيرو)">

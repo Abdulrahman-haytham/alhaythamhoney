@@ -225,6 +225,10 @@ export const settingsInput = z
     heroHighlight: text(120).min(2),
     heroSubtitle: text(300).min(10),
     heroImage: localImage.nullable(),
+    // حدود غوغل العملية: يقصّ العنوان بعد ~60 حرفاً والوصف بعد ~160
+    seoTitle: optionalText(60),
+    seoDescription: optionalText(160),
+    brandAliases: z.array(text(60).min(2)).max(6),
     announcementEnabled: z.boolean(),
     announcementText: optionalText(200),
     announcementLink: optionalText(300).refine(

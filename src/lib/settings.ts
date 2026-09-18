@@ -13,6 +13,9 @@ export interface SiteSettingsData {
   heroTitle: string;
   heroHighlight: string;
   heroSubtitle: string;
+  seoTitle: string | null;
+  seoDescription: string | null;
+  brandAliases: string[];
   heroImage: string | null;
   announcementEnabled: boolean;
   announcementText: string | null;
@@ -63,6 +66,10 @@ export const DEFAULT_SETTINGS: SiteSettingsData = {
   heroHighlight: 'الهيثم — نحل وعسل – منذ 1997',
   heroSubtitle: 'نقدّم عسلًا 100% طبيعي، مفحوصًا مخبريًا، من الخلية إلى مائدتك بلا أي إضافات.',
   heroImage: null,
+  // فارغة = يستعمل الموقع اسم المتجر وشعاره كما كان قبل إضافة هذه الحقول
+  seoTitle: null,
+  seoDescription: null,
+  brandAliases: ['Al-Haytham Honey'],
   announcementEnabled: false,
   announcementText: null,
   announcementLink: null,
