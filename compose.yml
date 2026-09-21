@@ -4,6 +4,10 @@ x-app-env: &app-env
   DATABASE_URL: postgresql://${POSTGRES_USER:-alhaytham}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-alhaytham}?schema=public
   NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:?Set NEXT_PUBLIC_SITE_URL}
   ADMIN_SESSION_SECRET: ${ADMIN_SESSION_SECRET:?Set ADMIN_SESSION_SECRET}
+  # المهام الدورية والبريد: اختيارية للتشغيل، لازمة للحملات ورموز الدخول وتذكير السلة
+  CRON_SECRET: ${CRON_SECRET:-}
+  SMTP_URL: ${SMTP_URL:-}
+  MAIL_FROM: ${MAIL_FROM:-}
   NODE_ENV: production
 
 services:
