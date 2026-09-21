@@ -64,6 +64,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang="ar" dir="rtl" className={`${cairo.variable} ${amiri.variable}`}>
       <body className="bg-zinc-950 text-zinc-100 antialiased">
+        {/* يُعلم CSS أن JavaScript يعمل قبل أول رسم — عندها فقط تُخفى عناصر Reveal ريثما تُمرَّر */}
+        <Script id="js-flag" strategy="beforeInteractive">
+          {`document.documentElement.dataset.js='1'`}
+        </Script>
         <Script src="/haytham-loader.js" strategy="beforeInteractive" />
         <StructuredData />
         <SettingsProvider settings={settings}>

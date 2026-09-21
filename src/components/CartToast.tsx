@@ -3,7 +3,6 @@
 import { useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
 import { Check, ShoppingCart, Truck, X } from 'lucide-react';
 import { useCart } from '@/store/cartStore';
 import { useSettings } from '@/components/SettingsProvider';
@@ -33,17 +32,13 @@ export default function CartToast() {
   const remaining = freeShippingThreshold > 0 ? freeShippingThreshold - subtotal : 0;
 
   return (
-    <AnimatePresence>
+    <>
       {visible && lastAdded && (
-        <motion.div
+        <div
+          className="pop-in fixed inset-x-3 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] z-[90] mx-auto max-w-md rounded-2xl border border-amber-500/30 bg-zinc-900/95 p-3 shadow-2xl shadow-black/60 backdrop-blur-md sm:inset-x-auto sm:bottom-6 sm:left-6"
           key={lastAdded.at}
           role="status"
           aria-live="polite"
-          initial={{ opacity: 0, y: 24, scale: 0.96 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: 12, scale: 0.98 }}
-          transition={{ duration: 0.22 }}
-          className="fixed inset-x-3 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] z-[90] mx-auto max-w-md rounded-2xl border border-amber-500/30 bg-zinc-900/95 p-3 shadow-2xl shadow-black/60 backdrop-blur-md sm:inset-x-auto sm:bottom-6 sm:left-6"
         >
           <div className="flex items-center gap-3">
             <img
@@ -90,8 +85,8 @@ export default function CartToast() {
               <ShoppingCart className="h-3.5 w-3.5" /> اذهب إلى السلة
             </Link>
           </div>
-        </motion.div>
+        </div>
       )}
-    </AnimatePresence>
+    </>
   );
 }

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { motion } from 'framer-motion';
+import { Reveal } from '@/components/motion/Reveal';
 import { ShoppingCart, Eye, Heart, Check, Package } from 'lucide-react';
 import type { CatalogProduct } from '@/lib/products.server';
 import { defaultVariant, priceFrom, variantCartId } from '@/lib/variants';
@@ -64,10 +64,8 @@ export default function ProductCard({ product }: { product: CatalogProduct }) {
   }
 
   return (
-    <motion.article
-      initial={false}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
+    <Reveal
+      as="article"
       className="group relative flex snap-start flex-col overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-zinc-900/60 to-zinc-950/80 shadow-lg shadow-black/40 ring-1 ring-white/10 transition-all duration-500 hover:-translate-y-1 hover:border-amber-500/40 hover:shadow-2xl hover:ring-amber-500/20 sm:rounded-[2rem] md:rounded-[2.5rem]"
     >
       <div className="relative flex-shrink-0 overflow-hidden">
@@ -204,6 +202,6 @@ export default function ProductCard({ product }: { product: CatalogProduct }) {
           )}
         </div>
       </div>
-    </motion.article>
+    </Reveal>
   );
 }

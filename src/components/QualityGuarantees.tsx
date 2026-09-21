@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { motion } from 'framer-motion';
+import { Reveal } from '@/components/motion/Reveal';
 import { Award, ShieldCheck, FileCheck, CheckCircle2, ArrowLeft } from 'lucide-react';
 
 /** بطاقات الضمانات — منقولة من قسم «شهادات الجودة والضمانات» في الموقع الأصلي. */
@@ -22,12 +22,7 @@ export default function QualityGuarantees() {
       <div className="pointer-events-none absolute bottom-20 left-20 h-64 w-64 rounded-full bg-amber-500/5 blur-3xl" />
 
       <div className="container relative z-10 mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="mb-12 text-center sm:mb-16"
-        >
+        <Reveal className="mb-12 text-center sm:mb-16">
           <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-amber-500/25 bg-amber-500/[0.07] px-4 py-1.5">
             <Award className="h-4 w-4 text-amber-400" strokeWidth={1.5} />
             <span className="text-xs font-semibold tracking-wide text-amber-300">
@@ -40,16 +35,13 @@ export default function QualityGuarantees() {
           <p className="mx-auto max-w-2xl text-lg text-zinc-400">
             ثقتكم هي أمانتنا — نضع اسمنا ضماناً لكل قطرة عسل
           </p>
-        </motion.div>
+        </Reveal>
 
         <div className="mx-auto grid max-w-5xl grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
           {GUARANTEES.map((g, index) => (
-            <motion.div
+            <Reveal
+              delay={index * 0.08}
               key={g.title}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: '-40px' }}
-              transition={{ duration: 0.5, delay: index * 0.08, ease: [0.16, 1, 0.3, 1] }}
               className="group relative overflow-hidden rounded-2xl border border-amber-500/20 bg-gradient-to-br from-zinc-900/80 to-zinc-950/80 p-4 text-center transition-all duration-300 hover:border-amber-500/50 sm:p-6"
             >
               <span className="absolute inset-x-0 top-0 mx-auto h-px w-0 bg-gradient-to-l from-transparent via-amber-400 to-transparent transition-all duration-500 group-hover:w-full" />
@@ -63,15 +55,12 @@ export default function QualityGuarantees() {
                 {g.title}
               </h3>
               <p className="text-[11px] leading-relaxed text-zinc-400 sm:text-sm">{g.body}</p>
-            </motion.div>
+            </Reveal>
           ))}
         </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.3 }}
+        <Reveal
+          delay={0.3}
           className="mx-auto mt-12 max-w-4xl rounded-2xl border border-amber-500/30 bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-amber-500/10 p-6 text-center sm:mt-16 sm:p-8"
         >
           <h3 className="mb-4 font-amiri text-2xl font-bold text-white">ضمان الجودة الكامل</h3>
@@ -97,7 +86,7 @@ export default function QualityGuarantees() {
             اقرأ سياسة الاسترجاع كاملة
             <ArrowLeft className="h-4 w-4" />
           </Link>
-        </motion.div>
+        </Reveal>
       </div>
     </section>
   );

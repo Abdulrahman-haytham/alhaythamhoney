@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingBag, X } from 'lucide-react';
 import { useCart } from '@/store/cartStore';
 import { useSettings } from '@/components/SettingsProvider';
@@ -41,14 +40,11 @@ export default function CartReminder() {
   }, [cartReminderEnabled, cartReminderHours, pathname]);
 
   return (
-    <AnimatePresence>
+    <>
       {show && (
-        <motion.div
+        <div
+          className="pop-in fixed inset-x-3 top-[calc(5.5rem+env(safe-area-inset-top))] z-[80] mx-auto flex max-w-md items-center gap-3 rounded-2xl border border-amber-500/30 bg-zinc-900/95 p-3 shadow-2xl backdrop-blur-md sm:top-28"
           role="status"
-          initial={{ opacity: 0, y: -12 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -12 }}
-          className="fixed inset-x-3 top-[calc(5.5rem+env(safe-area-inset-top))] z-[80] mx-auto flex max-w-md items-center gap-3 rounded-2xl border border-amber-500/30 bg-zinc-900/95 p-3 shadow-2xl backdrop-blur-md sm:top-28"
         >
           <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-500/15 text-amber-400">
             <ShoppingBag className="h-5 w-5" />
@@ -74,8 +70,8 @@ export default function CartReminder() {
           >
             <X className="h-4 w-4" />
           </button>
-        </motion.div>
+        </div>
       )}
-    </AnimatePresence>
+    </>
   );
 }

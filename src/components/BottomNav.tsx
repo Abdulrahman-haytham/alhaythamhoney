@@ -4,7 +4,6 @@ import { useHydrated } from '@/lib/useHydrated';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Home, Store, ShoppingCart, Heart, MessageCircle } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { SITE, getWhatsAppLink } from '@/lib/config';
 import { useCart } from '@/store/cartStore';
 import { useWishlist } from '@/store/wishlistStore';
@@ -55,26 +54,16 @@ export default function BottomNav() {
               >
                 <span className="relative">
                   <Icon className="h-5 w-5" strokeWidth={active ? 2.2 : 1.7} />
-                  <AnimatePresence>
-                    {badge > 0 && (
-                      <motion.span
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        exit={{ scale: 0 }}
-                        className="absolute -right-2 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-amber-500 px-1 text-[10px] font-bold tabular-nums text-zinc-950"
-                      >
-                        {badge > 99 ? '99+' : badge}
-                      </motion.span>
-                    )}
-                  </AnimatePresence>
+                  {badge > 0 && (
+                    <span className="pop-in absolute -right-2 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-amber-500 px-1 text-[10px] font-bold tabular-nums text-zinc-950">
+                      {badge > 99 ? '99+' : badge}
+                    </span>
+                  )}
                 </span>
                 <span className="text-[10px] font-medium leading-none">{label}</span>
+                {/* مؤشّر الصفحة النشطة: يتلاشى في مكانه بدل الانزلاق المشترك — بلا مكتبة */}
                 {active && (
-                  <motion.span
-                    layoutId="bottomNavActive"
-                    className="absolute inset-x-3 top-0 h-0.5 rounded-b-full bg-amber-400"
-                    transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-                  />
+                  <span className="fade-in absolute inset-x-3 top-0 h-0.5 rounded-b-full bg-amber-400" />
                 )}
               </Link>
             </li>

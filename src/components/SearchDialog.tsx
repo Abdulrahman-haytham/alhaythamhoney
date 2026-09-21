@@ -4,7 +4,6 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { trackSearch } from '@/lib/analytics';
 import Link from 'next/link';
 import { Search, X, FileText, Package, SlidersHorizontal, Loader2, BookOpen } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 
 export interface SearchDoc {
   kind: 'product' | 'mixture' | 'article' | 'glossary';
@@ -112,21 +111,14 @@ export function SearchDialog({ open, onClose }: { open: boolean; onClose: () => 
   ];
 
   return (
-    <AnimatePresence>
+    <>
       {open && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[100] bg-zinc-950/90 backdrop-blur-sm px-4 pt-24 sm:pt-32"
+        <div
+          className="fade-in fixed inset-0 z-[100] bg-zinc-950/90 backdrop-blur-sm px-4 pt-24 sm:pt-32"
           onClick={onClose}
         >
-          <motion.div
-            initial={{ opacity: 0, y: -16 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -16 }}
-            transition={{ duration: 0.2 }}
-            className="container mx-auto max-w-2xl"
+          <div
+            className="pop-in container mx-auto max-w-2xl"
             onClick={(e) => e.stopPropagation()}
             role="dialog"
             aria-modal="true"
@@ -221,9 +213,9 @@ export function SearchDialog({ open, onClose }: { open: boolean; onClose: () => 
                 )}
               </div>
             </div>
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
       )}
-    </AnimatePresence>
+    </>
   );
 }

@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
-import { motion, useInView, useReducedMotion, animate } from 'framer-motion';
 import { Award, Users, Hexagon } from 'lucide-react';
+import { Reveal } from '@/components/motion/Reveal';
+import { useCountUp } from '@/components/motion/useCountUp';
 
 interface StatItem {
   icon: React.ElementType;
@@ -34,25 +34,11 @@ const STATS: StatItem[] = [
 ];
 
 function AnimatedCounter({ target }: { target: number }) {
-  const nodeRef = useRef<HTMLSpanElement>(null);
-  const isInView = useInView(nodeRef, { once: true, margin: '-80px' });
-  const reduceMotion = useReducedMotion();
-  // القيمة النهائية هي الحالة الأولى، فيظهر الرقم صحيحاً في HTML الخادم وبدون JS
-  const [displayValue, setDisplayValue] = useState(target);
-  useEffect(() => {
-    if (!isInView || reduceMotion) return;
-    const controls = animate(0, target, {
-      duration: 2,
-      ease: [0.16, 1, 0.3, 1],
-      onUpdate: (v) => setDisplayValue(Math.round(v)),
-    });
-    return () => controls.stop();
-  }, [isInView, target, reduceMotion]);
-
+  const { ref, value } = useCountUp(target);
   return (
-    <span ref={nodeRef} className="tabular-nums">
+    <span ref={ref} className="tabular-nums">
       {/* عزل ثنائي الاتجاه: يبقي الرقم وعلامة + بترتيب «400+» بدل «+400» */}
-      <bdi dir="ltr">{displayValue.toLocaleString('en-US')}+</bdi>
+      <bdi dir="ltr">{value.toLocaleString('en-US')}+</bdi>
     </span>
   );
 }
@@ -68,27 +54,18 @@ export default function Stats() {
       <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         {/* عنوان واحد قصير: الأرقام تحتَه تشرح نفسها، وثلاثة عناوين متتالية كانت
             تُبعد الزائر عن المنتجات بشاشة كاملة */}
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-100px' }}
-          transition={{ duration: 0.6 }}
-          className="mb-6 text-center sm:mb-8"
-        >
+        <Reveal className="mb-6 text-center sm:mb-8">
           <h2 className="text-2xl font-bold text-white sm:text-3xl">
             أرقام <span className="gold-text">نفتخر بها</span>
           </h2>
-        </motion.div>
+        </Reveal>
 
         {/* ثلاثة أعمدة دائماً — حتى على أضيق الشاشات — مع تصغير الحشو والخط بدل التكديس رأسياً */}
         <div className="grid grid-cols-3 gap-2.5 sm:gap-6">
           {STATS.map((stat, index) => (
-            <motion.div
+            <Reveal
               key={stat.label}
-              initial={{ opacity: 0, y: 24 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: '-50px' }}
-              transition={{ duration: 0.55, delay: index * 0.1, ease: [0.16, 1, 0.3, 1] }}
+              delay={index * 0.1}
               className="group relative overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900/40 px-2 py-5 text-center transition-colors duration-300 hover:border-amber-500/40 hover:bg-zinc-900/70 sm:rounded-2xl sm:px-6 sm:py-8"
             >
               {/* خط ذهبي علوي يتمدد عند المرور */}
@@ -108,7 +85,7 @@ export default function Stats() {
                 {stat.label}
               </p>
               <p className="mt-1 text-[9px] text-zinc-500 sm:text-xs">{stat.hint}</p>
-            </motion.div>
+            </Reveal>
           ))}
         </div>
       </div>

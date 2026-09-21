@@ -1,7 +1,6 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import {
   Check,
   ChevronDown,
@@ -216,15 +215,9 @@ export function MixtureBuilder({
             ))}
         </ul>
 
-        <AnimatePresence initial={false}>
+        <>
           {advanced && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.25 }}
-              className="overflow-hidden"
-            >
+            <div className="pop-in overflow-hidden">
               <div className="space-y-5 border-t border-zinc-800 px-5 py-5">
                 {specs.map((s) => {
                   const value = grams[s.id];
@@ -303,9 +296,9 @@ export function MixtureBuilder({
                   </button>
                 )}
               </div>
-            </motion.div>
+            </div>
           )}
-        </AnimatePresence>
+        </>
       </section>
 
       {/* السعر وتفصيله */}

@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { FAQ_ITEMS, type FAQItem } from '@/lib/faq';
@@ -93,20 +92,18 @@ export default function FAQ({ limit, headingLevel = 'h2' }: FAQProps) {
                 />
               </button>
 
-              <AnimatePresence>
-                {activeIndex === index && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: 'auto', opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <div className="p-5 pt-0 text-zinc-400 leading-relaxed border-t border-zinc-800/50">
-                      <Answer item={item} />
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+              {/* الجواب في HTML دائماً (مفهرس، ويعمل بلا JS)، والفتح والإغلاق انتقال CSS على grid-rows */}
+              <div
+                className="collapse"
+                data-open={activeIndex === index}
+                aria-hidden={activeIndex !== index}
+              >
+                <div>
+                  <div className="p-5 pt-0 text-zinc-400 leading-relaxed border-t border-zinc-800/50">
+                    <Answer item={item} />
+                  </div>
+                </div>
+              </div>
             </div>
           ))}
         </div>
