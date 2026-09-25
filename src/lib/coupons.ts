@@ -1,3 +1,4 @@
+import { formatPrice } from '@/lib/money';
 /** حساب الخصم — مشترك بين API التحقق والاختبارات. */
 export interface CouponRule {
   code: string;
@@ -48,7 +49,7 @@ export function applyCoupon(
   if (subtotal < coupon.minOrder)
     return {
       ok: false,
-      reason: `الحد الأدنى لهذا الكوبون ${new Intl.NumberFormat('en-US').format(coupon.minOrder)} ل.س.`,
+      reason: `الحد الأدنى لهذا الكوبون ${formatPrice(coupon.minOrder)}.`,
     };
   let discount =
     coupon.type === 'PERCENT' ? Math.floor((subtotal * coupon.value) / 100) : coupon.value;

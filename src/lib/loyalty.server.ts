@@ -9,8 +9,8 @@ import { monthStart } from '@/lib/promotions.server';
 import { pointsForAmount, redeemablePoints } from '@/lib/loyalty';
 import { sendMail } from '@/lib/mail';
 import { SITE } from '@/lib/config';
-import { fmtSyp } from '@/lib/pricing';
 import type { SiteSettingsData } from '@/lib/settings';
+import { formatPrice } from '@/lib/money';
 
 type Tx = Prisma.TransactionClient;
 const CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -200,7 +200,7 @@ export async function grantWelcomeCoupon(customerId: string, email: string) {
   if (!coupon) return null;
   const mail = couponMail(
     'هدية ترحيب',
-    `أهلاً بك في ${SITE.name}! خصم ${s.welcomePercent}% على طلبك الأول${s.welcomeMaxDiscount ? ` (حتى ${fmtSyp(s.welcomeMaxDiscount)} ل.س)` : ''}.`,
+    `أهلاً بك في ${SITE.name}! خصم ${s.welcomePercent}% على طلبك الأول${s.welcomeMaxDiscount ? ` (حتى ${formatPrice(s.welcomeMaxDiscount)})` : ''}.`,
     coupon.code,
     coupon.expiresAt,
   );

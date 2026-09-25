@@ -5,8 +5,7 @@ import { ShoppingCart, MessageCircle } from 'lucide-react';
 import { useCart, type CartProduct } from '@/store/cartStore';
 import { getWhatsAppLink } from '@/lib/config';
 import { trackAddToCart, trackWhatsAppClick } from '@/lib/analytics';
-
-const fmt = (n: number) => new Intl.NumberFormat('en-US').format(n);
+import { CURRENCY, formatAmount } from '@/lib/money';
 
 /**
  * شريط شراء لاصق للجوال (Odoo-style): يظهر فوق شريط التنقّل السفلي حين يغيب
@@ -55,7 +54,8 @@ export default function StickyBuyBar({
           <p className="truncate text-xs font-bold text-white">{product.name}</p>
           {product.price != null ? (
             <p className="gold-text text-sm font-bold tabular-nums">
-              {fmt(product.price)} <span className="text-[10px] text-zinc-500">ل.س</span>
+              {formatAmount(product.price)}{' '}
+              <span className="text-[10px] text-zinc-500">{CURRENCY.label}</span>
             </p>
           ) : (
             <p className="text-[11px] text-zinc-500">تواصل لمعرفة السعر</p>

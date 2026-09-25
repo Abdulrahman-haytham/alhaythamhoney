@@ -1,3 +1,4 @@
+import { PRICE_ROUNDING } from '@/lib/money';
 /**
  * حساب سعر الخلطة — منطق خالص بلا اعتماد على الخادم أو المتصفح،
  * حتى يُستخدم في بنّاء الخلطة (فوري) وفي أي تحقق لاحق على الخادم بنفس النتيجة.
@@ -71,8 +72,8 @@ export function computePrice(params: {
   const honeyGrams = Math.max(0, params.size - additiveGrams);
   const honeyCost = honeyGrams * params.honey.pricePerGram;
   const subtotal = honeyCost + ingredients.reduce((sum, i) => sum + i.cost, 0) + params.prepFee;
-  // تقريب لأقرب 500 ل.س حتى يبدو السعر مألوفاً لا حسابياً
-  const total = Math.round(subtotal / 500) * 500;
+  // تقريب لأقرب 5 ل.س حتى يبدو السعر مألوفاً لا حسابياً
+  const total = Math.round(subtotal / PRICE_ROUNDING) * PRICE_ROUNDING;
   const valid =
     additiveGrams < params.size &&
     params.specs.every((s) => {

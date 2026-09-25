@@ -18,9 +18,9 @@ import { getServerHealth } from '@/lib/health.server';
 import { getVisits } from '@/lib/visits.server';
 import { ServerHealthCard } from './ServerHealthCard';
 import { VisitsCard } from './VisitsCard';
-import { fmtSyp } from '@/lib/pricing';
 import { ACTION_LABELS, ENTITY_LABELS } from '@/lib/audit.server';
 import { ORDER_STATUS_LABELS } from '@/lib/orders';
+import { formatPrice } from '@/lib/money';
 
 export const dynamic = 'force-dynamic';
 
@@ -96,7 +96,7 @@ export default async function AdminDashboardPage() {
         <Kpi
           icon={TicketPercent}
           label="مبيعات مؤكَّدة (30 يوماً)"
-          value={`${fmtSyp(d.orders.revenueMonth)} ل.س`}
+          value={`${formatPrice(d.orders.revenueMonth)}`}
           hint={`${d.orders.confirmedMonth} طلباً مؤكَّداً · ${d.redemptionsMonth} كوبوناً استُخدم`}
           href="/admin/orders?status=CONFIRMED"
         />

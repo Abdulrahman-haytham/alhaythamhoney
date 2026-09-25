@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Gift, Percent, ShoppingBag, Trash2 } from 'lucide-react';
 import type { z } from 'zod';
 import type { promotionInput } from '@/lib/validation';
-import { fmtSyp } from '@/lib/pricing';
+import { formatAmount, formatPrice } from '@/lib/money';
 
 type Input = z.infer<typeof promotionInput>;
 export type PromotionRow = Input & { id: string; usedThisMonth: number; usesThisMonth: number };
@@ -38,7 +38,7 @@ const empty: Input = {
   active: true,
   startsAt: null,
   endsAt: null,
-  minSubtotal: 500000,
+  minSubtotal: 5000,
   percent: 5,
   maxDiscount: null,
   buyProductId: null,
@@ -110,7 +110,7 @@ function Editor({
       {products.map((p) => (
         <option key={p.id} value={p.id}>
           {p.name}
-          {p.price != null ? ` — ${fmtSyp(p.price)}` : ''}
+          {p.price != null ? ` — ${formatAmount(p.price)}` : ''}
         </option>
       ))}
     </select>
@@ -337,9 +337,9 @@ export function PromotionsPanel({
               <span className="font-bold text-white">{p.title}</span>
               <span className="text-zinc-500">
                 {p.kind === 'PERCENT_OVER_AMOUNT'
-                  ? `${p.percent}% فوق ${fmtSyp(p.minSubtotal)}`
+                  ? `${p.percent}% فوق ${formatAmount(p.minSubtotal)}`
                   : p.kind === 'GIFT_OVER_AMOUNT'
-                    ? `${p.giftQty} × ${name(p.giftProductId)} فوق ${fmtSyp(p.minSubtotal)}`
+                    ? `${p.giftQty} × ${name(p.giftProductId)} فوق ${formatAmount(p.minSubtotal)}`
                     : `اشترِ ${p.buyQty} ${name(p.buyProductId)} ← ${p.giftQty} ${name(p.giftProductId)}`}
               </span>
               <span
@@ -348,8 +348,8 @@ export function PromotionsPanel({
                 {p.active ? 'فعّال' : 'معطّل'}
               </span>
               <span className="mr-auto text-xs text-zinc-400">
-                هذا الشهر: {p.usesThisMonth} طلباً · {fmtSyp(p.usedThisMonth)} ل.س
-                {p.monthlyBudget > 0 && ` من ${fmtSyp(p.monthlyBudget)} (${pct}%)`}
+                هذا الشهر: {p.usesThisMonth} طلباً · {formatPrice(p.usedThisMonth)}
+                {p.monthlyBudget > 0 && ` من ${formatAmount(p.monthlyBudget)} (${pct}%)`}
               </span>
               {p.monthlyBudget > 0 && (
                 <span className="block h-1.5 w-full overflow-hidden rounded-full bg-zinc-800">

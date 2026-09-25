@@ -8,8 +8,7 @@ import { getWhatsAppLink } from '@/lib/config';
 import { trackAddToCart } from '@/lib/analytics';
 import { isAvailable } from '@/lib/settings';
 import type { ArticleProduct } from '@/lib/articles';
-
-const fmt = (n: number) => new Intl.NumberFormat('en-US').format(n);
+import { CURRENCY, formatAmount } from '@/lib/money';
 
 /** بطاقة مضغوطة «المنتج المذكور في المقال» — من القراءة إلى السلة بضغطة. */
 export default function ArticleProductCard({ product }: { product: ArticleProduct }) {
@@ -40,9 +39,9 @@ export default function ArticleProductCard({ product }: { product: ArticleProduc
             <>
               {product.weight && ' · '}
               <span className="gold-text text-sm font-bold tabular-nums">
-                {fmt(product.price)}
+                {formatAmount(product.price)}
               </span>{' '}
-              ل.س
+              {CURRENCY.label}
             </>
           )}
         </p>

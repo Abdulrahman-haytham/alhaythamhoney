@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Plus, Trash2, TicketPercent } from 'lucide-react';
 import type { z } from 'zod';
 import type { couponInput } from '@/lib/validation';
+import { formatPrice } from '@/lib/money';
 
 type Input = z.infer<typeof couponInput>;
 type Row = Input & { id: string; owner: string | null; source: string | null };
@@ -24,7 +25,6 @@ const empty: Input = {
 };
 const inputClass =
   'mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-base text-white placeholder:text-zinc-600 focus:border-amber-500/50 focus:outline-none disabled:text-zinc-500';
-const fmt = (n: number) => new Intl.NumberFormat('en-US').format(n);
 
 function Editor({ coupon, onDone }: { coupon?: Row; onDone?: () => void }) {
   const router = useRouter();
@@ -246,8 +246,8 @@ export function CouponsPanel({ coupons }: { coupons: Row[] }) {
                 {c.code}
               </span>
               <span className="text-sm text-zinc-400">
-                {c.type === 'PERCENT' ? `${c.value}%` : `${fmt(c.value)} ل.س`}
-                {c.minOrder > 0 && ` · من ${fmt(c.minOrder)} ل.س`}
+                {c.type === 'PERCENT' ? `${c.value}%` : `${formatPrice(c.value)}`}
+                {c.minOrder > 0 && ` · من ${formatPrice(c.minOrder)}`}
                 {c.expiresAt && ` · حتى ${c.expiresAt}`}
                 {c.oncePerCustomer ? ' · مرة لكل حساب' : c.requiresLogin ? ' · للأعضاء' : ''}
               </span>

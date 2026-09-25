@@ -11,7 +11,8 @@ import {
   ORDER_STEPS,
   orderStepIndex,
 } from '@/lib/orders';
-import { fmtSyp, type QuoteAdjustment } from '@/lib/pricing';
+import { type QuoteAdjustment } from '@/lib/pricing';
+import { formatPrice } from '@/lib/money';
 
 export const metadata: Metadata = { title: 'تتبّع الطلب', robots: { index: false } };
 export const dynamic = 'force-dynamic';
@@ -119,30 +120,30 @@ export default async function OrderTrackingPage({
                     {it.recipe ?? it.weight ?? ''} × {it.quantity}
                   </p>
                 </div>
-                <p className="tabular-nums text-zinc-300">{fmtSyp(it.price * it.quantity)} ل.س</p>
+                <p className="tabular-nums text-zinc-300">{formatPrice(it.price * it.quantity)}</p>
               </li>
             ))}
           </ul>
           <dl className="mt-4 space-y-1.5 border-t border-zinc-800 pt-4 text-sm">
             <div className="flex justify-between text-zinc-400">
               <dt>المجموع</dt>
-              <dd className="tabular-nums">{fmtSyp(order.subtotal)} ل.س</dd>
+              <dd className="tabular-nums">{formatPrice(order.subtotal)}</dd>
             </div>
             {(breakdown.adjustments ?? []).map((a) => (
               <div key={a.label} className="flex justify-between text-green-400">
                 <dt>{a.label}</dt>
-                <dd className="tabular-nums">-{fmtSyp(a.amount)} ل.س</dd>
+                <dd className="tabular-nums">-{formatPrice(a.amount)}</dd>
               </div>
             ))}
             <div className="flex justify-between text-zinc-400">
               <dt>الشحن{breakdown.shippingLabel ? ` — ${breakdown.shippingLabel}` : ''}</dt>
               <dd className="tabular-nums">
-                {breakdown.freeShipping ? 'مجاني' : `${fmtSyp(order.shipping)} ل.س`}
+                {breakdown.freeShipping ? 'مجاني' : `${formatPrice(order.shipping)}`}
               </dd>
             </div>
             <div className="flex justify-between pt-1 text-base font-bold text-white">
               <dt>الإجمالي</dt>
-              <dd className="gold-text tabular-nums">{fmtSyp(order.total)} ل.س</dd>
+              <dd className="gold-text tabular-nums">{formatPrice(order.total)}</dd>
             </div>
           </dl>
         </div>

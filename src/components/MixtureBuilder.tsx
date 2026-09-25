@@ -20,8 +20,7 @@ import {
   type HoneyOption,
   type IngredientSpec,
 } from '@/lib/mixturePricing';
-
-const fmt = (n: number) => new Intl.NumberFormat('en-US').format(n);
+import { CURRENCY, formatAmount, formatPrice } from '@/lib/money';
 
 export interface MixtureData {
   slug: string;
@@ -100,7 +99,7 @@ export function MixtureBuilder({
     `• الحجم: ${size} غرام`,
     `• العسل الأساسي: ${honey.name}`,
     ...price.ingredients.filter((i) => i.grams > 0).map((i) => `• ${i.name}: ${i.grams} غرام`),
-    `السعر: ${fmt(price.total)} ل.س`,
+    `السعر: ${formatPrice(price.total)}`,
   ].join('\n');
 
   return (
@@ -236,7 +235,7 @@ export function MixtureBuilder({
                             {value}غ
                           </span>
                           <span className="mr-2 text-xs text-zinc-600">
-                            {fmt(value * s.pricePerGram)} ل.س
+                            {formatPrice(value * s.pricePerGram)}
                           </span>
                         </span>
                       </div>
@@ -307,8 +306,8 @@ export function MixtureBuilder({
           <div>
             <p className="text-xs text-zinc-500">السعر الإجمالي</p>
             <p className="text-3xl font-extrabold leading-none tabular-nums">
-              <span className="gold-text">{fmt(price.total)}</span>
-              <span className="mr-2 text-base font-semibold text-zinc-400">ل.س</span>
+              <span className="gold-text">{formatAmount(price.total)}</span>
+              <span className="mr-2 text-base font-semibold text-zinc-400">{CURRENCY.label}</span>
             </p>
           </div>
           <p className="text-left text-xs text-zinc-500">مرطبان {sizeLabel(size)}</p>
@@ -323,7 +322,7 @@ export function MixtureBuilder({
               <span>
                 {honey.name} × {price.honeyGrams}غ
               </span>
-              <span>{fmt(price.honeyCost)}</span>
+              <span>{formatAmount(price.honeyCost)}</span>
             </li>
             {price.ingredients
               .filter((i) => i.grams > 0)
@@ -332,13 +331,13 @@ export function MixtureBuilder({
                   <span>
                     {i.name} × {i.grams}غ
                   </span>
-                  <span>{fmt(i.cost)}</span>
+                  <span>{formatAmount(i.cost)}</span>
                 </li>
               ))}
             {price.prepFee > 0 && (
               <li className="flex justify-between">
                 <span>تحضير وتعبئة</span>
-                <span>{fmt(price.prepFee)}</span>
+                <span>{formatAmount(price.prepFee)}</span>
               </li>
             )}
           </ul>

@@ -15,10 +15,7 @@ import { catalogAvailable } from '@/lib/bundles';
 import { useHydrated } from '@/lib/useHydrated';
 import { lowStockLabel } from '@/lib/settings';
 import { useSettings } from '@/components/SettingsProvider';
-
-function formatPrice(price: number) {
-  return new Intl.NumberFormat('en-US').format(price);
-}
+import { CURRENCY, formatAmount } from '@/lib/money';
 
 /**
  * على الجوال البطاقة مضغوطة عمداً: صورة + اسم + سعر + زر واحد.
@@ -153,9 +150,9 @@ export default function ProductCard({ product }: { product: CatalogProduct }) {
                 <span className="ml-1 text-[10px] text-zinc-500 sm:text-xs">يبدأ من</span>
               )}
               <span className="gold-text text-lg font-bold tabular-nums sm:text-2xl">
-                {formatPrice(display.price)}
+                {formatAmount(display.price)}
               </span>
-              <span className="mr-1 text-[11px] text-zinc-500 sm:text-sm">ل.س</span>
+              <span className="mr-1 text-[11px] text-zinc-500 sm:text-sm">{CURRENCY.label}</span>
             </p>
             {(variants.length > 0 || product.weight) && (
               <p className="mt-1 text-[10px] text-zinc-500 sm:mt-0 sm:text-sm">

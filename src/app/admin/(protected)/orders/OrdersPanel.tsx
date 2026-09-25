@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { ExternalLink } from 'lucide-react';
 import type { OrderStatus } from '@prisma/client';
 import { ORDER_STATUS_LABELS, ORDER_STATUSES, canTransitionOrder } from '@/lib/orders';
-import { fmtSyp } from '@/lib/pricing';
+import { formatAmount, formatPrice } from '@/lib/money';
 
 export interface AdminOrder {
   id: string;
@@ -104,7 +104,7 @@ function OrderRow({ order }: { order: AdminOrder }) {
           {order.customerName ?? 'زائر'}
           {order.customerCity ? ` · ${order.customerCity}` : ''}
         </span>
-        <span className="mr-auto tabular-nums text-amber-300">{fmtSyp(order.total)} ل.س</span>
+        <span className="mr-auto tabular-nums text-amber-300">{formatPrice(order.total)}</span>
         {order.followUpAt && (
           <span className="text-xs text-amber-300">
             متابعة: {dateFmt.format(new Date(order.followUpAt))}
@@ -127,7 +127,7 @@ function OrderRow({ order }: { order: AdminOrder }) {
                   )}
                 </span>
                 <span className="shrink-0 tabular-nums text-zinc-400">
-                  {fmtSyp(it.price * it.quantity)}
+                  {formatAmount(it.price * it.quantity)}
                 </span>
               </li>
             ))}
@@ -135,21 +135,21 @@ function OrderRow({ order }: { order: AdminOrder }) {
           <dl className="mt-3 space-y-1 border-t border-zinc-800 pt-2 text-xs text-zinc-400">
             <div className="flex justify-between">
               <dt>المجموع</dt>
-              <dd className="tabular-nums">{fmtSyp(order.subtotal)}</dd>
+              <dd className="tabular-nums">{formatAmount(order.subtotal)}</dd>
             </div>
             {order.discount > 0 && (
               <div className="flex justify-between text-green-400">
                 <dt>الخصم{order.couponCode ? ` (${order.couponCode})` : ''}</dt>
-                <dd className="tabular-nums">-{fmtSyp(order.discount)}</dd>
+                <dd className="tabular-nums">-{formatAmount(order.discount)}</dd>
               </div>
             )}
             <div className="flex justify-between">
               <dt>الشحن</dt>
-              <dd className="tabular-nums">{fmtSyp(order.shipping)}</dd>
+              <dd className="tabular-nums">{formatAmount(order.shipping)}</dd>
             </div>
             <div className="flex justify-between font-bold text-white">
               <dt>الإجمالي</dt>
-              <dd className="tabular-nums">{fmtSyp(order.total)} ل.س</dd>
+              <dd className="tabular-nums">{formatPrice(order.total)}</dd>
             </div>
           </dl>
         </div>

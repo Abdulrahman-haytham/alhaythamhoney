@@ -3,6 +3,7 @@ import { RotateCcw, CheckCircle2, XCircle, RefreshCw, ShieldCheck } from 'lucide
 import { SHIPPING, SITE, getWhatsAppLink } from '@/lib/config';
 import { getSettings } from '@/lib/settings.server';
 import { LegalPage, LegalSection } from '@/components/LegalPage';
+import { formatPrice } from '@/lib/money';
 
 export const metadata: Metadata = {
   title: 'سياسة الاسترجاع',
@@ -10,8 +11,6 @@ export const metadata: Metadata = {
     'نضمن لك جودة منتجاتنا 100%. تعرف على ضمان الجودة وسياسة الاسترجاع والاستبدال في الهيثم — نحل وعسل.',
   alternates: { canonical: '/return-policy' },
 };
-
-const fmt = (n: number) => new Intl.NumberFormat('en-US').format(n);
 
 type Tone = 'ok' | 'warn' | 'no' | 'dot';
 
@@ -104,7 +103,7 @@ export default async function ReturnPolicyPage() {
             <ShieldCheck className="w-4 h-4 text-amber-500 mt-1.5 shrink-0" />
             <span>
               نتحمّل كامل تكاليف الشحن المرتبطة بالحالة، بما فيها أجور الشحن الأساسية (
-              {fmt(SHIPPING.cost)} ل.س).
+              {formatPrice(SHIPPING.cost)}).
             </span>
           </li>
           <li className="flex items-start gap-3">

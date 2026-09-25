@@ -3,10 +3,10 @@ import { db } from '@/lib/db';
 import { getSettings } from '@/lib/settings.server';
 import { sendMail } from '@/lib/mail';
 import { SITE } from '@/lib/config';
-import { fmtSyp } from '@/lib/pricing';
 import { resolveCartLines } from '@/lib/cart.server';
 import { escapeHtml } from '@/lib/email-content';
 import { campaignHtml, ensureUnsubscribeToken } from '@/lib/campaigns.server';
+import { formatPrice } from '@/lib/money';
 
 const DAY = 24 * 3600 * 1000;
 
@@ -77,13 +77,13 @@ export async function sendAbandonedCartEmails(limit = 5) {
     const lines = items
       .map(
         (i) =>
-          `• ${i.name} × ${i.quantity}${i.price ? ` — ${fmtSyp(i.price * i.quantity)} ل.س` : ''}`,
+          `• ${i.name} × ${i.quantity}${i.price ? ` — ${formatPrice(i.price * i.quantity)}` : ''}`,
       )
       .join('\n');
     const rows = items
       .map(
         (i) =>
-          `<tr><td style="padding:6px 0">${escapeHtml(i.name)} × ${i.quantity}</td><td style="text-align:left;white-space:nowrap">${fmtSyp(i.price * i.quantity)} ل.س</td></tr>`,
+          `<tr><td style="padding:6px 0">${escapeHtml(i.name)} × ${i.quantity}</td><td style="text-align:left;white-space:nowrap">${formatPrice(i.price * i.quantity)}</td></tr>`,
       )
       .join('');
     try {

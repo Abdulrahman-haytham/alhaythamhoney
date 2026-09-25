@@ -3,14 +3,13 @@ import { Scale } from 'lucide-react';
 import { SHIPPING, SITE, getWhatsAppLink } from '@/lib/config';
 import { getSettings } from '@/lib/settings.server';
 import { LegalPage, LegalSection } from '@/components/LegalPage';
+import { formatPrice } from '@/lib/money';
 
 export const metadata: Metadata = {
   title: 'الشروط والأحكام',
   description: 'الشروط المنظّمة لاستخدام موقع الهيثم — نحل وعسل وللطلب والشحن والدفع داخل سوريا.',
   alternates: { canonical: '/terms' },
 };
-
-const fmt = (n: number) => new Intl.NumberFormat('en-US').format(n);
 
 // الرقم وأجور الشحن تُقرأ من الإعدادات وقت الطلب (لا من ثوابت البناء)
 export const dynamic = 'force-dynamic';
@@ -48,8 +47,8 @@ export default async function TermsPage() {
         <ul>
           <li>نشحن إلى جميع المحافظات السورية.</li>
           <li>
-            أجور الشحن {fmt(SHIPPING.cost)} ل.س، وتصبح مجانية للطلبات التي تتجاوز{' '}
-            {fmt(SHIPPING.freeThreshold)} ل.س.
+            أجور الشحن {formatPrice(SHIPPING.cost)}، وتصبح مجانية للطلبات التي تتجاوز{' '}
+            {formatPrice(SHIPPING.freeThreshold)}.
           </li>
           <li>الدفع عند الاستلام أو بالاتفاق المباشر؛ لا توجد بوابة دفع إلكتروني على الموقع.</li>
           <li>مدة التوصيل تقديرية وقد تتأثر بظروف النقل خارج سيطرتنا.</li>

@@ -57,13 +57,18 @@ export interface SiteSettingsData {
 }
 
 /** القيم الافتراضية — مطابقة لـ @default في schema.prisma وتُستخدم قبل أول حفظ. */
+/**
+ * كل المبالغ بالليرة السورية الجديدة (بعد حذف صفرين).
+ * القيم السابقة كانت بالقديمة، فقُسمت على ١٠٠ عند التحويل — عدا حد الشحن المجاني
+ * الذي حدّده المالك مباشرة.
+ */
 export const DEFAULT_SETTINGS: SiteSettingsData = {
   whatsappNumber: '963947931959',
   phoneDisplay: '+963947931959',
   email: 'info@alhaythamhoney.sy',
   workingHours: 'يومياً من 9 صباحاً حتى 9 مساءً',
-  shippingCost: 25000,
-  freeShippingThreshold: 500000,
+  shippingCost: 250,
+  freeShippingThreshold: 6000,
   heroBadge: 'إرث عائلي موثوق منذ 1997',
   heroTitle: 'عسل طبيعي 100% من مراعي سوريا',
   heroHighlight: 'الهيثم — نحل وعسل – منذ 1997',
@@ -92,14 +97,14 @@ export const DEFAULT_SETTINGS: SiteSettingsData = {
   stockAlertsEnabled: true,
   productFeedEnabled: true,
   loyaltyEnabled: false,
-  pointsPerSyp: 10000,
-  pointValue: 500,
+  pointsPerSyp: 100,
+  pointValue: 5,
   minRedeemPoints: 20,
   maxRedeemPercent: 30,
   loyaltyMonthlyBudget: 0,
   referralEnabled: false,
   referralPercent: 10,
-  referralMaxDiscount: 50000,
+  referralMaxDiscount: 500,
   referralCouponDays: 30,
   referralMonthlyCap: 0,
   wholesaleEnabled: true,
@@ -107,7 +112,7 @@ export const DEFAULT_SETTINGS: SiteSettingsData = {
   abandonedCartHours: 24,
   welcomeCouponEnabled: false,
   welcomePercent: 10,
-  welcomeMaxDiscount: 50000,
+  welcomeMaxDiscount: 500,
   welcomeMinOrder: 0,
   welcomeCouponDays: 7,
   welcomeMonthlyCap: 0,

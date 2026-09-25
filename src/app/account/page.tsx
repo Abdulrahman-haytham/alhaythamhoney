@@ -7,12 +7,12 @@ import { ensureReferralCode } from '@/lib/loyalty.server';
 import { SITE } from '@/lib/config';
 import { ReferralBox } from './ReferralBox';
 import { ORDER_STATUS_LABELS } from '@/lib/orders';
-import { fmtSyp } from '@/lib/pricing';
 import { db } from '@/lib/db';
 import { currentCustomer } from '@/lib/customer-auth';
 import { formatArticleDate, toIsoDay } from '@/lib/articles';
 import { ProfileForm } from './ProfileForm';
 import { LogoutButton } from './LogoutButton';
+import { CURRENCY, formatAmount, formatPrice } from '@/lib/money';
 
 export const metadata: Metadata = { title: 'حسابي', robots: { index: false } };
 export const dynamic = 'force-dynamic';
@@ -125,7 +125,7 @@ export default async function AccountPage() {
                       {c.code}
                     </p>
                     <p className="text-xs text-zinc-400">
-                      خصم {c.value}%{c.maxDiscount ? ` حتى ${fmtSyp(c.maxDiscount)} ل.س` : ''}
+                      خصم {c.value}%{c.maxDiscount ? ` حتى ${formatPrice(c.maxDiscount)}` : ''}
                       {c.expiresAt ? ` · حتى ${formatArticleDate(toIsoDay(c.expiresAt))}` : ''}
                     </p>
                     {c.note && <p className="text-[11px] text-zinc-500">{c.note}</p>}
@@ -149,9 +149,12 @@ export default async function AccountPage() {
             </h2>
             <p className="mt-1 text-sm text-zinc-400">
               رصيدك <b className="text-amber-300 tabular-nums">{points}</b> نقطة ={' '}
-              <b className="tabular-nums text-white">{fmtSyp(points * settings.pointValue)}</b> ل.س.
-              تكسب نقطة لكل {fmtSyp(settings.pointsPerSyp)} ل.س من كل طلب مؤكَّد، وتستبدلها في السلة
-              (حتى {settings.maxRedeemPercent}% من الطلب، بدءاً من {settings.minRedeemPoints} نقطة).
+              <b className="tabular-nums text-white">
+                {formatAmount(points * settings.pointValue)}
+              </b>{' '}
+              {CURRENCY.label}. تكسب نقطة لكل {formatPrice(settings.pointsPerSyp)} من كل طلب مؤكَّد،
+              وتستبدلها في السلة (حتى {settings.maxRedeemPercent}% من الطلب، بدءاً من{' '}
+              {settings.minRedeemPoints} نقطة).
             </p>
             {pointsHistory.length > 0 && (
               <ul className="mt-4 divide-y divide-zinc-800 text-sm">
@@ -225,7 +228,7 @@ export default async function AccountPage() {
                     </span>
                     <span className="text-xs text-zinc-500">{o._count.items} بنود</span>
                     <span className="flex-1 tabular-nums text-amber-300">
-                      {fmtSyp(o.total)} ل.س
+                      {formatPrice(o.total)}
                     </span>
                     <time className="text-xs text-zinc-600">
                       {formatArticleDate(toIsoDay(o.createdAt))}

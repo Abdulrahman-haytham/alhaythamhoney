@@ -34,7 +34,7 @@ const PRODUCTS: SeedProduct[] = [
     desc: 'عسل حبة البركة من رحيق Nigella sativa: لون عنبري داكن وطعم قوي مركّز مع حدّة خفيفة. من مناحلنا في ريف حماة، مفحوص مخبرياً وبجواز دفعة.',
     image: '/images/products/black-seed-honey.webp',
     badge: 'الأكثر طلباً',
-    price: 150000,
+    price: 1500,
     weight: '500 غرام',
     category: 'HONEY',
     sortOrder: 0,
@@ -68,7 +68,7 @@ const PRODUCTS: SeedProduct[] = [
     benefit: 'طاقة وتنفس',
     desc: 'عسل الدردار السوري: رحيق نادر من مراعي ريف حماة بلون كهرماني وطعم متوازن. يُقطف في موسمه ويصل إليك بجواز دفعة وتاريخ قطاف.',
     image: '/images/products/dardar-honey.webp',
-    price: 130000,
+    price: 1300,
     weight: '500 غرام',
     category: 'HONEY',
     sortOrder: 1,
@@ -102,7 +102,7 @@ const PRODUCTS: SeedProduct[] = [
     benefit: 'تغذية عامة',
     desc: 'عسل الجيجان البري من أزهار البادية السورية: نكهة برية مميّزة وإنتاج محدود بحكم تفرّق النبتة. مفحوص مخبرياً وبجواز دفعة لكل مرطبان.',
     image: '/images/products/jejan-honey.webp',
-    price: 120000,
+    price: 1200,
     weight: '500 غرام',
     category: 'HONEY',
     sortOrder: 2,
@@ -136,7 +136,7 @@ const PRODUCTS: SeedProduct[] = [
     benefit: 'صحة الجهاز الهضمي',
     desc: 'عسل القبار السوري النادر: من زهرة برية تتفتح ليلاً وتذبل نهاراً، فلا يُنتج إلا بكميات محدودة. كهرماني داكن بطعم حادّ مميّز، بجواز دفعة.',
     image: '/images/products/qabbar-honey.webp',
-    price: 140000,
+    price: 1400,
     weight: '500 غرام',
     category: 'HONEY',
     sortOrder: 6,
@@ -167,7 +167,7 @@ const PRODUCTS: SeedProduct[] = [
     benefit: 'دعم صحة الكبد',
     desc: 'عسل الشوكيات السوري: من الخرفيش وشوك الجمل والقنطريون التي تفرز رحيقها في عزّ الحرّ. ذهبي فاتح بطعم متوازن يناسب الاستعمال اليومي.',
     image: '/images/products/shawkiyat-honey.webp',
-    price: 145000,
+    price: 1450,
     weight: '500 غرام',
     category: 'HONEY',
     sortOrder: 7,
@@ -199,7 +199,7 @@ const PRODUCTS: SeedProduct[] = [
     benefit: 'درع مناعي طبيعي لجسمك',
     desc: 'العكبر (البروبوليس): راتنج تجمعه النحلات من براعم الأشجار وتحصّن به الخلية. يُعرف تقليدياً بدعم الحلق واللثة والمناعة. ٥٠ غراماً من مناحلنا.',
     image: '/images/products/propolis.webp',
-    price: 90000,
+    price: 900,
     weight: '50 غرام',
     category: 'SUPPLEMENT',
     sortOrder: 3,
@@ -232,7 +232,7 @@ const PRODUCTS: SeedProduct[] = [
     desc: 'غذاء ملكات النحل: إفراز تصنعه الشغالات الحاضنة وتتغذى عليه الملكة وحدها مدى حياتها. غني بالبروتينات، يُحفظ بارداً. ٥٠ غراماً طازجة من مناحلنا.',
     image: '/images/products/royal-jelly.webp',
     badge: 'ملك الخلية',
-    price: 110000,
+    price: 1100,
     weight: '50 غرام',
     category: 'SUPPLEMENT',
     sortOrder: 4,
@@ -264,7 +264,7 @@ const PRODUCTS: SeedProduct[] = [
     benefit: 'فيتامينات ومعادن من الطبيعة',
     desc: 'غبار الطلع: حبوب لقاح تجمعها النحلات من الأزهار وتكبسها في سلال أرجلها. غذاء متكامل غني بالبروتين. من مراعي ريف حماة، مفحوص ومعبّأ عندنا.',
     image: '/images/products/pollen.webp',
-    price: 80000,
+    price: 800,
     weight: '100 غرام',
     category: 'SUPPLEMENT',
     sortOrder: 5,
@@ -299,6 +299,8 @@ interface SeedIngredient {
   step?: number;
 }
 
+// المبالغ كلها بالليرة الجديدة: أسعار منتجات الخلية من كتالوجنا نفسه
+// (غذاء الملكات ١٠٠/غرام، العكبر ١٠، غبار الطلع ٤)، وبقية المكوّنات محوّلة من القديمة.
 interface SeedMixture {
   slug: string;
   name: string;
@@ -325,13 +327,13 @@ const MIXTURES: SeedMixture[] = [
     image: '/images/products/royal-jelly.webp',
     sizes: [250, 500, 1000],
     defaultSize: 500,
-    prepFee: 10000,
+    prepFee: 100,
     sortOrder: 0,
     ingredients: [
       {
         name: 'غذاء ملكات النحل',
         note: '30 غراماً تكفي جرعة يومية لشهر كامل',
-        pricePerGram: 2200,
+        pricePerGram: 100,
         minGrams: 20,
         maxGrams: 80,
         recommended: 30,
@@ -339,7 +341,7 @@ const MIXTURES: SeedMixture[] = [
       {
         name: 'جنسنغ كوري أحمر',
         note: 'جرعة معتدلة للنشاط دون إفراط',
-        pricePerGram: 3000,
+        pricePerGram: 30,
         minGrams: 10,
         maxGrams: 50,
         recommended: 20,
@@ -347,7 +349,7 @@ const MIXTURES: SeedMixture[] = [
       {
         name: 'طلع النخيل',
         note: 'غني بالمعادن ويوازن نكهة الجنسنغ',
-        pricePerGram: 1500,
+        pricePerGram: 15,
         minGrams: 10,
         maxGrams: 50,
         recommended: 20,
@@ -362,13 +364,13 @@ const MIXTURES: SeedMixture[] = [
     image: '/images/products/propolis.webp',
     sizes: [250, 500, 1000],
     defaultSize: 500,
-    prepFee: 10000,
+    prepFee: 100,
     sortOrder: 1,
     ingredients: [
       {
         name: 'العكبر (Propolis)',
         note: 'المضاد الحيوي الطبيعي في الخلية',
-        pricePerGram: 1800,
+        pricePerGram: 10,
         minGrams: 20,
         maxGrams: 50,
         recommended: 25,
@@ -376,7 +378,7 @@ const MIXTURES: SeedMixture[] = [
       {
         name: 'غبار الطلع',
         note: 'بروتين وفيتامينات — أساس هذه الخلطة',
-        pricePerGram: 800,
+        pricePerGram: 4,
         minGrams: 20,
         maxGrams: 100,
         recommended: 50,
@@ -384,7 +386,7 @@ const MIXTURES: SeedMixture[] = [
       {
         name: 'غذاء ملكات النحل',
         note: 'لمسة ملكية تكمّل المناعة بالحيوية',
-        pricePerGram: 2200,
+        pricePerGram: 100,
         minGrams: 10,
         maxGrams: 50,
         recommended: 20,
@@ -392,7 +394,7 @@ const MIXTURES: SeedMixture[] = [
       {
         name: 'زنجبيل',
         note: 'يدفّئ ويعزّز الامتصاص',
-        pricePerGram: 200,
+        pricePerGram: 2,
         minGrams: 5,
         maxGrams: 40,
         recommended: 15,
@@ -407,15 +409,15 @@ const MIXTURES: SeedMixture[] = [
     image: '/images/products/jejan-honey.webp',
     sizes: [750, 1000],
     defaultSize: 1000,
-    prepFee: 5000,
+    prepFee: 50,
     sortOrder: 2,
     ingredients: [
-      { name: 'لوز', pricePerGram: 350, minGrams: 0, maxGrams: 150, recommended: 50, step: 10 },
-      { name: 'جوز', pricePerGram: 400, minGrams: 0, maxGrams: 150, recommended: 50, step: 10 },
-      { name: 'كاجو', pricePerGram: 450, minGrams: 0, maxGrams: 150, recommended: 50, step: 10 },
+      { name: 'لوز', pricePerGram: 4, minGrams: 0, maxGrams: 150, recommended: 50, step: 10 },
+      { name: 'جوز', pricePerGram: 4, minGrams: 0, maxGrams: 150, recommended: 50, step: 10 },
+      { name: 'كاجو', pricePerGram: 5, minGrams: 0, maxGrams: 150, recommended: 50, step: 10 },
       {
         name: 'فستق حلبي',
-        pricePerGram: 600,
+        pricePerGram: 6,
         minGrams: 0,
         maxGrams: 150,
         recommended: 50,

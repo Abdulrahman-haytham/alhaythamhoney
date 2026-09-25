@@ -7,8 +7,7 @@ import { useRecentlyViewed } from '@/store/recentlyViewedStore';
 import { useHydrated } from '@/lib/useHydrated';
 import { trackViewItem } from '@/lib/analytics';
 import { useSettings } from '@/components/SettingsProvider';
-
-const fmt = (n: number) => new Intl.NumberFormat('en-US').format(n);
+import { CURRENCY, formatAmount } from '@/lib/money';
 
 /** يُسجّل زيارة صفحة منتج — لا يعرض شيئاً. */
 export function RecentlyViewedTracker({
@@ -60,7 +59,8 @@ export default function RecentlyViewed({ excludeId }: { excludeId?: string }) {
                   <p className="truncate text-xs font-bold text-white">{p.name}</p>
                   {p.price != null && (
                     <p className="gold-text mt-0.5 text-xs font-bold tabular-nums">
-                      {fmt(p.price)} <span className="text-[10px] text-zinc-500">ل.س</span>
+                      {formatAmount(p.price)}{' '}
+                      <span className="text-[10px] text-zinc-500">{CURRENCY.label}</span>
                     </p>
                   )}
                 </div>

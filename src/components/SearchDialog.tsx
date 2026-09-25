@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { trackSearch } from '@/lib/analytics';
 import Link from 'next/link';
 import { Search, X, FileText, Package, SlidersHorizontal, Loader2, BookOpen } from 'lucide-react';
+import { CURRENCY, formatAmount } from '@/lib/money';
 
 export interface SearchDoc {
   kind: 'product' | 'mixture' | 'article' | 'glossary';
@@ -16,7 +17,6 @@ export interface SearchDoc {
   terms: string;
 }
 
-const fmt = (n: number) => new Intl.NumberFormat('en-US').format(n);
 const HREF: Record<SearchDoc['kind'], string> = {
   product: '/product/',
   mixture: '/custom-mixtures/',
@@ -196,8 +196,10 @@ export function SearchDialog({ open, onClose }: { open: boolean; onClose: () => 
                               (doc.inStock ? (
                                 doc.price != null && (
                                   <span className="gold-text shrink-0 text-sm font-bold tabular-nums">
-                                    {fmt(doc.price)}{' '}
-                                    <span className="text-[10px] text-zinc-500">ل.س</span>
+                                    {formatAmount(doc.price)}{' '}
+                                    <span className="text-[10px] text-zinc-500">
+                                      {CURRENCY.label}
+                                    </span>
                                   </span>
                                 )
                               ) : (

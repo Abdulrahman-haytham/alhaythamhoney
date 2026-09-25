@@ -26,8 +26,7 @@ import { trackBeginCheckout, trackWhatsAppClick } from '@/lib/analytics';
 import { normalizeCouponCode, LOGIN_REQUIRED_REASON } from '@/lib/coupons';
 import { buildQuote, whatsappOrderMessage, type Quote } from '@/lib/pricing';
 import { generateOrderReference } from '@/lib/orders';
-
-const fmt = (n: number) => new Intl.NumberFormat('en-US').format(n);
+import { CURRENCY, formatAmount, formatPrice } from '@/lib/money';
 
 /**
  * شريط تقدّم التوصيل المجاني (Odoo-style): يُظهر للزبون كم بقي ليصل إلى العتبة
@@ -42,7 +41,8 @@ function FreeShippingProgress({ subtotal, threshold }: { subtotal: number; thres
         <Truck className="h-4 w-4 text-amber-500" />
         {remaining > 0 ? (
           <>
-            أضف <b className="tabular-nums">{fmt(remaining)}</b> ل.س ليصبح التوصيل مجانياً
+            أضف <b className="tabular-nums">{formatAmount(remaining)}</b> {CURRENCY.label} ليصبح
+            التوصيل مجانياً
           </>
         ) : (
           <b className="text-green-400">🎉 حصلت على التوصيل المجاني</b>
@@ -500,13 +500,13 @@ export function CartClient() {
                     <p className="text-left leading-none">
                       {line && line.lineDiscount > 0 && (
                         <span className="ml-2 text-xs text-zinc-500 line-through tabular-nums">
-                          {fmt(line.unitPrice * line.quantity)}
+                          {formatAmount(line.unitPrice * line.quantity)}
                         </span>
                       )}
                       <span className="gold-text text-lg font-bold tabular-nums">
-                        {fmt(lineTotal)}
+                        {formatAmount(lineTotal)}
                       </span>
-                      <span className="mr-1 text-xs text-zinc-500">ل.س</span>
+                      <span className="mr-1 text-xs text-zinc-500">{CURRENCY.label}</span>
                     </p>
                   </div>
                 </div>
@@ -530,7 +530,7 @@ export function CartClient() {
                     {g.name} × {g.quantity}
                   </span>
                   <span className="mr-auto text-xs text-zinc-400">
-                    {g.label} · بقيمة {fmt(g.value)} ل.س
+                    {g.label} · بقيمة {formatPrice(g.value)}
                   </span>
                 </li>
               ))}
@@ -554,12 +554,12 @@ export function CartClient() {
           <dl className="space-y-3 text-sm">
             <div className="flex justify-between text-zinc-300">
               <dt>المجموع</dt>
-              <dd className="tabular-nums">{fmt(quote.subtotal)} ل.س</dd>
+              <dd className="tabular-nums">{formatPrice(quote.subtotal)}</dd>
             </div>
             {quote.adjustments.map((a) => (
               <div key={a.kind + a.label} className="flex justify-between gap-3 text-green-400">
                 <dt className="min-w-0 truncate">{a.label}</dt>
-                <dd className="shrink-0 tabular-nums">-{fmt(a.amount)} ل.س</dd>
+                <dd className="shrink-0 tabular-nums">-{formatPrice(a.amount)}</dd>
               </div>
             ))}
             {quote.zones.length > 0 && (
@@ -576,7 +576,8 @@ export function CartClient() {
                   <option value="">اختر المحافظة…</option>
                   {quote.zones.map((z) => (
                     <option key={z.id} value={z.id}>
-                      {z.name} — {fmt(z.cost)} ل.س{z.etaText ? ` · ${z.etaText}` : ''}
+                      {z.name} — {formatPrice(z.cost)}
+                      {z.etaText ? ` · ${z.etaText}` : ''}
                     </option>
                   ))}
                 </select>
@@ -591,7 +592,7 @@ export function CartClient() {
                 {quote.freeShipping ? (
                   <span className="text-green-400">مجاني</span>
                 ) : (
-                  `${fmt(quote.shipping)} ل.س`
+                  `${formatPrice(quote.shipping)}`
                 )}
               </dd>
             </div>
@@ -629,10 +630,10 @@ export function CartClient() {
                 />
                 <span className="text-zinc-300">
                   <span className="flex items-center gap-1 font-bold text-amber-300">
-                    <Coins className="h-3.5 w-3.5" /> نقاطك: {fmt(quote.loyalty.balance)}
+                    <Coins className="h-3.5 w-3.5" /> نقاطك: {formatAmount(quote.loyalty.balance)}
                   </span>
                   {quote.loyalty.redeemablePoints > 0
-                    ? `استبدل ${fmt(quote.loyalty.redeemablePoints)} نقطة = خصم ${fmt(quote.loyalty.redeemableAmount)} ل.س`
+                    ? `استبدل ${formatAmount(quote.loyalty.redeemablePoints)} نقطة = خصم ${formatPrice(quote.loyalty.redeemableAmount)}`
                     : (quote.loyalty.blocked ?? 'لا نقاط قابلة للاستبدال على هذا الطلب')}
                 </span>
               </label>
@@ -640,8 +641,8 @@ export function CartClient() {
             <div className="flex justify-between border-t border-zinc-800 pt-3 text-base font-bold text-white">
               <dt>الإجمالي</dt>
               <dd className="tabular-nums">
-                <span className="gold-text">{fmt(quote.total)}</span>{' '}
-                <span className="text-xs font-normal text-zinc-500">ل.س</span>
+                <span className="gold-text">{formatAmount(quote.total)}</span>{' '}
+                <span className="text-xs font-normal text-zinc-500">{CURRENCY.label}</span>
               </dd>
             </div>
           </dl>

@@ -8,10 +8,11 @@ import { lowStockLabel } from '@/lib/settings';
 import { useSettings } from '@/components/SettingsProvider';
 import { trackWhatsAppClick } from '@/lib/analytics';
 import { defaultVariant, variantAvailable, variantCartId, type VariantLite } from '@/lib/variants';
-import { bestTier, fmtSyp, type PriceTierRule } from '@/lib/pricing';
+import { bestTier, type PriceTierRule } from '@/lib/pricing';
 import AddToCartButton from './AddToCartButton';
 import StockAlertButton from '@/components/StockAlertButton';
 import StickyBuyBar from './StickyBuyBar';
+import { CURRENCY, formatAmount } from '@/lib/money';
 
 /**
  * صندوق الشراء (Odoo variants): اختيار الحجم يبدّل السعر والتوفر وشارة «بقي X»
@@ -54,8 +55,8 @@ export default function BuyBox({
     <>
       {price != null && (
         <div className="flex items-center gap-3">
-          <span className="text-3xl font-bold gold-text tabular-nums">{fmtSyp(price)}</span>
-          <span className="text-zinc-500">ل.س</span>
+          <span className="text-3xl font-bold gold-text tabular-nums">{formatAmount(price)}</span>
+          <span className="text-zinc-500">{CURRENCY.label}</span>
           {cartProduct.weight && (
             <span className="text-zinc-500 border-r border-zinc-700 pr-3">
               {cartProduct.weight}
@@ -87,7 +88,9 @@ export default function BuyBox({
                   } ${ok ? '' : 'opacity-50 line-through'}`}
                 >
                   <span className="font-bold">{v.label}</span>
-                  <span className="mr-2 text-xs text-zinc-400 tabular-nums">{fmtSyp(v.price)}</span>
+                  <span className="mr-2 text-xs text-zinc-400 tabular-nums">
+                    {formatAmount(v.price)}
+                  </span>
                 </button>
               );
             })}
@@ -117,7 +120,7 @@ export default function BuyBox({
                   >
                     {t.minQty}+ قطع:{' '}
                     <b className="tabular-nums text-green-300">
-                      {fmtSyp(Math.floor((price * (100 - t.discountPercent)) / 100))}
+                      {formatAmount(Math.floor((price * (100 - t.discountPercent)) / 100))}
                     </b>{' '}
                     للقطعة
                   </li>

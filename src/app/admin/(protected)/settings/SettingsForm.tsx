@@ -4,6 +4,7 @@ import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Save, Check, Upload } from 'lucide-react';
 import type { SiteSettingsData } from '@/lib/settings';
+import { formatPrice } from '@/lib/money';
 
 const inputClass =
   'mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-base text-white placeholder:text-zinc-600 focus:border-amber-500/50 focus:outline-none';
@@ -547,12 +548,10 @@ export function SettingsForm({ initial }: { initial: SiteSettingsData }) {
           />
         </label>
         <p className="text-xs text-zinc-500 sm:col-span-2">
-          مثال بالقيم الحالية: طلب مؤكَّد بـ 300,000 ل.س يمنح{' '}
-          {Math.floor(300000 / Math.max(1, s.pointsPerSyp))} نقطة ={' '}
-          {(Math.floor(300000 / Math.max(1, s.pointsPerSyp)) * s.pointValue).toLocaleString(
-            'en-US',
-          )}{' '}
-          ل.س خصماً في طلب لاحق.
+          مثال بالقيم الحالية: طلب مؤكَّد بـ {formatPrice(3000)} يمنح{' '}
+          {Math.floor(3000 / Math.max(1, s.pointsPerSyp))} نقطة ={' '}
+          {formatPrice(Math.floor(3000 / Math.max(1, s.pointsPerSyp)) * s.pointValue)} خصماً في طلب
+          لاحق.
         </p>
       </Section>
 

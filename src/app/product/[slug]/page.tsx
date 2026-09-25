@@ -11,7 +11,6 @@ import { getProductBatches } from '@/lib/batches.server';
 import { formatArticleDate, toIsoDay } from '@/lib/articles';
 import { priceFrom } from '@/lib/variants';
 import { bundleComponentsValue, catalogAvailable, componentAvailable } from '@/lib/bundles';
-import { fmtSyp } from '@/lib/pricing';
 import { getApprovedReviews, getRatingSummary } from '@/lib/reviews.server';
 import { SITE } from '@/lib/config';
 import { getSettings } from '@/lib/settings.server';
@@ -19,6 +18,7 @@ import { ProductReviews } from '@/components/ProductReviews';
 import ProductCard from '@/components/ProductCard';
 import RecentlyViewed, { RecentlyViewedTracker } from '@/components/RecentlyViewed';
 import BuyBox from './BuyBox';
+import { formatPrice } from '@/lib/money';
 /**
  * صفحة مخزّنة بعد أول زيارة (ISR): زيارات الزوار وزحف غوغل لا تضرب القاعدة في كل مرة،
  * وتعديل اللوحة يُبطل التخزين فوراً عبر `revalidatePublic`.
@@ -218,7 +218,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                 </ul>
                 {bundleSavings > 0 && (
                   <p className="mt-3 text-sm font-bold text-green-300">
-                    توفّر {fmtSyp(bundleSavings)} ل.س مقارنةً بشرائها منفصلة
+                    توفّر {formatPrice(bundleSavings)} مقارنةً بشرائها منفصلة
                   </p>
                 )}
               </div>

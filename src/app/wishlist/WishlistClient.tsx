@@ -6,13 +6,12 @@ import { Heart, ShoppingCart, Trash2, Store } from 'lucide-react';
 import { useCart } from '@/store/cartStore';
 import { useWishlist } from '@/store/wishlistStore';
 import { getWhatsAppLink } from '@/lib/config';
+import { CURRENCY, formatAmount } from '@/lib/money';
 
 export function WishlistClient() {
   const mounted = useHydrated();
   const { items, removeItem, clearWishlist } = useWishlist();
   const { addItem } = useCart();
-
-  const formatPrice = (price: number) => new Intl.NumberFormat('en-US').format(price);
 
   // قبل الترطيب لا نعرف محتوى localStorage — نعرض هيكلاً محايداً لتفادي عدم تطابق الترطيب
   if (!mounted) {
@@ -110,9 +109,9 @@ export function WishlistClient() {
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <span className="text-2xl font-bold gold-text">
-                      {formatPrice(product.price)}
+                      {formatAmount(product.price)}
                     </span>
-                    <span className="text-zinc-500 text-sm mr-2">ل.س</span>
+                    <span className="text-zinc-500 text-sm mr-2">{CURRENCY.label}</span>
                   </div>
                   {product.weight && (
                     <span className="text-zinc-500 text-sm">{product.weight}</span>

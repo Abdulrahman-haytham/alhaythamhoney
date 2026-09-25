@@ -6,8 +6,7 @@ import { usePathname } from 'next/navigation';
 import { Check, ShoppingCart, Truck, X } from 'lucide-react';
 import { useCart } from '@/store/cartStore';
 import { useSettings } from '@/components/SettingsProvider';
-
-const fmt = (n: number) => new Intl.NumberFormat('en-US').format(n);
+import { formatPrice } from '@/lib/money';
 
 /**
  * تأكيد «أُضيف إلى السلة» على طريقة Odoo: يظهر بعد أي إضافة من أي مكان
@@ -55,7 +54,7 @@ export default function CartToast() {
                 <p className="mt-0.5 flex items-center gap-1 text-[11px] text-zinc-400">
                   <Truck className="h-3 w-3 text-amber-500" />
                   {remaining > 0
-                    ? `أضف ${fmt(remaining)} ل.س ليصبح التوصيل مجانياً`
+                    ? `أضف ${formatPrice(remaining)} ليصبح التوصيل مجانياً`
                     : 'التوصيل مجاني لهذا الطلب'}
                 </p>
               )}

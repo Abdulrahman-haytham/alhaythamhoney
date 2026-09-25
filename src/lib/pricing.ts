@@ -5,6 +5,7 @@
  * ترتيب التطبيق: خصم الكمية على كل سطر → العروض التلقائية → الكوبون → النقاط → الشحن.
  */
 import type { CouponResult } from '@/lib/coupons';
+import { formatPrice } from '@/lib/money';
 
 export interface PriceTierRule {
   minQty: number;
@@ -134,8 +135,6 @@ export interface QuoteOptions {
   loyalty?: QuoteLoyalty | null;
 }
 
-export const fmtSyp = (n: number) => new Intl.NumberFormat('en-US').format(n);
-
 /** أفضل شريحة كمية تنطبق على الكمية */
 export function bestTier(tiers: PriceTierRule[] | undefined, quantity: number) {
   return (
@@ -180,7 +179,7 @@ export function buildQuote(opts: QuoteOptions): Quote {
           base -= amount;
         }
       } else if (promo.showProgress && base < promo.minSubtotal && lines.length)
-        hints.push(`أضف ${fmtSyp(promo.minSubtotal - base)} ل.س لتحصل على ${promo.title}`);
+        hints.push(`أضف ${formatPrice(promo.minSubtotal - base)} لتحصل على ${promo.title}`);
       continue;
     }
     if (!promo.gift || !promo.giftProductId) continue;
@@ -201,7 +200,7 @@ export function buildQuote(opts: QuoteOptions): Quote {
         }
       } else if (promo.showProgress && lines.length)
         hints.push(
-          `أضف ${fmtSyp(promo.minSubtotal - base)} ل.س لتحصل على ${promo.gift.name} هديةً`,
+          `أضف ${formatPrice(promo.minSubtotal - base)} لتحصل على ${promo.gift.name} هديةً`,
         );
       continue;
     }
@@ -253,7 +252,7 @@ export function buildQuote(opts: QuoteOptions): Quote {
     opts.freeShippingThreshold > 0 && afterDiscount >= opts.freeShippingThreshold;
   if (opts.freeShippingThreshold > 0 && !freeShipping && lines.length)
     hints.push(
-      `أضف ${fmtSyp(opts.freeShippingThreshold - afterDiscount)} ل.س ليصبح التوصيل مجانياً`,
+      `أضف ${formatPrice(opts.freeShippingThreshold - afterDiscount)} ليصبح التوصيل مجانياً`,
     );
   const shipping = lines.length === 0 || freeShipping ? 0 : opts.shippingCost;
 
@@ -283,15 +282,15 @@ export function whatsappOrderMessage(quote: Quote, reference: string, trackUrl: 
     `مرحباً عسل الهيثم، أود تأكيد الطلب رقم ${reference}:`,
     '',
     ...quote.lines.map((l) => {
-      const line = `• ${l.name} × ${l.quantity}${l.weight ? ` (${l.weight})` : ''} — ${fmtSyp(l.lineTotal)} ل.س`;
+      const line = `• ${l.name} × ${l.quantity}${l.weight ? ` (${l.weight})` : ''} — ${formatPrice(l.lineTotal)}`;
       return l.recipe ? `${line}\n   الوصفة: ${l.recipe}` : line;
     }),
     ...quote.gifts.map((g) => `🎁 ${g.name} × ${g.quantity} — هدية (${g.label})`),
     '',
-    `المجموع: ${fmtSyp(quote.subtotal)} ل.س`,
-    ...quote.adjustments.map((a) => `${a.label}: -${fmtSyp(a.amount)} ل.س`),
-    `الشحن${quote.shippingLabel ? ` (${quote.shippingLabel})` : ''}: ${quote.freeShipping ? 'مجاني' : `${fmtSyp(quote.shipping)} ل.س`}`,
-    `الإجمالي: ${fmtSyp(quote.total)} ل.س`,
+    `المجموع: ${formatPrice(quote.subtotal)}`,
+    ...quote.adjustments.map((a) => `${a.label}: -${formatPrice(a.amount)}`),
+    `الشحن${quote.shippingLabel ? ` (${quote.shippingLabel})` : ''}: ${quote.freeShipping ? 'مجاني' : `${formatPrice(quote.shipping)}`}`,
+    `الإجمالي: ${formatPrice(quote.total)}`,
     '',
     `متابعة الطلب: ${trackUrl}`,
     'هذه الأسعار من السلة المحفوظة. أرجو تأكيد السعر النهائي والشحن والتوفر ومدة التوصيل.',

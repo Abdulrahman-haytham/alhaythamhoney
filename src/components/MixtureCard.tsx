@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowLeft, SlidersHorizontal } from 'lucide-react';
+import { CURRENCY, formatAmount } from '@/lib/money';
 
 export interface MixtureCardData {
   id: string;
@@ -12,8 +13,6 @@ export interface MixtureCardData {
   ingredientNames: string[];
   fromPrice: number | null;
 }
-
-const fmt = (n: number) => new Intl.NumberFormat('en-US').format(n);
 
 /**
  * بطاقة خلطة بنفس لغة بطاقة المنتج (صورة، اسم، سعر، زر) —
@@ -75,9 +74,9 @@ export default function MixtureCard({ mixture }: { mixture: MixtureCardData }) {
           <p className="mt-2.5 leading-none sm:mt-0 sm:mb-4">
             <span className="text-[10px] text-zinc-500 sm:text-xs">تبدأ من </span>
             <span className="gold-text text-lg font-bold tabular-nums sm:text-2xl">
-              {fmt(mixture.fromPrice)}
+              {formatAmount(mixture.fromPrice)}
             </span>
-            <span className="mr-1 text-[11px] text-zinc-500 sm:text-sm">ل.س</span>
+            <span className="mr-1 text-[11px] text-zinc-500 sm:text-sm">{CURRENCY.label}</span>
           </p>
         )}
 

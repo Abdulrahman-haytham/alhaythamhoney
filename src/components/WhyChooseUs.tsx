@@ -14,8 +14,7 @@ import {
 } from 'lucide-react';
 import { SHIPPING, getWhatsAppLink } from '@/lib/config';
 import { trackWhatsAppClick } from '@/lib/analytics';
-
-const fmt = (n: number) => new Intl.NumberFormat('en-US').format(n);
+import { formatPrice } from '@/lib/money';
 
 /**
  * التزامات محدّدة بدل مقارنة «نحن مقابل الآخرون».
@@ -51,7 +50,7 @@ const COMMITMENTS = [
   {
     icon: Truck,
     title: 'شحن لكل المحافظات',
-    body: `توصيل آمن داخل سوريا، ومجاني للطلبات فوق ${fmt(SHIPPING.freeThreshold)} ل.س.`,
+    body: `توصيل آمن داخل سوريا، ومجاني للطلبات فوق ${formatPrice(SHIPPING.freeThreshold)}.`,
   },
 ];
 

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { MapPin, Plus, Trash2 } from 'lucide-react';
-import { fmtSyp } from '@/lib/pricing';
+import { formatAmount } from '@/lib/money';
 
 export interface ZoneRow {
   id: string;
@@ -183,7 +183,7 @@ export function ZonesPanel({ zones, defaultCost }: { zones: ZoneRow[]; defaultCo
               {!z.active && (
                 <p className="mt-1 text-[11px] text-zinc-500">معطّلة — لا تظهر للزبون</p>
               )}
-              <p className="sr-only">{fmtSyp(z.cost)}</p>
+              <p className="sr-only">{formatAmount(z.cost)}</p>
             </div>
           ))
         )}
