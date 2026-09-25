@@ -11,6 +11,7 @@ const db = new PrismaClient();
 const PRODUCTS = [
   { name: 'غذاء ملكات النحل', price: 1000, weight: '10 غرام' },
   { name: 'العكبر (Propolis)', price: 500, weight: '50 غرام' },
+  { name: 'غبار الطلع', price: 300, weight: '100 غرام' },
 ];
 
 // سعر الغرام المؤكَّد من المالك
