@@ -9,6 +9,8 @@ export interface SeedArticle {
   image?: string;
   /** تاريخ النشر بصيغة ISO (YYYY-MM-DD). */
   publishedAt: string;
+  /** منتجات يذكرها المقال — تظهر كبطاقات شراء بداخله وتربط المنتج بمقالاته */
+  productSlugs?: string[];
 }
 
 /**
@@ -25,6 +27,7 @@ export const SEED_ARTICLES: SeedArticle[] = [
     description:
       'اكتشف الفوائد الصحية المذهلة لعسل حبة البركة الطبيعي 100%، ودوره في دعم المناعة والصحة العامة.',
     keywords: ['عسل حبة البركة', 'فوائد العسل', 'دعم المناعة', 'عسل طبيعي', 'عسل نحل حبة البركة'],
+    productSlugs: ['black-seed-honey'],
     publishedAt: '2025-06-09',
   },
   {
@@ -40,6 +43,7 @@ export const SEED_ARTICLES: SeedArticle[] = [
       'عسل مغشوش',
       'ثقة في العسل',
     ],
+    productSlugs: ['shawkiyat-honey', 'dardar-honey'],
     publishedAt: '2025-07-14',
   },
   {
@@ -48,6 +52,7 @@ export const SEED_ARTICLES: SeedArticle[] = [
     description:
       'تعرف على حقيقة تبلور العسل ولماذا يعتبر علامة على العسل الطبيعي الأصلي، وكيف يؤثر على الفوائد الصحية.',
     keywords: ['تبلور العسل', 'عسل متبلور', 'جودة العسل', 'عسل طبيعي', 'عسل نقي', 'فوائد العسل'],
+    productSlugs: ['shawkiyat-honey', 'jejan-honey'],
     publishedAt: '2025-08-11',
   },
   {
@@ -63,6 +68,7 @@ export const SEED_ARTICLES: SeedArticle[] = [
       'عسل نقي',
       'العلاج الطبيعي للسعال',
     ],
+    productSlugs: ['black-seed-honey', 'propolis'],
     publishedAt: '2025-09-15',
   },
   {
@@ -78,6 +84,7 @@ export const SEED_ARTICLES: SeedArticle[] = [
       'حيوية الجسم',
       'عسل وصحة',
     ],
+    productSlugs: ['royal-jelly', 'pollen'],
     publishedAt: '2025-10-13',
   },
   {
@@ -93,6 +100,7 @@ export const SEED_ARTICLES: SeedArticle[] = [
       'المعدة',
       'الجهاز الهضمي',
     ],
+    productSlugs: ['qabbar-honey', 'propolis'],
     publishedAt: '2025-11-10',
   },
   {
@@ -109,6 +117,7 @@ export const SEED_ARTICLES: SeedArticle[] = [
       'هندسة الطبيعة',
       'النحل والعسل',
     ],
+    productSlugs: ['royal-jelly'],
     publishedAt: '2025-12-08',
   },
   {
@@ -127,6 +136,7 @@ export const SEED_ARTICLES: SeedArticle[] = [
       'عسل الزعتر',
       'عسل الحمضيات',
     ],
+    productSlugs: ['black-seed-honey', 'qabbar-honey', 'shawkiyat-honey', 'jejan-honey'],
     publishedAt: '2026-01-12',
   },
   {
@@ -142,7 +152,58 @@ export const SEED_ARTICLES: SeedArticle[] = [
       'صيام متوازن',
       'غذاء الصائم',
     ],
+    productSlugs: ['black-seed-honey', 'pollen'],
     publishedAt: '2026-02-09',
+  },
+  {
+    slug: 'qabbar-honey-syria',
+    title: 'عسل القبار السوري: لماذا هو نادر فعلاً وكيف تعرفه؟',
+    description:
+      'عسل القبار من أندر الأعسال السورية — نبتة برية لا تُزرع، وزهرة تعيش ليلة واحدة. تعرّف على موسمه ولونه وطعمه وكيف تميّزه.',
+    keywords: [
+      'عسل القبار',
+      'عسل القبار السوري',
+      'الشفلح',
+      'الكبار',
+      'عسل بري سوري',
+      'عسل نادر',
+      'أنواع العسل السوري',
+    ],
+    productSlugs: ['qabbar-honey'],
+    publishedAt: '2026-09-25',
+  },
+  {
+    slug: 'shawkiyat-honey-syria',
+    title: 'عسل الشوكيات السوري: عسل الحرّ، والحقيقة وراء ارتباطه بالكبد',
+    description:
+      'من الخرفيش وشوك الجمل والقنطريون يأتي عسل الشوكيات. تعرّف على موسمه وخصائصه، وعلى الفرق بين سمعة النبتة وحقيقة العسل.',
+    keywords: [
+      'عسل الشوكيات',
+      'عسل الشوكيات السوري',
+      'الخرفيش',
+      'حليب الشوك',
+      'عسل للكبد',
+      'عسل بري سوري',
+      'شوك الجمل',
+    ],
+    productSlugs: ['shawkiyat-honey'],
+    publishedAt: '2026-09-25',
+  },
+  {
+    slug: 'syrian-honey-season-calendar',
+    title: 'روزنامة مواسم العسل في سوريا: متى يُقطف كل نوع؟',
+    description:
+      'من إزهار اللوز في شباط إلى القبار في تموز — دليل شهري لمواسم العسل السوري، ولماذا لا يوجد «عسل طازج» في كانون الثاني.',
+    keywords: [
+      'مواسم العسل في سوريا',
+      'متى يقطف العسل',
+      'موسم العسل السوري',
+      'تربية النحل في سوريا',
+      'قطاف العسل',
+      'المرعى السوري',
+    ],
+    productSlugs: ['black-seed-honey', 'qabbar-honey', 'shawkiyat-honey'],
+    publishedAt: '2026-09-25',
   },
 ];
 
