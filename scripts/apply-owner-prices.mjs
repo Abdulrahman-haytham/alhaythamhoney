@@ -21,12 +21,54 @@ const PRICED = new Map([
 ]);
 
 // لم يحدّد المالك سعرها بعد
-const UNPRICED = ['جنسنغ كوري أحمر', 'طلع النخيل', 'زنجبيل', 'لوز', 'جوز', 'كاجو', 'فستق حلبي', 'بندق', 'بزور القرع'];
+const UNPRICED = [
+  'جنسنغ كوري أحمر',
+  'طلع النخيل',
+  'زنجبيل',
+  'لوز',
+  'جوز',
+  'كاجو',
+  'فستق حلبي',
+  'بندق',
+  'بزور القرع',
+];
 
 let products = 0;
 for (const { name, price, weight } of PRODUCTS) {
   const res = await db.product.updateMany({ where: { name }, data: { price, weight } });
   products += res.count;
+}
+
+// قاعدة المالك: كل الأعسال بسعر واحد، الكيلو ٢٠٠٠ ⇒ ليرتان للغرام مهما كانت العبوة.
+// تُطبَّق على السعر المحسوب لا على قيمة سابقة بعينها، فتصحّ أياً كان ما في القاعدة.
+const HONEY_PER_GRAM = 2;
+const gramsOf = (weight) => {
+  const t = String(weight ?? '')
+    .trim()
+    .replace(/[٠-٩]/g, (n) => String('٠١٢٣٤٥٦٧٨٩'.indexOf(n)))
+    .replace('٫', '.');
+  const m = t.match(/^(\d+(?:\.\d+)?)\s*(غرام|جرام|غ|جم|g|كغ|كجم|كيلو(?:غرام)?|kg)?$/i);
+  if (!m) return null;
+  const kg = /^(كغ|كجم|كيلو(?:غرام)?|kg)$/i.test(m[2] ?? '');
+  return Math.round(Number(m[1]) * (kg ? 1000 : 1));
+};
+
+const honeys = await db.product.findMany({
+  where: { category: 'HONEY' },
+  select: { id: true, name: true, price: true, weight: true },
+});
+let honeyFixed = 0;
+for (const h of honeys) {
+  const grams = gramsOf(h.weight);
+  if (!grams) {
+    console.warn(`⚠ وزن غير مفهوم، تُرك سعره كما هو: ${h.name} (${h.weight})`);
+    continue;
+  }
+  const price = grams * HONEY_PER_GRAM;
+  if (h.price === price) continue;
+  await db.product.update({ where: { id: h.id }, data: { price } });
+  console.log(`  ${h.name} (${h.weight}): ${h.price} ← ${price}`);
+  honeyFixed += 1;
 }
 
 let priced = 0;
@@ -45,10 +87,14 @@ const waiting = await db.mixtureIngredient.findMany({
   select: { name: true, mixture: { select: { name: true, customizable: true, published: true } } },
 });
 const affected = [
-  ...new Set(waiting.filter((i) => i.mixture.customizable && i.mixture.published).map((i) => i.mixture.name)),
+  ...new Set(
+    waiting.filter((i) => i.mixture.customizable && i.mixture.published).map((i) => i.mixture.name),
+  ),
 ];
 
-console.log(`منتجات: ${products} · أسعار مؤكَّدة: ${priced} · صُفّرت: ${zeroed.count}`);
+console.log(
+  `منتجات: ${products} · أعسال مسعّرة: ${honeyFixed} · أسعار مؤكَّدة: ${priced} · صُفّرت: ${zeroed.count}`,
+);
 if (affected.length)
   console.warn(`⚠ خلطات منشورة تُسعَّر بمكوّنات بلا سعر: ${affected.join('، ')}`);
 
