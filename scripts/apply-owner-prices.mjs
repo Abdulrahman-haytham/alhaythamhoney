@@ -40,6 +40,24 @@ for (const { name, price, weight } of PRODUCTS) {
   products += res.count;
 }
 
+// وصف غذاء الملكات كان يذكر ٥٠ غراماً والعبوة صارت ١٠. يُصحَّح النص القديم وحده،
+// فإن كان المالك قد أعاد كتابة الوصف من اللوحة فلا يُمسّ.
+const STALE = 'يُحفظ بارداً. ٥٠ غراماً طازجة من مناحلنا.';
+const FRESH = 'يُحفظ بارداً. عبوة ١٠ غرامات طازجة من مناحلنا.';
+const jelly = await db.product.findFirst({
+  where: { name: 'غذاء ملكات النحل' },
+  select: { id: true, desc: true },
+});
+if (jelly?.desc?.includes(STALE)) {
+  await db.product.update({
+    where: { id: jelly.id },
+    data: { desc: jelly.desc.replace(STALE, FRESH) },
+  });
+  console.log('صُحّح وزن العبوة في وصف غذاء الملكات.');
+} else if (jelly?.desc?.includes('٥٠ غرام')) {
+  console.warn('⚠ وصف غذاء الملكات ما زال يذكر ٥٠ غراماً وقد عُدّل يدوياً — راجعه من اللوحة.');
+}
+
 // قاعدة المالك: كل الأعسال بسعر واحد، الكيلو ٢٠٠٠ ⇒ ليرتان للغرام مهما كانت العبوة.
 // تُطبَّق على السعر المحسوب لا على قيمة سابقة بعينها، فتصحّ أياً كان ما في القاعدة.
 const HONEY_PER_GRAM = 2;
