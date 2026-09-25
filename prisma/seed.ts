@@ -199,7 +199,7 @@ const PRODUCTS: SeedProduct[] = [
     benefit: 'درع مناعي طبيعي لجسمك',
     desc: 'العكبر (البروبوليس): راتنج تجمعه النحلات من براعم الأشجار وتحصّن به الخلية. يُعرف تقليدياً بدعم الحلق واللثة والمناعة. ٥٠ غراماً من مناحلنا.',
     image: '/images/products/propolis.webp',
-    price: 900,
+    price: 500,
     weight: '50 غرام',
     category: 'SUPPLEMENT',
     sortOrder: 3,
@@ -232,8 +232,8 @@ const PRODUCTS: SeedProduct[] = [
     desc: 'غذاء ملكات النحل: إفراز تصنعه الشغالات الحاضنة وتتغذى عليه الملكة وحدها مدى حياتها. غني بالبروتينات، يُحفظ بارداً. ٥٠ غراماً طازجة من مناحلنا.',
     image: '/images/products/royal-jelly.webp',
     badge: 'ملك الخلية',
-    price: 1100,
-    weight: '50 غرام',
+    price: 1000,
+    weight: '10 غرام',
     category: 'SUPPLEMENT',
     sortOrder: 4,
     detailedInfo: {
@@ -318,9 +318,9 @@ interface SeedMixture {
   ingredients: SeedIngredient[];
 }
 
-// ⚠️ الأسعار للغرام والجرعات الموصى بها هنا قيَم افتراضية للانطلاق —
-// أسعار غذاء الملكات والعكبر وغبار الطلع مشتقة من أسعار منتجاتها الحالية،
-// أما الجنسنغ وطلع النخيل والزنجبيل والمكسرات فتقديرية ويجب ضبطها من لوحة التحكم.
+// ⚠️ سعر الغرام صفر يعني «لم يحدّده المالك بعد» لا «مجاني»: الجنسنغ وطلع النخيل
+// والزنجبيل والمكسرات تنتظر أسعارها من لوحة التحكم، ولا يُخمَّن لها رقم هنا.
+// المؤكَّد من المالك: غذاء الملكات ١٠٠ للغرام، العكبر ١٠، غبار الطلع ٣.
 // الحدود (الأدنى/الأقصى) حسب ما حدّده صاحب المتجر، وهي مطلقة لا تتغير مع حجم المرطبان.
 const MIXTURES: SeedMixture[] = [
   {
@@ -345,7 +345,7 @@ const MIXTURES: SeedMixture[] = [
       {
         name: 'جنسنغ كوري أحمر',
         note: 'جرعة معتدلة للنشاط دون إفراط',
-        pricePerGram: 30,
+        pricePerGram: 0,
         minGrams: 10,
         maxGrams: 50,
         recommended: 20,
@@ -353,7 +353,7 @@ const MIXTURES: SeedMixture[] = [
       {
         name: 'طلع النخيل',
         note: 'غني بالمعادن ويوازن نكهة الجنسنغ',
-        pricePerGram: 15,
+        pricePerGram: 0,
         minGrams: 10,
         maxGrams: 50,
         recommended: 20,
@@ -398,7 +398,7 @@ const MIXTURES: SeedMixture[] = [
       {
         name: 'زنجبيل',
         note: 'يدفّئ ويعزّز الامتصاص',
-        pricePerGram: 2,
+        pricePerGram: 0,
         minGrams: 5,
         maxGrams: 40,
         recommended: 15,
@@ -419,11 +419,11 @@ const MIXTURES: SeedMixture[] = [
     customizable: false,
     fixedPrice: 1000,
     ingredients: [
-      { name: 'كاجو', pricePerGram: 5, minGrams: 50, maxGrams: 50, recommended: 50, step: 10 },
-      { name: 'لوز', pricePerGram: 4, minGrams: 50, maxGrams: 50, recommended: 50, step: 10 },
+      { name: 'كاجو', pricePerGram: 0, minGrams: 50, maxGrams: 50, recommended: 50, step: 10 },
+      { name: 'لوز', pricePerGram: 0, minGrams: 50, maxGrams: 50, recommended: 50, step: 10 },
       {
         name: 'فستق حلبي',
-        pricePerGram: 6,
+        pricePerGram: 0,
         minGrams: 50,
         maxGrams: 50,
         recommended: 50,
@@ -431,7 +431,7 @@ const MIXTURES: SeedMixture[] = [
       },
       // سعر الغرام لهذين لم يُحدَّد بعد؛ لا أثر له ما دامت الوصفة مقفلة بسعر ثابت
       { name: 'بندق', pricePerGram: 0, minGrams: 50, maxGrams: 50, recommended: 50, step: 10 },
-      { name: 'جوز', pricePerGram: 4, minGrams: 50, maxGrams: 50, recommended: 50, step: 10 },
+      { name: 'جوز', pricePerGram: 0, minGrams: 50, maxGrams: 50, recommended: 50, step: 10 },
       {
         name: 'بزور القرع',
         pricePerGram: 0,

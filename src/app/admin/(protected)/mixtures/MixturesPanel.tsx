@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Save, Check } from 'lucide-react';
+import { AlertTriangle, Check, Save } from 'lucide-react';
 import { CURRENCY } from '@/lib/money';
 
 export interface AdminIngredient {
@@ -49,6 +49,8 @@ function MixtureEditor({ initial }: { initial: AdminMixture }) {
   const [m, setM] = useState(initial);
   const [state, setState] = useState<'idle' | 'saving' | 'saved'>('idle');
   const [error, setError] = useState<string | null>(null);
+
+  const unpriced = m.ingredients.filter((i) => i.pricePerGram === 0).map((i) => i.name);
 
   function setIng(id: string, patch: Partial<AdminIngredient>) {
     setM((cur) => ({
@@ -167,6 +169,21 @@ function MixtureEditor({ initial }: { initial: AdminMixture }) {
         </div>
       </div>
 
+      {unpriced.length > 0 && (
+        <p
+          id={`unpriced-${m.id}`}
+          className="mb-4 flex items-start gap-2 rounded-xl border border-amber-500/30 bg-amber-500/5 px-3 py-2.5 text-xs leading-relaxed text-amber-200/90"
+        >
+          <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+          <span>
+            {unpriced.join('، ')} بلا سعر للغرام.{' '}
+            {m.customizable
+              ? 'تُحسب بصفر الآن، فسعر هذه الخلطة أقل من حقيقته حتى تكتب أسعارها.'
+              : 'لا أثر لذلك ما دامت الوصفة ثابتة بسعرها الخاص.'}
+          </span>
+        </p>
+      )}
+
       <div className="overflow-x-auto">
         <table className="w-full min-w-[640px] text-sm">
           <thead>
@@ -191,8 +208,17 @@ function MixtureEditor({ initial }: { initial: AdminMixture }) {
                       min={0}
                       value={ing[f.key]}
                       onChange={(e) => setIng(ing.id, { [f.key]: Number(e.target.value) })}
-                      className="h-9 w-24 rounded-lg border border-zinc-700 bg-zinc-950 px-2 text-zinc-100 tabular-nums focus:border-amber-500/50 focus:outline-none"
+                      className={`h-9 w-24 rounded-lg border bg-zinc-950 px-2 tabular-nums focus:border-amber-500/50 focus:outline-none ${
+                        f.key === 'pricePerGram' && ing.pricePerGram === 0
+                          ? 'border-amber-500/50 text-amber-300'
+                          : 'border-zinc-700 text-zinc-100'
+                      }`}
                       dir="ltr"
+                      aria-describedby={
+                        f.key === 'pricePerGram' && ing.pricePerGram === 0
+                          ? `unpriced-${m.id}`
+                          : undefined
+                      }
                     />
                   </td>
                 ))}
