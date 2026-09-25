@@ -34,7 +34,7 @@ const PRODUCTS: SeedProduct[] = [
     desc: 'عسل حبة البركة من رحيق Nigella sativa: لون عنبري داكن وطعم قوي مركّز مع حدّة خفيفة. من مناحلنا في ريف حماة، مفحوص مخبرياً وبجواز دفعة.',
     image: '/images/products/black-seed-honey.webp',
     badge: 'الأكثر طلباً',
-    price: 1500,
+    price: 1000,
     weight: '500 غرام',
     category: 'HONEY',
     sortOrder: 0,
@@ -68,7 +68,7 @@ const PRODUCTS: SeedProduct[] = [
     benefit: 'طاقة وتنفس',
     desc: 'عسل الدردار السوري: رحيق نادر من مراعي ريف حماة بلون كهرماني وطعم متوازن. يُقطف في موسمه ويصل إليك بجواز دفعة وتاريخ قطاف.',
     image: '/images/products/dardar-honey.webp',
-    price: 1300,
+    price: 1000,
     weight: '500 غرام',
     category: 'HONEY',
     sortOrder: 1,
@@ -102,7 +102,7 @@ const PRODUCTS: SeedProduct[] = [
     benefit: 'تغذية عامة',
     desc: 'عسل الجيجان البري من أزهار البادية السورية: نكهة برية مميّزة وإنتاج محدود بحكم تفرّق النبتة. مفحوص مخبرياً وبجواز دفعة لكل مرطبان.',
     image: '/images/products/jejan-honey.webp',
-    price: 1200,
+    price: 1000,
     weight: '500 غرام',
     category: 'HONEY',
     sortOrder: 2,
@@ -136,7 +136,7 @@ const PRODUCTS: SeedProduct[] = [
     benefit: 'صحة الجهاز الهضمي',
     desc: 'عسل القبار السوري النادر: من زهرة برية تتفتح ليلاً وتذبل نهاراً، فلا يُنتج إلا بكميات محدودة. كهرماني داكن بطعم حادّ مميّز، بجواز دفعة.',
     image: '/images/products/qabbar-honey.webp',
-    price: 1400,
+    price: 1000,
     weight: '500 غرام',
     category: 'HONEY',
     sortOrder: 6,
@@ -167,7 +167,7 @@ const PRODUCTS: SeedProduct[] = [
     benefit: 'دعم صحة الكبد',
     desc: 'عسل الشوكيات السوري: من الخرفيش وشوك الجمل والقنطريون التي تفرز رحيقها في عزّ الحرّ. ذهبي فاتح بطعم متوازن يناسب الاستعمال اليومي.',
     image: '/images/products/shawkiyat-honey.webp',
-    price: 1450,
+    price: 1000,
     weight: '500 غرام',
     category: 'HONEY',
     sortOrder: 7,
@@ -264,7 +264,7 @@ const PRODUCTS: SeedProduct[] = [
     benefit: 'فيتامينات ومعادن من الطبيعة',
     desc: 'غبار الطلع: حبوب لقاح تجمعها النحلات من الأزهار وتكبسها في سلال أرجلها. غذاء متكامل غني بالبروتين. من مراعي ريف حماة، مفحوص ومعبّأ عندنا.',
     image: '/images/products/pollen.webp',
-    price: 800,
+    price: 300,
     weight: '100 غرام',
     category: 'SUPPLEMENT',
     sortOrder: 5,
@@ -300,7 +300,7 @@ interface SeedIngredient {
 }
 
 // المبالغ كلها بالليرة الجديدة: أسعار منتجات الخلية من كتالوجنا نفسه
-// (غذاء الملكات ١٠٠/غرام، العكبر ١٠، غبار الطلع ٤)، وبقية المكوّنات محوّلة من القديمة.
+// (غذاء الملكات ١٠٠/غرام، العكبر ١٠، غبار الطلع ٣)، وبقية المكوّنات محوّلة من القديمة.
 interface SeedMixture {
   slug: string;
   name: string;
@@ -311,6 +311,10 @@ interface SeedMixture {
   defaultSize: number;
   prepFee: number;
   sortOrder: number;
+  /** false ⇒ وصفة مقفلة يشتريها الزبون كما هي */
+  customizable?: boolean;
+  /** سعر المرطبان حين تُقفل الوصفة */
+  fixedPrice?: number;
   ingredients: SeedIngredient[];
 }
 
@@ -378,7 +382,7 @@ const MIXTURES: SeedMixture[] = [
       {
         name: 'غبار الطلع',
         note: 'بروتين وفيتامينات — أساس هذه الخلطة',
-        pricePerGram: 4,
+        pricePerGram: 3,
         minGrams: 20,
         maxGrams: 100,
         recommended: 50,
@@ -405,21 +409,34 @@ const MIXTURES: SeedMixture[] = [
     slug: 'morning',
     name: 'صباح الهيثم',
     tagline: 'فطور الملوك كل يوم',
-    desc: 'مكسرات مختارة مغمورة بعسلك المفضّل. للمتعة والطعم وطاقة الصباح — اختر مكسراتك، أو استثنِ ما لا تحبه.',
+    desc: 'ستة مكسرات مغمورة بالعسل: كاجو ولوز وفستق حلبي وبندق وجوز وبزور القرع. وصفة واحدة نحضّرها بمقاديرها كما هي — ملعقة على الفطور تكفي.',
     image: '/images/products/jejan-honey.webp',
-    sizes: [750, 1000],
-    defaultSize: 1000,
+    sizes: [500],
+    defaultSize: 500,
     prepFee: 50,
     sortOrder: 2,
+    // وصفة مقفلة بسعر يضبطه المالك؛ المقادير متساوية فلا يُرجَّح مكسّر على آخر
+    customizable: false,
+    fixedPrice: 1000,
     ingredients: [
-      { name: 'لوز', pricePerGram: 4, minGrams: 0, maxGrams: 150, recommended: 50, step: 10 },
-      { name: 'جوز', pricePerGram: 4, minGrams: 0, maxGrams: 150, recommended: 50, step: 10 },
-      { name: 'كاجو', pricePerGram: 5, minGrams: 0, maxGrams: 150, recommended: 50, step: 10 },
+      { name: 'كاجو', pricePerGram: 5, minGrams: 50, maxGrams: 50, recommended: 50, step: 10 },
+      { name: 'لوز', pricePerGram: 4, minGrams: 50, maxGrams: 50, recommended: 50, step: 10 },
       {
         name: 'فستق حلبي',
         pricePerGram: 6,
-        minGrams: 0,
-        maxGrams: 150,
+        minGrams: 50,
+        maxGrams: 50,
+        recommended: 50,
+        step: 10,
+      },
+      // سعر الغرام لهذين لم يُحدَّد بعد؛ لا أثر له ما دامت الوصفة مقفلة بسعر ثابت
+      { name: 'بندق', pricePerGram: 0, minGrams: 50, maxGrams: 50, recommended: 50, step: 10 },
+      { name: 'جوز', pricePerGram: 4, minGrams: 50, maxGrams: 50, recommended: 50, step: 10 },
+      {
+        name: 'بزور القرع',
+        pricePerGram: 0,
+        minGrams: 50,
+        maxGrams: 50,
         recommended: 50,
         step: 10,
       },

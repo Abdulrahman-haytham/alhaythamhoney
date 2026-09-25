@@ -14,7 +14,8 @@ export default async function AdminMixturesPage() {
       <h1 className="mb-1 text-2xl font-bold text-white">الخلطات الخاصة</h1>
       <p className="mb-8 text-sm text-zinc-500">
         اضبط سعر الغرام لكل مكوّن، وحدوده، والجرعة الموصى بها التي يراها الزبون افتراضياً. سعر العسل
-        الأساسي يُحسب تلقائياً من سعر المنتج ووزنه.
+        الأساسي يُحسب تلقائياً من سعر المنتج ووزنه. وإن أردت خلطة تُباع بوصفة واحدة لا يمسّها أحد،
+        علّم «وصفة ثابتة» واكتب سعر المرطبان بنفسك.
       </p>
       <MixturesPanel
         mixtures={mixtures.map((m) => ({
@@ -26,6 +27,8 @@ export default async function AdminMixturesPage() {
           defaultSize: m.defaultSize,
           prepFee: m.prepFee,
           published: m.published,
+          customizable: m.customizable,
+          fixedPrice: m.fixedPrice,
           ingredients: m.ingredients.map((i) => ({
             id: i.id,
             name: i.name,

@@ -43,12 +43,19 @@ async function resolveMixture(
   const gramsList = gramsRaw.split('-').map(Number);
   if (gramsList.length !== mixture.ingredients.length) return null;
   const grams = Object.fromEntries(mixture.ingredients.map((i, idx) => [i.id, gramsList[idx]]));
+  // وصفة مقفلة: أي مقدار غير الموصى به وصل من المتصفح ⇒ البند مختلَق
+  if (
+    !mixture.customizable &&
+    mixture.ingredients.some((i, idx) => gramsList[idx] !== i.recommended)
+  )
+    return null;
   const price = computePrice({
     size,
     honey,
     specs: mixture.ingredients,
     grams,
     prepFee: mixture.prepFee,
+    fixedPrice: mixture.fixedPrice,
   });
   if (!price.valid) return null;
   return {

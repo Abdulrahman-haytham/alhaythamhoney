@@ -99,6 +99,8 @@ export default async function MixturePage({ params }: { params: Promise<{ slug: 
                 sizes: mixture.sizes,
                 defaultSize: mixture.defaultSize,
                 prepFee: mixture.prepFee,
+                customizable: mixture.customizable,
+                fixedPrice: mixture.fixedPrice,
                 ingredients: mixture.ingredients.map((i) => ({
                   id: i.id,
                   name: i.name,

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Save, Check } from 'lucide-react';
+import { CURRENCY } from '@/lib/money';
 
 export interface AdminIngredient {
   id: string;
@@ -24,6 +25,8 @@ export interface AdminMixture {
   defaultSize: number;
   prepFee: number;
   published: boolean;
+  customizable: boolean;
+  fixedPrice: number | null;
   ingredients: AdminIngredient[];
 }
 
@@ -34,7 +37,7 @@ const FIELDS: {
   >;
   label: string;
 }[] = [
-  { key: 'pricePerGram', label: 'ل.س/غرام' },
+  { key: 'pricePerGram', label: `${CURRENCY.label}/غرام` },
   { key: 'minGrams', label: 'الأدنى' },
   { key: 'recommended', label: 'الموصى به' },
   { key: 'maxGrams', label: 'الأقصى' },
@@ -63,6 +66,8 @@ function MixtureEditor({ initial }: { initial: AdminMixture }) {
       body: JSON.stringify({
         prepFee: m.prepFee,
         published: m.published,
+        customizable: m.customizable,
+        fixedPrice: m.customizable ? null : (m.fixedPrice ?? 0),
         sizes: m.sizes,
         defaultSize: m.defaultSize,
         ingredients: m.ingredients,
@@ -207,18 +212,52 @@ function MixtureEditor({ initial }: { initial: AdminMixture }) {
       </div>
 
       <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-zinc-800 pt-4">
-        <label className="flex items-center gap-2 text-sm text-zinc-300">
-          أجرة التحضير والتعبئة
-          <input
-            type="number"
-            min={0}
-            value={m.prepFee}
-            onChange={(e) => setM({ ...m, prepFee: Number(e.target.value) })}
-            className="h-9 w-28 rounded-lg border border-zinc-700 bg-zinc-950 px-2 text-zinc-100 tabular-nums focus:border-amber-500/50 focus:outline-none"
-            dir="ltr"
-          />
-          <span className="text-xs text-zinc-500">ل.س</span>
-        </label>
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
+          <label className="flex items-center gap-2 text-sm text-zinc-300">
+            أجرة التحضير والتعبئة
+            <input
+              type="number"
+              min={0}
+              value={m.prepFee}
+              onChange={(e) => setM({ ...m, prepFee: Number(e.target.value) })}
+              className="h-9 w-28 rounded-lg border border-zinc-700 bg-zinc-950 px-2 text-zinc-100 tabular-nums focus:border-amber-500/50 focus:outline-none"
+              dir="ltr"
+            />
+            <span className="text-xs text-zinc-500">{CURRENCY.label}</span>
+          </label>
+
+          {/* قفل الوصفة: الزبون يرى المكوّنات ولا يعدّلها، والسعر يصير رقماً تضبطه أنت */}
+          <label className="flex items-center gap-2 text-sm text-zinc-300">
+            <input
+              type="checkbox"
+              checked={!m.customizable}
+              onChange={(e) =>
+                setM({
+                  ...m,
+                  customizable: !e.target.checked,
+                  fixedPrice: e.target.checked ? (m.fixedPrice ?? 0) : null,
+                })
+              }
+              className="h-4 w-4 accent-amber-500"
+            />
+            وصفة ثابتة — امنع الزبون من تعديل المقادير
+          </label>
+
+          {!m.customizable && (
+            <label className="flex items-center gap-2 text-sm text-zinc-300">
+              سعر المرطبان
+              <input
+                type="number"
+                min={0}
+                value={m.fixedPrice ?? 0}
+                onChange={(e) => setM({ ...m, fixedPrice: Number(e.target.value) })}
+                className="h-9 w-28 rounded-lg border border-zinc-700 bg-zinc-950 px-2 text-zinc-100 tabular-nums focus:border-amber-500/50 focus:outline-none"
+                dir="ltr"
+              />
+              <span className="text-xs text-zinc-500">{CURRENCY.label}</span>
+            </label>
+          )}
+        </div>
         <div className="flex items-center gap-3">
           {error && <p className="text-sm text-red-400">{error}</p>}
           <button

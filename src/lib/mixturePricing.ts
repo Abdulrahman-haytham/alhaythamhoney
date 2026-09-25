@@ -63,6 +63,8 @@ export function computePrice(params: {
   specs: IngredientSpec[];
   grams: Record<string, number>;
   prepFee: number;
+  /** خلطة بوصفة ثابتة: المالك سعّر المرطبان بنفسه فلا يُحسب من سعر الغرام. */
+  fixedPrice?: number | null;
 }): PriceBreakdown {
   const ingredients = params.specs.map((s) => {
     const g = params.grams[s.id] ?? s.recommended;
@@ -73,7 +75,10 @@ export function computePrice(params: {
   const honeyCost = honeyGrams * params.honey.pricePerGram;
   const subtotal = honeyCost + ingredients.reduce((sum, i) => sum + i.cost, 0) + params.prepFee;
   // تقريب لأقرب 5 ل.س حتى يبدو السعر مألوفاً لا حسابياً
-  const total = Math.round(subtotal / PRICE_ROUNDING) * PRICE_ROUNDING;
+  const total =
+    params.fixedPrice != null
+      ? params.fixedPrice
+      : Math.round(subtotal / PRICE_ROUNDING) * PRICE_ROUNDING;
   const valid =
     additiveGrams < params.size &&
     params.specs.every((s) => {

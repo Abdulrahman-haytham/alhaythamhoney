@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import {
   Check,
   ChevronDown,
+  Lock,
   MessageCircle,
   RotateCcw,
   ShoppingCart,
@@ -30,6 +31,10 @@ export interface MixtureData {
   sizes: number[];
   defaultSize: number;
   prepFee: number;
+  /** false ⇒ وصفة مقفلة: تُعرض كما هي ولا منزلقات */
+  customizable: boolean;
+  /** سعر المرطبان حين تُقفل الوصفة */
+  fixedPrice: number | null;
   ingredients: IngredientSpec[];
 }
 
@@ -63,8 +68,18 @@ export function MixtureBuilder({
   }, [specs, overrides]);
 
   const price = useMemo(
-    () => (honey ? computePrice({ size, honey, specs, grams, prepFee: mixture.prepFee }) : null),
-    [size, honey, specs, grams, mixture.prepFee],
+    () =>
+      honey
+        ? computePrice({
+            size,
+            honey,
+            specs,
+            grams,
+            prepFee: mixture.prepFee,
+            fixedPrice: mixture.fixedPrice,
+          })
+        : null,
+    [size, honey, specs, grams, mixture.prepFee, mixture.fixedPrice],
   );
 
   const isCustomized = specs.some((s) => grams[s.id] !== s.recommended);
@@ -172,30 +187,41 @@ export function MixtureBuilder({
         </p>
       </section>
 
-      {/* الوصفة — الافتراضي هو وصفة الخبير؛ التعديل مطويّ لمن يريده */}
+      {/* الوصفة — الافتراضي هو وصفة الخبير؛ التعديل مطويّ لمن يريده.
+          الخلطة المقفلة تُعرض بوصفتها فقط: لا زرّ ولا منزلقات. */}
       <section className="rounded-2xl border border-zinc-800 bg-zinc-900/40">
-        <button
-          type="button"
-          onClick={() => setAdvanced((v) => !v)}
-          aria-expanded={advanced}
-          className="flex w-full items-center justify-between gap-3 px-5 py-4 text-right"
-        >
-          <span className="flex items-center gap-2.5 text-sm font-bold text-zinc-200">
-            <SlidersHorizontal className="h-4 w-4 text-amber-500" />
-            {advanced ? 'المكوّنات — عدّل ما تشاء' : 'الوصفة الموصى بها'}
-            {isCustomized && (
-              <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-bold text-amber-300">
-                معدّلة
-              </span>
-            )}
-          </span>
-          <span className="flex items-center gap-1 text-xs text-zinc-500">
-            {advanced ? 'إخفاء' : 'تعديل المكوّنات'}
-            <ChevronDown
-              className={`h-4 w-4 transition-transform ${advanced ? 'rotate-180' : ''}`}
-            />
-          </span>
-        </button>
+        {mixture.customizable ? (
+          <button
+            type="button"
+            onClick={() => setAdvanced((v) => !v)}
+            aria-expanded={advanced}
+            className="flex w-full items-center justify-between gap-3 px-5 py-4 text-right"
+          >
+            <span className="flex items-center gap-2.5 text-sm font-bold text-zinc-200">
+              <SlidersHorizontal className="h-4 w-4 text-amber-500" />
+              {advanced ? 'المكوّنات — عدّل ما تشاء' : 'الوصفة الموصى بها'}
+              {isCustomized && (
+                <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-bold text-amber-300">
+                  معدّلة
+                </span>
+              )}
+            </span>
+            <span className="flex items-center gap-1 text-xs text-zinc-500">
+              {advanced ? 'إخفاء' : 'تعديل المكوّنات'}
+              <ChevronDown
+                className={`h-4 w-4 transition-transform ${advanced ? 'rotate-180' : ''}`}
+              />
+            </span>
+          </button>
+        ) : (
+          <div className="flex items-center justify-between gap-3 px-5 py-4">
+            <span className="flex items-center gap-2.5 text-sm font-bold text-zinc-200">
+              <Lock className="h-4 w-4 text-amber-500" />
+              وصفة الهيثم الثابتة
+            </span>
+            <span className="text-xs text-zinc-500">نحضّرها بمقاديرها كما هي</span>
+          </div>
+        )}
 
         {/* ملخص الوصفة يظهر دائماً */}
         <ul className="flex flex-wrap gap-2 px-5 pb-4">
@@ -215,7 +241,7 @@ export function MixtureBuilder({
         </ul>
 
         <>
-          {advanced && (
+          {mixture.customizable && advanced && (
             <div className="pop-in overflow-hidden">
               <div className="space-y-5 border-t border-zinc-800 px-5 py-5">
                 {specs.map((s) => {
@@ -312,36 +338,38 @@ export function MixtureBuilder({
           </div>
           <p className="text-left text-xs text-zinc-500">مرطبان {sizeLabel(size)}</p>
         </div>
-        <details className="group text-xs text-zinc-500">
-          <summary className="cursor-pointer select-none list-none text-zinc-400 hover:text-zinc-200">
-            تفصيل السعر{' '}
-            <ChevronDown className="inline h-3 w-3 transition-transform group-open:rotate-180" />
-          </summary>
-          <ul className="mt-3 space-y-1.5 border-t border-zinc-800 pt-3 tabular-nums">
-            <li className="flex justify-between">
-              <span>
-                {honey.name} × {price.honeyGrams}غ
-              </span>
-              <span>{formatAmount(price.honeyCost)}</span>
-            </li>
-            {price.ingredients
-              .filter((i) => i.grams > 0)
-              .map((i) => (
-                <li key={i.name} className="flex justify-between">
-                  <span>
-                    {i.name} × {i.grams}غ
-                  </span>
-                  <span>{formatAmount(i.cost)}</span>
-                </li>
-              ))}
-            {price.prepFee > 0 && (
+        {mixture.fixedPrice == null && (
+          <details className="group text-xs text-zinc-500">
+            <summary className="cursor-pointer select-none list-none text-zinc-400 hover:text-zinc-200">
+              تفصيل السعر{' '}
+              <ChevronDown className="inline h-3 w-3 transition-transform group-open:rotate-180" />
+            </summary>
+            <ul className="mt-3 space-y-1.5 border-t border-zinc-800 pt-3 tabular-nums">
               <li className="flex justify-between">
-                <span>تحضير وتعبئة</span>
-                <span>{formatAmount(price.prepFee)}</span>
+                <span>
+                  {honey.name} × {price.honeyGrams}غ
+                </span>
+                <span>{formatAmount(price.honeyCost)}</span>
               </li>
-            )}
-          </ul>
-        </details>
+              {price.ingredients
+                .filter((i) => i.grams > 0)
+                .map((i) => (
+                  <li key={i.name} className="flex justify-between">
+                    <span>
+                      {i.name} × {i.grams}غ
+                    </span>
+                    <span>{formatAmount(i.cost)}</span>
+                  </li>
+                ))}
+              {price.prepFee > 0 && (
+                <li className="flex justify-between">
+                  <span>تحضير وتعبئة</span>
+                  <span>{formatAmount(price.prepFee)}</span>
+                </li>
+              )}
+            </ul>
+          </details>
+        )}
       </section>
 
       {/* الإجراءات */}

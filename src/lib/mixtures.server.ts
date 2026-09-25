@@ -35,6 +35,7 @@ export async function getMixtureCards(): Promise<MixtureCardData[]> {
             specs: m.ingredients,
             grams: Object.fromEntries(m.ingredients.map((i) => [i.id, i.minGrams])),
             prepFee: m.prepFee,
+            fixedPrice: m.fixedPrice,
           }).total;
 
     return {

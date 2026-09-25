@@ -295,6 +295,10 @@ model Mixture {
   sizes       Int[]               @default([250, 500, 1000])
   defaultSize Int                 @default(500)
   prepFee     Int                 @default(0)
+  /// حين تكون false يُعرض المرطبان بوصفته الثابتة ولا يعدّل الزائر أي مقدار
+  customizable Boolean            @default(true)
+  /// سعر المرطبان حين تُعطَّل المقادير — يضبطه المالك ولا يُحسب من سعر الغرام
+  fixedPrice  Int?
   published   Boolean             @default(true)
   sortOrder   Int                 @default(0)
   ingredients MixtureIngredient[]

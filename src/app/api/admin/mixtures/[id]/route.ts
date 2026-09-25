@@ -30,6 +30,8 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       data: {
         prepFee: body.prepFee,
         published: body.published,
+        customizable: body.customizable,
+        fixedPrice: body.fixedPrice,
         sizes: body.sizes,
         defaultSize: body.defaultSize,
       },

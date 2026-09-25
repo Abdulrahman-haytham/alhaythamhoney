@@ -149,6 +149,24 @@ describe('pricing and validation', () => {
     expect(computePrice(options)).toMatchObject({ valid: true, honeyGrams: 450, total: 105000 });
     expect(computePrice({ ...options, grams: { i: 500 } }).valid).toBe(false);
   });
+  it('hands the owner the price of a locked recipe instead of computing one', () => {
+    const options = {
+      size: 500,
+      honey: { slug: 'h', name: 'عسل', image: '', pricePerGram: 2 },
+      specs: [spec],
+      grams: { i: 50 },
+      prepFee: 50,
+    };
+    // السعر الثابت يمرّ كما هو ولا يُقرَّب، والتفصيل يبقى محسوباً لمن يحتاجه
+    expect(computePrice({ ...options, fixedPrice: 1000 })).toMatchObject({
+      valid: true,
+      total: 1000,
+      honeyGrams: 450,
+    });
+    expect(computePrice({ ...options, fixedPrice: 1001 }).total).toBe(1001);
+    // بلا سعر ثابت يعود الحساب إلى التقريب المعتاد
+    expect(computePrice({ ...options, fixedPrice: null }).total).toBe(computePrice(options).total);
+  });
   it('rejects spoofed verified reviews and unexpected data types', () => {
     const review = { authorName: 'عميل', body: 'منتج جيد وتجربة رائعة', rating: 5 };
     expect(reviewInput.safeParse(review).success).toBe(true);
@@ -218,6 +236,8 @@ describe('pricing and validation', () => {
     const input = {
       prepFee: 10,
       published: true,
+      customizable: true,
+      fixedPrice: null,
       sizes: [500, 1000], // حد المكوّن الأقصى 300غ، فأصغر حجم مسموح هو 500غ
       defaultSize: 500,
       ingredients: [spec],
@@ -230,7 +250,13 @@ describe('pricing and validation', () => {
   });
 
   it('rejects limits that could leave no room for honey', () => {
-    const base = { prepFee: 0, published: true, ingredients: [spec] };
+    const base = {
+      prepFee: 0,
+      published: true,
+      customizable: true,
+      fixedPrice: null,
+      ingredients: [spec],
+    };
     // الحد الأقصى 300غ لا يترك مكاناً للعسل في مرطبان 250غ
     expect(mixtureInput.safeParse({ ...base, sizes: [250], defaultSize: 250 }).success).toBe(false);
     expect(mixtureInput.safeParse({ ...base, sizes: [500], defaultSize: 500 }).success).toBe(true);
@@ -239,6 +265,45 @@ describe('pricing and validation', () => {
       false,
     );
     expect(mixtureInput.safeParse({ ...base, sizes: [], defaultSize: 500 }).success).toBe(false);
+  });
+
+  it('ties the fixed price to the locked recipe', () => {
+    const base = {
+      prepFee: 0,
+      published: true,
+      sizes: [500],
+      defaultSize: 500,
+      ingredients: [spec],
+    };
+    // مقفلة بسعر ⇒ مقبولة، ومقفلة بلا سعر ⇒ مرفوضة
+    expect(mixtureInput.safeParse({ ...base, customizable: false, fixedPrice: 1000 }).success).toBe(
+      true,
+    );
+    expect(mixtureInput.safeParse({ ...base, customizable: false, fixedPrice: null }).success).toBe(
+      false,
+    );
+    // سعر ثابت مع مقادير مفتوحة لا أثر له، فيُرفض بدل أن يضلّل
+    expect(mixtureInput.safeParse({ ...base, customizable: true, fixedPrice: 1000 }).success).toBe(
+      false,
+    );
+  });
+
+  it('measures the locked recipe by its recommended grams, not its limits', () => {
+    // حدّ المكوّن الأقصى 300غ لا يترك مكاناً للعسل في 250غ، لكن الموصى به 50غ يتركه؛
+    // ولا أحد يرفع المقدار في وصفة مقفلة، فالحدّ الأقصى لا يقيّدها
+    const locked = {
+      prepFee: 0,
+      published: true,
+      sizes: [250],
+      defaultSize: 250,
+      ingredients: [spec],
+      customizable: false,
+      fixedPrice: 500,
+    };
+    expect(mixtureInput.safeParse(locked).success).toBe(true);
+    expect(
+      mixtureInput.safeParse({ ...locked, customizable: true, fixedPrice: null }).success,
+    ).toBe(false);
   });
 });
 describe('restored contact cards and PWA', () => {

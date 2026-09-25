@@ -134,6 +134,9 @@ export const mixtureInput = z
   .object({
     prepFee: amount,
     published: z.boolean(),
+    customizable: z.boolean(),
+    /** مطلوب حين تُقفل الوصفة، ومرفوض حين تبقى مفتوحة — لئلا يبقى سعر معلّق بلا أثر */
+    fixedPrice: amount.nullable(),
     sizes: z.array(jarSize).min(1).max(6),
     defaultSize: jarSize,
     ingredients: z.array(ingredientInput).min(1).max(30),
@@ -148,8 +151,19 @@ export const mixtureInput = z
   .refine(
     // الضمان الأهم: حتى لو رفع الزبون كل مكوّن إلى حدّه الأقصى يبقى مكان للعسل
     // في أصغر مرطبان. هذا يجعل الحدود التي يضبطها الأدمن آمنة بذاتها.
-    (m) => m.ingredients.reduce((sum, i) => sum + i.maxGrams, 0) < Math.min(...m.sizes),
+    // الوصفة المقفلة لا يرفع فيها أحد شيئاً، فيكفيها الموصى به.
+    (m) =>
+      m.ingredients.reduce((sum, i) => sum + (m.customizable ? i.maxGrams : i.recommended), 0) <
+      Math.min(...m.sizes),
     'مجموع الحدود القصوى يجب أن يبقي مساحة للعسل في أصغر حجم — خفّض الحدود أو احذف الحجم الصغير.',
+  )
+  .refine(
+    (m) => m.customizable || m.fixedPrice !== null,
+    'الوصفة المقفلة تحتاج سعراً ثابتاً للمرطبان.',
+  )
+  .refine(
+    (m) => !m.customizable || m.fixedPrice === null,
+    'السعر الثابت لا معنى له ما دامت المقادير مفتوحة — اقفل الوصفة أو امسح السعر.',
   );
 
 export const articleInput = z
