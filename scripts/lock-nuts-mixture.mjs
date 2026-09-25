@@ -7,15 +7,12 @@ const db = new PrismaClient();
 const SLUG = 'morning';
 const GRAMS = 50;
 
-// سعر الغرام لا أثر له ما دامت الوصفة مقفلة؛ صفر يعني «لم يُسعَّر بعد»
-const NUTS = [
-  { name: 'كاجو', pricePerGram: 5 },
-  { name: 'لوز', pricePerGram: 4 },
-  { name: 'فستق حلبي', pricePerGram: 6 },
-  { name: 'بندق', pricePerGram: 0 },
-  { name: 'جوز', pricePerGram: 4 },
-  { name: 'بزور القرع', pricePerGram: 0 },
-];
+// لم يحدّد المالك سعر غرام أيٍّ منها، فكلها صفر — ولا أثر لذلك ما دامت الوصفة
+// مقفلة بسعرها الخاص. تُملأ من لوحة التحكم إن فُتحت الوصفة يوماً.
+const NUTS = ['كاجو', 'لوز', 'فستق حلبي', 'بندق', 'جوز', 'بزور القرع'].map((name) => ({
+  name,
+  pricePerGram: 0,
+}));
 
 const mixture = await db.mixture.findUnique({
   where: { slug: SLUG },
