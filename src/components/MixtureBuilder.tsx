@@ -160,8 +160,8 @@ export function MixtureBuilder({
         </div>
       </section>
 
-      {/* الحجم */}
-      <section>
+      {/* الحجم — يُخفى حين لا يكون هناك ما يُختار؛ حجم المرطبان يظهر مع السعر */}
+      <section hidden={mixture.sizes.length < 2}>
         <h2 className="mb-3 text-sm font-bold text-zinc-300">
           <span className="text-amber-500">٢.</span> اختر الحجم
         </h2>
@@ -182,9 +182,11 @@ export function MixtureBuilder({
             </button>
           ))}
         </div>
-        <p className="mt-2 text-xs text-zinc-500">
-          الجرعات ثابتة كما ضبطها الخبير مهما كان الحجم — الحجم يغيّر كمية العسل فقط.
-        </p>
+        {mixture.customizable && (
+          <p className="mt-2 text-xs text-zinc-500">
+            الجرعات ثابتة كما ضبطها الخبير مهما كان الحجم — الحجم يغيّر كمية العسل فقط.
+          </p>
+        )}
       </section>
 
       {/* الوصفة — الافتراضي هو وصفة الخبير؛ التعديل مطويّ لمن يريده.
