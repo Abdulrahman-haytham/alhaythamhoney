@@ -389,7 +389,15 @@ export const orderStatusInput = z
 // ---- أحداث لوحة المؤشرات ----
 export const eventInput = z
   .object({
-    type: z.enum(['PRODUCT_VIEW', 'ADD_TO_CART', 'WHATSAPP_CLICK', 'CHECKOUT', 'SEARCH']),
+    type: z.enum([
+      'PRODUCT_VIEW',
+      'ADD_TO_CART',
+      'WHATSAPP_CLICK',
+      'CHECKOUT',
+      'SEARCH',
+      'PAGE_VIEW',
+      'VISIT',
+    ]),
     key: text(120)
       .transform((v) => (v.length ? v : null))
       .nullable()

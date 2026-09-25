@@ -26,7 +26,8 @@ function send(gaEvent: string, metaEvent: string | null, params: Params = {}) {
 
 const SYP = 'SYP';
 
-type EventType = 'PRODUCT_VIEW' | 'ADD_TO_CART' | 'WHATSAPP_CLICK' | 'CHECKOUT' | 'SEARCH';
+type EventType =
+  'PRODUCT_VIEW' | 'ADD_TO_CART' | 'WHATSAPP_CLICK' | 'CHECKOUT' | 'SEARCH' | 'PAGE_VIEW' | 'VISIT';
 
 /**
  * حدث داخلي للوحة مؤشرات الأدمن — مستقل عن GA/Meta ويعمل حتى بلا أي منهما.
@@ -112,4 +113,45 @@ export function trackViewItem(item: { id: string; name: string; price?: number }
 export function trackWhatsAppClick(context: string) {
   recordEvent('WHATSAPP_CLICK', context);
   send('contact', 'Contact', { method: 'whatsapp', context });
+}
+
+/** يصنّف من أين جاء الزائر من عنوان الإحالة — أسماء قليلة مفهومة بدل عناوين خام. */
+function visitSource(referrer: string, search: string): string {
+  const utm = new URLSearchParams(search).get('utm_source');
+  if (utm) return utm.toLowerCase().slice(0, 40);
+  if (!referrer) return 'مباشر';
+  let host: string;
+  try {
+    host = new URL(referrer).hostname.replace(/^www\./, '');
+  } catch {
+    return 'مباشر';
+  }
+  if (host === window.location.hostname) return 'داخلي';
+  if (/google\./.test(host)) return 'غوغل';
+  if (/bing\.|duckduckgo\./.test(host)) return 'محرك بحث آخر';
+  if (/facebook\.|fb\./.test(host)) return 'فيسبوك';
+  if (/instagram\./.test(host)) return 'إنستغرام';
+  if (/whatsapp\./.test(host)) return 'واتساب';
+  if (/t\.co$|twitter\.|x\.com$/.test(host)) return 'إكس';
+  if (/t\.me$|telegram\./.test(host)) return 'تلغرام';
+  if (/youtube\.|youtu\.be$/.test(host)) return 'يوتيوب';
+  return host.slice(0, 40);
+}
+
+/**
+ * زيارة صفحة. تُسجَّل مرة لكل مسار، ويُسجَّل المصدر والجهاز مرة واحدة لكل جلسة
+ * (لا لكل صفحة) حتى لا تتضخّم القاعدة. صفحات الإدارة لا تُتتبَّع.
+ */
+export function trackPageView(path: string) {
+  if (typeof window === 'undefined') return;
+  if (path.startsWith('/admin') || path.startsWith('/api')) return;
+  recordEvent('PAGE_VIEW', path.slice(0, 120));
+  try {
+    if (sessionStorage.getItem('haytham-visit')) return;
+    sessionStorage.setItem('haytham-visit', '1');
+    const mobile = window.matchMedia('(max-width: 767px)').matches ? 1 : 0;
+    recordEvent('VISIT', visitSource(document.referrer, window.location.search), mobile);
+  } catch {
+    // وضع التصفّح الخاص قد يمنع sessionStorage — الزيارة تُحتسب والمصدر يُهمل
+  }
 }

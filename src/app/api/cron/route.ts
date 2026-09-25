@@ -2,6 +2,7 @@ import { timingSafeEqual } from 'node:crypto';
 import { NextResponse } from 'next/server';
 import { processPendingCampaigns } from '@/lib/campaigns.server';
 import { pruneOldData, sendAbandonedCartEmails } from '@/lib/cron.server';
+import { markCronRun } from '@/lib/health.server';
 
 export const dynamic = 'force-dynamic';
 
@@ -27,6 +28,8 @@ export async function GET(request: Request) {
     pruneOldData(),
     processPendingCampaigns(),
   ]);
+  // أثر يقرؤه مؤشّر «حالة الخادم» ليعرف الأدمن أن المؤقّت حيّ
+  await markCronRun();
   return NextResponse.json(
     { ok: true, ms: Date.now() - startedAt, abandoned, pruned, campaigns },
     { headers: { 'Cache-Control': 'no-store' } },

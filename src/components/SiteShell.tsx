@@ -3,6 +3,7 @@ import { Suspense } from 'react';
 import { usePathname } from 'next/navigation';
 import ReferralCapture from '@/components/ReferralCapture';
 import CartSync from '@/components/CartSync';
+import PageViewTracker from '@/components/PageViewTracker';
 import Header from '@/components/Header';
 import BottomNav from '@/components/BottomNav';
 import BootLoader from '@/components/BootLoader';
@@ -25,6 +26,7 @@ export default function SiteShell({
         <ReferralCapture />
       </Suspense>
       <CartSync />
+      <PageViewTracker />
       {!minimal && (
         <>
           <BootLoader />

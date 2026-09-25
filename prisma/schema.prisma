@@ -843,6 +843,10 @@ enum EventType {
   WHATSAPP_CLICK
   CHECKOUT
   SEARCH
+  /// زيارة صفحة: `key` = المسار
+  PAGE_VIEW
+  /// أول صفحة في الجلسة: `key` = المصدر (google/facebook/…)، `value` = 1 للجوال
+  VISIT
 }
 
 /// حدث سلوكي مجهول الهوية يغذّي لوحة المؤشرات (لا IP ولا كوكي). يُحذف بعد 90 يوماً.

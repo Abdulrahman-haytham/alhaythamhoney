@@ -14,6 +14,10 @@ import {
   BellRing,
 } from 'lucide-react';
 import { getDashboard } from '@/lib/dashboard.server';
+import { getServerHealth } from '@/lib/health.server';
+import { getVisits } from '@/lib/visits.server';
+import { ServerHealthCard } from './ServerHealthCard';
+import { VisitsCard } from './VisitsCard';
 import { fmtSyp } from '@/lib/pricing';
 import { ACTION_LABELS, ENTITY_LABELS } from '@/lib/audit.server';
 import { ORDER_STATUS_LABELS } from '@/lib/orders';
@@ -58,7 +62,7 @@ function Panel({ title, children }: { title: string; children: React.ReactNode }
 const dateFmt = new Intl.DateTimeFormat('ar-SY', { dateStyle: 'short', timeStyle: 'short' });
 
 export default async function AdminDashboardPage() {
-  const d = await getDashboard();
+  const [d, health, visits] = await Promise.all([getDashboard(), getServerHealth(), getVisits()]);
   const pending = d.orders.byStatus.PENDING ?? 0;
   const conv = d.funnel.views ? Math.round((d.funnel.checkouts / d.funnel.views) * 100) : 0;
 
@@ -69,6 +73,11 @@ export default async function AdminDashboardPage() {
         نظرة اليوم: ما يفعله الزوار، وما ينتظر قرارك. الأرقام من أحداث الموقع نفسه (بلا اعتماد على
         Google أو Meta).
       </p>
+
+      <div className="mb-6 grid gap-4">
+        <ServerHealthCard health={health} />
+        <VisitsCard visits={visits} />
+      </div>
 
       <div className="mb-6 grid grid-cols-2 gap-3 md:grid-cols-4">
         <Kpi

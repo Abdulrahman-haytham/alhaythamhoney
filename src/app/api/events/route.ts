@@ -9,9 +9,15 @@ import { eventInput } from '@/lib/validation';
  * تصل عبر sendBeacon فلا نفرض Origin، لكن نقبل نفس الموقع فقط ونحدّ المعدل.
  * الرد دائماً 204 حتى لا يعرف أحد ما قُبل وما رُفض.
  */
+/** عناكب البحث والأدوات الآلية تضخّم العدّادات — تُستبعد قبل الكتابة. */
+const BOT =
+  /bot|crawl|spider|slurp|facebookexternalhit|headless|preview|monitor|curl|wget|python|axios|lighthouse/i;
+
 export async function POST(request: Request) {
   const site = request.headers.get('sec-fetch-site');
   if (site && site !== 'same-origin') return new NextResponse(null, { status: 204 });
+  if (BOT.test(request.headers.get('user-agent') ?? ''))
+    return new NextResponse(null, { status: 204 });
   const limited = await rateLimit(request, 'events', 240, 600);
   if (limited) return new NextResponse(null, { status: 204 });
   const parsed = eventInput.safeParse(await readJson(request, 2 * 1024));
