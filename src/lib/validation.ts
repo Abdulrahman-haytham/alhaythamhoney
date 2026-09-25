@@ -201,6 +201,11 @@ export const couponInput = z
 /** ما يرسله الزائر من السلة للتحقق من كوبون */
 export const couponCheckInput = z.object({ code: couponCode, subtotal: amount }).strict();
 
+/** رابط حساب رسمي: https فقط — يُعلَن في الترميز فلا يُقبل فيه ما لا يُوثق به. */
+const httpsUrl = text(300)
+  .refine((v) => !v || /^https:\/\/[^\s]+$/.test(v), 'الرابط يجب أن يبدأ بـ https://')
+  .transform((v) => (v.length ? v : null));
+
 const optionalText = (max: number) =>
   text(max)
     .transform((v) => (v.length ? v : null))
@@ -229,6 +234,9 @@ export const settingsInput = z
     seoTitle: optionalText(60),
     seoDescription: optionalText(160),
     brandAliases: z.array(text(60).min(2)).max(6),
+    facebookUrl: httpsUrl.nullable(),
+    instagramUrl: httpsUrl.nullable(),
+    youtubeUrl: httpsUrl.nullable(),
     announcementEnabled: z.boolean(),
     announcementText: optionalText(200),
     announcementLink: optionalText(300).refine(

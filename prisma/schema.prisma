@@ -703,6 +703,10 @@ model SiteSettings {
   seoDescription            String?
   /// أسماء أخرى تُعرف بها العلامة (عسل الهيثم، مناحل الهيثم…) — تربطها محرّكات البحث بكيان واحد
   brandAliases              String[] @default(["Al-Haytham Honey"])
+  /// حسابات العلامة الرسمية — تُعلَن في ترميز Schema.org ليربطها البحث بالموقع نفسه
+  facebookUrl               String?
+  instagramUrl              String?
+  youtubeUrl                String?
   announcementEnabled       Boolean  @default(false)
   announcementText          String?
   announcementLink          String?

@@ -21,7 +21,7 @@ export async function StructuredData() {
         telephone: SITE.phoneNumber,
         foundingDate: String(SITE.foundedYear),
         description: SITE.tagline,
-        sameAs: [SITE.social.facebook].filter((u) => u && u !== '#'),
+        sameAs: SITE.profiles,
       },
       {
         '@type': 'LocalBusiness',
@@ -32,6 +32,8 @@ export async function StructuredData() {
         telephone: SITE.phoneNumber,
         email: SITE.email,
         priceRange: '$$',
+        // الحسابات تُعلَن هنا أيضاً: البحث المحلي يقرأ LocalBusiness لا Organization
+        sameAs: SITE.profiles,
         parentOrganization: { '@id': `${SITE.url}/#organization` },
         address: {
           '@type': 'PostalAddress',

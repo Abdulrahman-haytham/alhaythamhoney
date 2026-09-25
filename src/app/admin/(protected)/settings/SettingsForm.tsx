@@ -233,6 +233,46 @@ export function SettingsForm({ initial }: { initial: SiteSettingsData }) {
           </p>
         </div>
 
+        <label>
+          صفحة فيسبوك
+          <input
+            className={inputClass}
+            dir="ltr"
+            type="url"
+            value={s.facebookUrl ?? ''}
+            onChange={(e) => set('facebookUrl', e.target.value || null)}
+            placeholder="https://www.facebook.com/ElHaythamHoney"
+          />
+          <span className="mt-1 block text-[11px] text-zinc-500">
+            استعمل الرابط باسم الصفحة لا بالمعرّف الرقمي — الصيغة المقروءة هي ما يربطه البحث بك.
+          </span>
+        </label>
+        <label>
+          إنستغرام (اختياري)
+          <input
+            className={inputClass}
+            dir="ltr"
+            type="url"
+            value={s.instagramUrl ?? ''}
+            onChange={(e) => set('instagramUrl', e.target.value || null)}
+            placeholder="https://www.instagram.com/…"
+          />
+        </label>
+        <label>
+          يوتيوب (اختياري)
+          <input
+            className={inputClass}
+            dir="ltr"
+            type="url"
+            value={s.youtubeUrl ?? ''}
+            onChange={(e) => set('youtubeUrl', e.target.value || null)}
+            placeholder="https://www.youtube.com/@…"
+          />
+          <span className="mt-1 block text-[11px] text-zinc-500">
+            الحسابات المعلَنة هنا تُرسَل لمحركات البحث كحسابات رسمية للعلامة نفسها.
+          </span>
+        </label>
+
         <label className="sm:col-span-2">
           أسماء أخرى تُعرف بها (بفاصلة)
           <input

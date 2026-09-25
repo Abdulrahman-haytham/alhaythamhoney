@@ -34,8 +34,23 @@ export const SITE = {
     return runtime.workingHours;
   },
   whatsappDefaultMessage: 'مرحباً عسل الهيثم، أود الاستفسار عن المنتج المعروض في الموقع.',
+  /** حسابات العلامة — تُدار من `/admin/settings`، والقيم الافتراضية للتطوير المحلي فقط */
   social: {
-    facebook: 'https://www.facebook.com/profile.php?id=100064934053886',
+    get facebook() {
+      return runtime.facebookUrl ?? '';
+    },
+    get instagram() {
+      return runtime.instagramUrl ?? '';
+    },
+    get youtube() {
+      return runtime.youtubeUrl ?? '';
+    },
+  },
+  /** كل الحسابات المعلنة — لترميز sameAs */
+  get profiles(): string[] {
+    return [runtime.facebookUrl, runtime.instagramUrl, runtime.youtubeUrl].filter(
+      (u): u is string => !!u,
+    );
   },
 };
 

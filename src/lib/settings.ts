@@ -16,6 +16,9 @@ export interface SiteSettingsData {
   seoTitle: string | null;
   seoDescription: string | null;
   brandAliases: string[];
+  facebookUrl: string | null;
+  instagramUrl: string | null;
+  youtubeUrl: string | null;
   heroImage: string | null;
   announcementEnabled: boolean;
   announcementText: string | null;
@@ -70,6 +73,10 @@ export const DEFAULT_SETTINGS: SiteSettingsData = {
   seoTitle: null,
   seoDescription: null,
   brandAliases: ['Al-Haytham Honey'],
+  // الرابط باسم الصفحة لا بمعرّفها الرقمي: الصيغة المقروءة هي ما يربطه البحث بالعلامة
+  facebookUrl: 'https://www.facebook.com/ElHaythamHoney',
+  instagramUrl: null,
+  youtubeUrl: null,
   announcementEnabled: false,
   announcementText: null,
   announcementLink: null,
