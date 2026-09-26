@@ -64,7 +64,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   // لا تُقرأ الكوكي هنا عمداً — انظر CustomerProvider.
   const [settings, contentFlags] = await Promise.all([getSettings(), getSiteContentFlags()]);
   return (
-    <html lang="ar" dir="rtl" className={`${cairo.variable} ${amiri.variable}`}>
+    // suppressHydrationWarning: سكربت js-flag أدناه يضيف data-js إلى <html> قبل
+    // الترطيب عمداً، فيراه React اختلافاً بين الخادم والمتصفح ويشكو منه.
+    <html
+      lang="ar"
+      dir="rtl"
+      className={`${cairo.variable} ${amiri.variable}`}
+      suppressHydrationWarning
+    >
       <body className="bg-zinc-950 text-zinc-100 antialiased">
         {/* يُعلم CSS أن JavaScript يعمل قبل أول رسم — عندها فقط تُخفى عناصر Reveal ريثما تُمرَّر */}
         <Script id="js-flag" strategy="beforeInteractive">

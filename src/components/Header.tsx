@@ -304,7 +304,7 @@ export default function Header() {
               {savedCount > 0 && (
                 <Link
                   href="/wishlist"
-                  className="relative hidden p-3 text-zinc-400 transition-colors hover:bg-zinc-900 hover:text-red-400 sm:block"
+                  className="relative p-3 text-zinc-400 transition-colors hover:bg-zinc-900 hover:text-red-400"
                   aria-label={`المفضلة (${savedCount} عنصر)`}
                 >
                   <Heart className="w-5 h-5" />
