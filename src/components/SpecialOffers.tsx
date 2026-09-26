@@ -47,9 +47,7 @@ export function SpecialOffers() {
         <Reveal className="text-center mb-16">
           <div className="inline-flex items-center gap-2 mb-4">
             <Sparkles className="w-6 h-6 text-amber-500" />
-            <span className="text-amber-500 font-bold tracking-[0.4em] uppercase text-xs italic">
-              Special Offers
-            </span>
+            <span className="text-xs font-bold tracking-[0.3em] text-amber-500">عروض خاصة</span>
           </div>
           <h2 className="text-4xl sm:text-5xl md:text-6xl font-amiri font-black mb-5 text-white leading-tight">
             عروض حصرية لفترة محدودة

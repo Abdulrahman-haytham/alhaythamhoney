@@ -26,9 +26,7 @@ export default async function ShopPage() {
         <div className="text-center mb-4">
           <div className="inline-flex items-center gap-2 mb-4">
             <ShoppingCart className="w-6 h-6 text-amber-500" />
-            <span className="text-amber-500 font-bold tracking-[0.4em] uppercase text-xs italic">
-              Our Store
-            </span>
+            <span className="text-xs font-bold tracking-[0.3em] text-amber-500">متجرنا</span>
           </div>
           <h1 className="text-4xl md:text-6xl font-amiri font-bold text-white mb-6">المتجر</h1>
           <p className="text-zinc-400 text-lg max-w-2xl mx-auto">

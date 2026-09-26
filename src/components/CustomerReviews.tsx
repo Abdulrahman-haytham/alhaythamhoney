@@ -17,6 +17,9 @@ function Stars({ value }: { value: number }) {
 
 export default async function CustomerReviews() {
   const reviews = await getApprovedReviews(undefined, 6);
+  // بلا تقييمات لا يوجد دليل اجتماعي يُعرض — والقسم الفارغ يقول عكس ما نريد.
+  // يعود وحده حين يُعتمد أول تقييم من اللوحة.
+  if (reviews.length === 0) return null;
 
   return (
     <section id="reviews" className="py-20 px-6 bg-zinc-950 relative overflow-hidden">
@@ -27,9 +30,7 @@ export default async function CustomerReviews() {
         <div className="text-center mb-12">
           <div className="inline-flex items-center gap-2 mb-3">
             <Quote className="w-5 h-5 text-amber-500" />
-            <span className="text-amber-500 font-bold tracking-[0.4em] uppercase text-xs italic">
-              Customer Reviews
-            </span>
+            <span className="text-xs font-bold tracking-[0.3em] text-amber-500">آراء العملاء</span>
           </div>
           <h2 className="text-3xl md:text-4xl font-amiri font-bold mb-4 text-white">
             ماذا يقول عملاؤنا؟
@@ -41,41 +42,35 @@ export default async function CustomerReviews() {
         </div>
 
         {/* Reviews */}
-        {reviews.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {reviews.map((review) => (
-              <div
-                key={review.id}
-                className="group relative bg-zinc-900/40 rounded-xl p-6 border border-white/5 hover:border-amber-500/30 transition-all duration-500"
-              >
-                <div className="flex items-center justify-between mb-3">
-                  <Stars value={review.rating} />
-                  {review.verified && (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-green-600/15 px-2 py-0.5 text-[11px] font-medium text-green-400">
-                      <BadgeCheck className="h-3.5 w-3.5" />
-                      حساب موثّق
-                    </span>
-                  )}
-                </div>
-
-                <p className="text-zinc-300 mb-4 leading-relaxed text-right text-sm line-clamp-4">
-                  &quot;{review.body}&quot;
-                </p>
-
-                <div className="pt-4 border-t border-white/5 text-right">
-                  <h4 className="text-white font-bold text-sm mb-0.5">{review.authorName}</h4>
-                  {review.authorCity && (
-                    <p className="text-zinc-500 text-xs">{review.authorCity}</p>
-                  )}
-                </div>
-
-                <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-xl pointer-events-none" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {reviews.map((review) => (
+            <div
+              key={review.id}
+              className="group relative bg-zinc-900/40 rounded-xl p-6 border border-white/5 hover:border-amber-500/30 transition-all duration-500"
+            >
+              <div className="flex items-center justify-between mb-3">
+                <Stars value={review.rating} />
+                {review.verified && (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-green-600/15 px-2 py-0.5 text-[11px] font-medium text-green-400">
+                    <BadgeCheck className="h-3.5 w-3.5" />
+                    حساب موثّق
+                  </span>
+                )}
               </div>
-            ))}
-          </div>
-        ) : (
-          <p className="text-center text-zinc-500">لا توجد تقييمات بعد — كن أول من يشارك رأيه.</p>
-        )}
+
+              <p className="text-zinc-300 mb-4 leading-relaxed text-right text-sm line-clamp-4">
+                &quot;{review.body}&quot;
+              </p>
+
+              <div className="pt-4 border-t border-white/5 text-right">
+                <h4 className="text-white font-bold text-sm mb-0.5">{review.authorName}</h4>
+                {review.authorCity && <p className="text-zinc-500 text-xs">{review.authorCity}</p>}
+              </div>
+
+              <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-xl pointer-events-none" />
+            </div>
+          ))}
+        </div>
 
         {/* Call to Action */}
         <div className="text-center mt-10">

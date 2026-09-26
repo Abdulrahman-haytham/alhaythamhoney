@@ -8,7 +8,9 @@ import ServiceWorkerRegistrar from '@/components/ServiceWorkerRegistrar';
 import SiteShell from '@/components/SiteShell';
 import Footer from '@/components/Footer';
 import { SettingsProvider } from '@/components/SettingsProvider';
+import { SiteContentProvider } from '@/components/SiteContentProvider';
 import { getSettings } from '@/lib/settings.server';
+import { getSiteContentFlags } from '@/lib/content.server';
 import { CustomerProvider } from '@/components/CustomerProvider';
 
 /**
@@ -60,7 +62,7 @@ export const viewport: Viewport = { themeColor: '#09090b', viewportFit: 'cover' 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   // إعدادات لوحة التحكم (واتساب، الشحن، الإعلان…) تُقرأ هنا وتُوزَّع على الخادم والمتصفح.
   // لا تُقرأ الكوكي هنا عمداً — انظر CustomerProvider.
-  const settings = await getSettings();
+  const [settings, contentFlags] = await Promise.all([getSettings(), getSiteContentFlags()]);
   return (
     <html lang="ar" dir="rtl" className={`${cairo.variable} ${amiri.variable}`}>
       <body className="bg-zinc-950 text-zinc-100 antialiased">
@@ -71,9 +73,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <Script src="/haytham-loader.js" strategy="beforeInteractive" />
         <StructuredData />
         <SettingsProvider settings={settings}>
-          <CustomerProvider>
-            <SiteShell footer={<Footer />}>{children}</SiteShell>
-          </CustomerProvider>
+          <SiteContentProvider flags={contentFlags}>
+            <CustomerProvider>
+              <SiteShell footer={<Footer />}>{children}</SiteShell>
+            </CustomerProvider>
+          </SiteContentProvider>
         </SettingsProvider>
         <ServiceWorkerRegistrar />
       </body>

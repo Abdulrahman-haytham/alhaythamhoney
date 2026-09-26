@@ -1,12 +1,16 @@
 import Link from 'next/link';
-import { MessageCircle, Globe, Phone, Heart, MapPin } from 'lucide-react';
+import { MessageCircle, Phone, Heart, MapPin } from 'lucide-react';
+import { FacebookIcon, InstagramIcon, WhatsAppIcon } from '@/components/BrandIcons';
 import { SITE, getTelLink, getWhatsAppLink, getRuntimeSettings } from '@/lib/config';
+import { getSiteContentFlags } from '@/lib/content.server';
 
 /** تذييل الموقع — مكوّن خادم بلا تفاعلية، يعتمد فقط على ثوابت SITE. */
-export default function Footer() {
+export default async function Footer() {
   const phoneNumber = SITE.phoneNumber;
   const { wholesaleEnabled } = getRuntimeSettings();
+  const { hasStudioPhotos } = await getSiteContentFlags();
   const facebookLink = SITE.social.facebook;
+  const instagramLink = SITE.social.instagram;
 
   return (
     <footer className="bg-zinc-950 pt-12 sm:pt-20 md:pt-24 pb-8 sm:pb-12 border-t border-amber-900/10 px-4 sm:px-6">
@@ -36,21 +40,45 @@ export default function Footer() {
                 <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6" />
                 اطلب الآن عبر واتساب
               </a>
-              <div className="flex items-center justify-center gap-4 sm:gap-6 px-5 sm:px-8 py-3.5 sm:py-4 bg-zinc-900/50 rounded-full border border-white/5">
+              {/* حساباتنا — بشعاراتها المعروفة لا بكرة أرضية لا تدلّ على شيء */}
+              <div className="flex items-center justify-center gap-2 rounded-full border border-white/5 bg-zinc-900/50 px-3 py-2 sm:gap-3 sm:px-4">
+                {facebookLink && (
+                  <a
+                    href={facebookLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="صفحتنا على فيسبوك"
+                    className="flex h-11 w-11 items-center justify-center rounded-full text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-[#1877F2]"
+                  >
+                    <FacebookIcon className="h-5 w-5 sm:h-6 sm:w-6" />
+                  </a>
+                )}
+                {instagramLink && (
+                  <a
+                    href={instagramLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="حسابنا على إنستغرام"
+                    className="flex h-11 w-11 items-center justify-center rounded-full text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-[#E1306C]"
+                  >
+                    <InstagramIcon className="h-5 w-5 sm:h-6 sm:w-6" />
+                  </a>
+                )}
                 <a
-                  href={facebookLink}
+                  href={getWhatsAppLink()}
                   target="_blank"
                   rel="noopener noreferrer"
-                  aria-label="فيسبوك"
-                  className="text-zinc-400 hover:text-amber-500 transition-colors"
+                  aria-label="راسلنا على واتساب"
+                  className="flex h-11 w-11 items-center justify-center rounded-full text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-[#25D366]"
                 >
-                  <Globe className="w-5 h-5 sm:w-6 sm:h-6" />
+                  <WhatsAppIcon className="h-5 w-5 sm:h-6 sm:w-6" />
                 </a>
                 <a
                   href={getTelLink()}
-                  className="text-zinc-400 hover:text-amber-500 transition-colors"
+                  aria-label="اتصل بنا"
+                  className="flex h-11 w-11 items-center justify-center rounded-full text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-amber-500"
                 >
-                  <Phone className="w-5 h-5 sm:w-6 sm:h-6" />
+                  <Phone className="h-5 w-5 sm:h-6 sm:w-6" />
                 </a>
               </div>
             </div>
@@ -138,11 +166,13 @@ export default function Footer() {
                   معايير الجودة
                 </Link>
               </li>
-              <li>
-                <Link href="/studio" className="hover:text-amber-500 transition-colors">
-                  استديو الهيثم
-                </Link>
-              </li>
+              {hasStudioPhotos && (
+                <li>
+                  <Link href="/studio" className="hover:text-amber-500 transition-colors">
+                    استديو الهيثم
+                  </Link>
+                </li>
+              )}
               <li>
                 <Link href="/articles" className="hover:text-amber-500 transition-colors">
                   المدونة
