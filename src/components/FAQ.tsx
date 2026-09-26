@@ -94,7 +94,7 @@ export default function FAQ({ limit, headingLevel = 'h2' }: FAQProps) {
 
               {/* الجواب في HTML دائماً (مفهرس، ويعمل بلا JS)، والفتح والإغلاق انتقال CSS على grid-rows */}
               <div
-                className="collapse"
+                className="disclosure"
                 data-open={activeIndex === index}
                 aria-hidden={activeIndex !== index}
               >

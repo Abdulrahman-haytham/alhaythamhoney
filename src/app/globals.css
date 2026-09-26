@@ -182,16 +182,18 @@ html[data-js] [data-reveal='out'] {
   animation: haytham-fade 0.2s ease-out both;
 }
 
-/* أكورديون بلا JavaScript للقياس: grid-rows تنتقل من 0fr إلى 1fr */
-.collapse {
+/* أكورديون بلا JavaScript للقياس: grid-rows تنتقل من 0fr إلى 1fr.
+   لا تُسمَّ هذه الفئة `collapse`: هي أداة في Tailwind تعني visibility:collapse،
+   فتُخفي المحتوى وإن فُتح الارتفاع. */
+.disclosure {
   display: grid;
   grid-template-rows: 0fr;
   transition: grid-template-rows 0.3s ease-out;
 }
-.collapse[data-open='true'] {
+.disclosure[data-open='true'] {
   grid-template-rows: 1fr;
 }
-.collapse > * {
+.disclosure > * {
   overflow: hidden;
   min-height: 0;
 }
@@ -212,7 +214,7 @@ html[data-js] [data-reveal='out'] {
     transform: none;
   }
   [data-reveal],
-  .collapse {
+  .disclosure {
     transition: none;
   }
   .pop-in,
