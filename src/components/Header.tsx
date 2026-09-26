@@ -63,26 +63,67 @@ export default function Header() {
   const cartCount = mounted ? getTotalItems() : 0;
   const savedCount = mounted ? wishlistCount : 0;
 
-  // روابط قائمة الجوال — أيقونة لكل رابط حتى تصطفّ النصوص على عمود واحد
-  const mobileLinks = [
-    { href: '/shop', label: 'المتجر', icon: Store, accent: false },
+  /**
+   * مصدر واحد لروابط التنقّل: الشريط الأفقي والقائمة المنسدلة يقرآن منه،
+   * فلا يفترق الاثنان كلما أُضيفت صفحة. `short` لضيق الشريط، و`wide` لرابط
+   * يُطوى في الشاشات المتوسطة حين لا يتّسع الصف.
+   *
+   * لا لون خاصّ لأي رابط: الذهبي في شريط تنقّل يقرؤه الزائر «أنت هنا»، فإن
+   * لبسه رابط دائماً بدا وكأن صفحته مفتوحة أبداً.
+   */
+  const navLinks = [
+    { href: '/shop', label: 'المتجر', short: 'المتجر', icon: Store, wide: false },
     // الاستديو لا يُعرض وهو فارغ: رابط إلى معرض بلا صور يهدم الثقة التي جاء يبنيها
     ...(hasStudioPhotos
-      ? [{ href: '/studio', label: 'استديو الهيثم', icon: Camera, accent: false }]
+      ? [{ href: '/studio', label: 'استديو الهيثم', short: 'الاستديو', icon: Camera, wide: true }]
       : []),
-    { href: '/articles', label: 'المدونة', icon: Newspaper, accent: false },
-    { href: '/beekeeping', label: 'موسوعة النحّال', icon: BookOpen, accent: false },
-    { href: '/custom-mixtures', label: 'الخلطات الخاصة', icon: FlaskConical, accent: false },
-    { href: '/draw', label: 'السحب الأسبوعي', icon: Gift, accent: true },
+    { href: '/articles', label: 'المدونة', short: 'المدونة', icon: Newspaper, wide: false },
+    {
+      href: '/beekeeping',
+      label: 'موسوعة النحّال',
+      short: 'الموسوعة',
+      icon: BookOpen,
+      wide: true,
+    },
+    {
+      href: '/custom-mixtures',
+      label: 'الخلطات الخاصة',
+      short: 'الخلطات الخاصة',
+      icon: FlaskConical,
+      wide: false,
+    },
+    { href: '/draw', label: 'السحب الأسبوعي', short: 'السحب', icon: Gift, wide: false },
+    { href: '/about-us', label: 'حكايتنا', short: 'قصتنا', icon: Users, wide: false },
+    {
+      href: '/quality-standards',
+      label: 'الجودة',
+      short: 'الجودة',
+      icon: ShieldCheck,
+      wide: true,
+    },
+    {
+      href: '/faq',
+      label: 'الأسئلة الشائعة',
+      short: 'الأسئلة الشائعة',
+      icon: HelpCircle,
+      wide: false,
+    },
+  ];
+
+  /** الصفحة المفتوحة — تُعلَّم مرة واحدة بالذهبي وبـ aria-current. */
+  const isCurrent = (href: string) =>
+    href === '/' ? pathname === '/' : pathname === href || pathname.startsWith(href + '/');
+
+  // القائمة تضيف الحساب: الشريط الأفقي يعرضه كأيقونة مستقلة
+  const mobileLinks = [
+    ...navLinks,
     {
       href: customer ? '/account' : '/account/login',
       label: customer ? `حسابي — ${customer.name}` : 'تسجيل الدخول',
+      short: '',
       icon: UserRound,
-      accent: false,
+      wide: false,
     },
-    { href: '/about-us', label: 'حكايتنا', icon: Users, accent: false },
-    { href: '/quality-standards', label: 'الجودة', icon: ShieldCheck, accent: false },
-    { href: '/faq', label: 'الأسئلة الشائعة', icon: HelpCircle, accent: false },
   ];
 
   // اختصار لوحة المفاتيح للبحث (Ctrl/⌘ + K) كما في المتاجر الحديثة
@@ -216,54 +257,23 @@ export default function Header() {
               </div>
             </Link>
 
-            {/* روابط سطح المكتب */}
-            <div className="hidden md:flex gap-5 xl:gap-8 text-sm font-medium text-zinc-400 whitespace-nowrap">
-              <Link
-                href="/shop"
-                className="flex items-center gap-2 hover:text-amber-500 transition-colors"
-              >
-                <Store className="w-4 h-4" />
-                المتجر
-              </Link>
-              {hasStudioPhotos && (
-                <Link
-                  href="/studio"
-                  className="hidden lg:block hover:text-amber-500 transition-colors"
-                >
-                  الاستديو
-                </Link>
-              )}
-              <Link href="/articles" className="hover:text-amber-500 transition-colors">
-                المدونة
-              </Link>
-              <Link
-                href="/beekeeping"
-                className="hidden lg:block hover:text-amber-500 transition-colors"
-              >
-                الموسوعة
-              </Link>
-              <Link href="/custom-mixtures" className="hover:text-amber-500 transition-colors">
-                الخلطات الخاصة
-              </Link>
-              <Link
-                href="/draw"
-                className="flex items-center gap-1.5 text-amber-400/90 hover:text-amber-300 transition-colors"
-              >
-                <Gift className="w-4 h-4" />
-                السحب
-              </Link>
-              <Link href="/about-us" className="hover:text-amber-500 transition-colors">
-                قصتنا
-              </Link>
-              <Link
-                href="/quality-standards"
-                className="hidden lg:block hover:text-amber-500 transition-colors"
-              >
-                الجودة
-              </Link>
-              <Link href="/faq" className="hover:text-amber-500 transition-colors">
-                الأسئلة الشائعة
-              </Link>
+            {/* روابط سطح المكتب — نصّ فقط: تسعة رموز في صفّ واحد تزاحم بلا أن تدلّ */}
+            <div className="hidden gap-5 whitespace-nowrap text-sm font-medium text-zinc-400 md:flex xl:gap-8">
+              {navLinks.map(({ href, short, wide }) => {
+                const current = isCurrent(href);
+                return (
+                  <Link
+                    key={href}
+                    href={href}
+                    aria-current={current ? 'page' : undefined}
+                    className={`transition-colors hover:text-amber-500 ${wide ? 'hidden lg:block' : ''} ${
+                      current ? 'font-bold text-amber-500' : ''
+                    }`}
+                  >
+                    {short}
+                  </Link>
+                );
+              })}
             </div>
 
             {/* أيقونات الإجراءات + الدعوة لاتخاذ إجراء */}
@@ -365,21 +375,29 @@ export default function Header() {
                     اطلب الآن عبر واتساب
                   </a>
 
-                  {mobileLinks.map(({ href, label, icon: Icon, accent }) => (
-                    <Link
-                      key={href}
-                      href={href}
-                      onClick={() => setMobileMenuOpen(false)}
-                      className={`flex min-h-[52px] items-center gap-4 border-b border-zinc-800/50 py-3 text-lg transition-colors ${
-                        accent
-                          ? 'text-amber-300 hover:text-amber-200'
-                          : 'text-zinc-300 hover:text-amber-500'
-                      }`}
-                    >
-                      <Icon className="h-6 w-6 shrink-0 text-amber-500" />
-                      <span className="font-medium">{label}</span>
-                    </Link>
-                  ))}
+                  {mobileLinks.map(({ href, label, icon: Icon }) => {
+                    const current = isCurrent(href);
+                    return (
+                      <Link
+                        key={href}
+                        href={href}
+                        aria-current={current ? 'page' : undefined}
+                        onClick={() => setMobileMenuOpen(false)}
+                        className={`flex min-h-[52px] items-center gap-4 border-b border-zinc-800/50 py-3 text-lg transition-colors ${
+                          current ? 'text-amber-400' : 'text-zinc-300 hover:text-amber-500'
+                        }`}
+                      >
+                        <Icon className="h-6 w-6 shrink-0 text-amber-500" />
+                        <span className={current ? 'font-bold' : 'font-medium'}>{label}</span>
+                        {current && (
+                          <span
+                            className="mr-auto h-1.5 w-1.5 rounded-full bg-amber-400"
+                            aria-hidden
+                          />
+                        )}
+                      </Link>
+                    );
+                  })}
                 </div>
               </div>
             )}
