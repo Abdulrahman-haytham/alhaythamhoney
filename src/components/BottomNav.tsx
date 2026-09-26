@@ -27,11 +27,15 @@ export default function BottomNav() {
   // لا يظهر داخل لوحة التحكم
   if (pathname.startsWith('/admin')) return null;
 
+  // المفضلة لا تُعرض وهي فارغة: بكتالوج صغير لا تضيف شيئاً، وتزاحم واتساب
+  // على مساحة الإبهام. تظهر أول ما يحفظ الزائر منتجاً.
   const items = [
     { href: '/', label: 'الرئيسية', icon: Home, badge: 0 },
     { href: '/shop', label: 'المتجر', icon: Store, badge: 0 },
     { href: '/cart', label: 'السلة', icon: ShoppingCart, badge: cartCount },
-    { href: '/wishlist', label: 'المفضلة', icon: Heart, badge: savedCount },
+    ...(savedCount > 0
+      ? [{ href: '/wishlist', label: 'المفضلة', icon: Heart, badge: savedCount }]
+      : []),
   ];
 
   return (

@@ -19,11 +19,18 @@ import {
   UserRound,
   Gift,
   BookOpen,
+  Newspaper,
+  FlaskConical,
+  Users,
+  HelpCircle,
+  MessageCircle,
 } from 'lucide-react';
 import { SITE, getWhatsAppLink } from '@/lib/config';
+import { trackWhatsAppClick } from '@/lib/analytics';
 import { useCart } from '@/store/cartStore';
 import { useWishlist } from '@/store/wishlistStore';
 import { useSettings } from '@/components/SettingsProvider';
+import { useSiteContent } from '@/components/SiteContentProvider';
 import { SearchDialog } from '@/components/SearchDialog';
 import { useCustomer } from '@/components/CustomerProvider';
 
@@ -44,6 +51,7 @@ export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const settings = useSettings();
+  const { hasStudioPhotos } = useSiteContent();
   const customer = useCustomer();
   const mounted = useHydrated();
   const pathname = usePathname();
@@ -54,6 +62,28 @@ export default function Header() {
   // العدّادات من localStorage — تُصفَّر قبل الترطيب لتفادي عدم التطابق
   const cartCount = mounted ? getTotalItems() : 0;
   const savedCount = mounted ? wishlistCount : 0;
+
+  // روابط قائمة الجوال — أيقونة لكل رابط حتى تصطفّ النصوص على عمود واحد
+  const mobileLinks = [
+    { href: '/shop', label: 'المتجر', icon: Store, accent: false },
+    // الاستديو لا يُعرض وهو فارغ: رابط إلى معرض بلا صور يهدم الثقة التي جاء يبنيها
+    ...(hasStudioPhotos
+      ? [{ href: '/studio', label: 'استديو الهيثم', icon: Camera, accent: false }]
+      : []),
+    { href: '/articles', label: 'المدونة', icon: Newspaper, accent: false },
+    { href: '/beekeeping', label: 'موسوعة النحّال', icon: BookOpen, accent: false },
+    { href: '/custom-mixtures', label: 'الخلطات الخاصة', icon: FlaskConical, accent: false },
+    { href: '/draw', label: 'السحب الأسبوعي', icon: Gift, accent: true },
+    {
+      href: customer ? '/account' : '/account/login',
+      label: customer ? `حسابي — ${customer.name}` : 'تسجيل الدخول',
+      icon: UserRound,
+      accent: false,
+    },
+    { href: '/about-us', label: 'حكايتنا', icon: Users, accent: false },
+    { href: '/quality-standards', label: 'الجودة', icon: ShieldCheck, accent: false },
+    { href: '/faq', label: 'الأسئلة الشائعة', icon: HelpCircle, accent: false },
+  ];
 
   // اختصار لوحة المفاتيح للبحث (Ctrl/⌘ + K) كما في المتاجر الحديثة
   useEffect(() => {
@@ -195,12 +225,14 @@ export default function Header() {
                 <Store className="w-4 h-4" />
                 المتجر
               </Link>
-              <Link
-                href="/studio"
-                className="hidden lg:block hover:text-amber-500 transition-colors"
-              >
-                الاستديو
-              </Link>
+              {hasStudioPhotos && (
+                <Link
+                  href="/studio"
+                  className="hidden lg:block hover:text-amber-500 transition-colors"
+                >
+                  الاستديو
+                </Link>
+              )}
               <Link href="/articles" className="hover:text-amber-500 transition-colors">
                 المدونة
               </Link>
@@ -240,7 +272,7 @@ export default function Header() {
               <button
                 type="button"
                 onClick={() => setSearchOpen(true)}
-                className="p-2.5 text-zinc-400 hover:text-amber-500 hover:bg-zinc-900 rounded-lg transition-colors"
+                className="p-3 text-zinc-400 hover:text-amber-500 hover:bg-zinc-900 rounded-lg transition-colors"
                 aria-label="البحث في الموقع"
               >
                 <Search className="w-5 h-5" />
@@ -249,7 +281,7 @@ export default function Header() {
               {/* الحساب */}
               <Link
                 href={customer ? '/account' : '/account/login'}
-                className={`relative p-2.5 rounded-lg transition-colors hover:bg-zinc-900 ${customer ? 'text-amber-400' : 'text-zinc-400 hover:text-amber-500'}`}
+                className={`relative p-3 rounded-lg transition-colors hover:bg-zinc-900 ${customer ? 'text-amber-400' : 'text-zinc-400 hover:text-amber-500'}`}
                 aria-label={customer ? `حسابي (${customer.name})` : 'تسجيل الدخول'}
               >
                 <UserRound className="w-5 h-5" />
@@ -258,24 +290,24 @@ export default function Header() {
                 )}
               </Link>
 
-              {/* المفضلة */}
-              <Link
-                href="/wishlist"
-                className="relative p-2.5 text-zinc-400 hover:text-red-400 hover:bg-zinc-900 rounded-lg transition-colors"
-                aria-label={`المفضلة (${savedCount} عنصر)`}
-              >
-                <Heart className="w-5 h-5" />
-                {savedCount > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+              {/* المفضلة — تظهر حين يكون فيها شيء */}
+              {savedCount > 0 && (
+                <Link
+                  href="/wishlist"
+                  className="relative hidden p-3 text-zinc-400 transition-colors hover:bg-zinc-900 hover:text-red-400 sm:block"
+                  aria-label={`المفضلة (${savedCount} عنصر)`}
+                >
+                  <Heart className="w-5 h-5" />
+                  <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
                     {savedCount > 9 ? '9+' : savedCount}
                   </span>
-                )}
-              </Link>
+                </Link>
+              )}
 
               {/* السلة */}
               <Link
                 href="/cart"
-                className="relative p-2.5 text-zinc-400 hover:text-amber-500 hover:bg-zinc-900 rounded-lg transition-colors"
+                className="relative hidden p-3 text-zinc-400 transition-colors hover:bg-zinc-900 hover:text-amber-500 sm:block"
                 aria-label={`سلة الطلبات (${cartCount} عنصر)`}
               >
                 <ShoppingCart className="w-5 h-5" />
@@ -299,124 +331,55 @@ export default function Header() {
               {/* زر قائمة الجوال */}
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="md:hidden p-2.5 text-zinc-400 hover:text-amber-500 hover:bg-zinc-900 rounded-lg transition-colors"
+                className="md:hidden p-3 text-zinc-400 hover:text-amber-500 hover:bg-zinc-900 rounded-lg transition-colors"
                 aria-label={mobileMenuOpen ? 'إغلاق القائمة' : 'فتح القائمة'}
+                aria-expanded={mobileMenuOpen}
+                aria-controls="mobile-menu"
               >
                 {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
               </button>
             </div>
 
-            {/* قائمة الجوال المنبثقة */}
+            {/* قائمة الجوال المنبثقة.
+                ارتفاعها محدود بالشاشة ناقص الرأس والشريط السفلي: كانت h-screen
+                تبدأ تحت الرأس فتمتدّ خلف حافة الشاشة وتدفن آخر عناصرها. */}
             {mobileMenuOpen && (
-              <div className="md:hidden absolute top-full left-0 right-0 bg-zinc-950/95 backdrop-blur-md border-b border-amber-900/20 h-screen overflow-y-auto pb-20">
-                <div className="flex flex-col py-6 px-6 gap-5">
-                  <Link
-                    href="/shop"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center gap-4 text-zinc-300 hover:text-amber-500 transition-colors py-3 text-lg border-b border-zinc-800/50"
-                  >
-                    <Store className="w-6 h-6 text-amber-500" />
-                    <span className="font-medium">المتجر</span>
-                  </Link>
-                  <Link
-                    href="/studio"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center gap-4 text-zinc-300 hover:text-amber-500 transition-colors py-3 text-lg border-b border-zinc-800/50"
-                  >
-                    <Camera className="w-6 h-6 text-amber-500" />
-                    <span className="font-medium">استديو الهيثم</span>
-                  </Link>
-                  <Link
-                    href="/articles"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="text-zinc-300 hover:text-amber-500 transition-colors py-3 text-lg border-b border-zinc-800/50"
-                  >
-                    المدونة
-                  </Link>
-                  <Link
-                    href="/beekeeping"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center gap-4 text-zinc-300 hover:text-amber-500 transition-colors py-3 text-lg border-b border-zinc-800/50"
-                  >
-                    <BookOpen className="w-6 h-6 text-amber-500" />
-                    <span className="font-medium">موسوعة النحّال</span>
-                  </Link>
-                  <Link
-                    href="/custom-mixtures"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="text-zinc-300 hover:text-amber-500 transition-colors py-3 text-lg border-b border-zinc-800/50"
-                  >
-                    الخلطات الخاصة
-                  </Link>
-                  <Link
-                    href="/draw"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center gap-4 text-amber-300 hover:text-amber-200 transition-colors py-3 text-lg border-b border-zinc-800/50"
-                  >
-                    <Gift className="w-6 h-6 text-amber-500" />
-                    <span className="font-medium">السحب الأسبوعي</span>
-                  </Link>
-                  <Link
-                    href={customer ? '/account' : '/account/login'}
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center gap-4 text-zinc-300 hover:text-amber-500 transition-colors py-3 text-lg border-b border-zinc-800/50"
-                  >
-                    <UserRound className="w-6 h-6 text-amber-500" />
-                    <span className="font-medium">
-                      {customer ? `حسابي — ${customer.name}` : 'تسجيل الدخول'}
-                    </span>
-                  </Link>
-                  <Link
-                    href="/about-us"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="text-zinc-300 hover:text-amber-500 transition-colors py-3 text-lg border-b border-zinc-800/50"
-                  >
-                    حكايتنا
-                  </Link>
-                  <Link
-                    href="/quality-standards"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="text-zinc-300 hover:text-amber-500 transition-colors py-3 text-lg border-b border-zinc-800/50"
-                  >
-                    الجودة
-                  </Link>
-                  <Link
-                    href="/faq"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="text-zinc-300 hover:text-amber-500 transition-colors py-3 text-lg border-b border-zinc-800/50"
-                  >
-                    الأسئلة الشائعة
-                  </Link>
-
-                  {/* أزرار الإجراءات في الجوال */}
-                  <div className="flex gap-3 pt-2 border-t border-zinc-800/50">
-                    <Link
-                      href="/wishlist"
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="flex-1 flex items-center justify-center gap-2 py-3 bg-zinc-900 rounded-xl text-zinc-300 font-bold"
-                    >
-                      <Heart className="w-5 h-5" />
-                      المفضلة ({savedCount})
-                    </Link>
-                    <Link
-                      href="/cart"
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="flex-1 flex items-center justify-center gap-2 py-3 bg-zinc-900 rounded-xl text-zinc-300 font-bold"
-                    >
-                      <ShoppingCart className="w-5 h-5" />
-                      السلة ({cartCount})
-                    </Link>
-                  </div>
-
+              <div
+                id="mobile-menu"
+                className="md:hidden absolute top-full left-0 right-0 max-h-[calc(100dvh-7rem)] overflow-y-auto overscroll-contain border-b border-amber-900/20 bg-zinc-950"
+              >
+                <div className="flex flex-col gap-1 px-5 py-5 pb-24">
+                  {/* الدعوة أولاً لا أخيراً: هذا هو الإجراء المقصود من الموقع كله،
+                      وبالأخضر المعروف لا بالذهبي الذي يشبه كل شيء آخر. */}
                   <a
                     href={getWhatsAppLink(SITE.whatsappDefaultMessage)}
                     target="_blank"
                     rel="noopener noreferrer"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="mt-2 w-full py-4 gold-gradient rounded-xl text-zinc-950 text-lg font-black text-center luxury-shadow active:scale-95 transition-transform"
+                    onClick={() => {
+                      trackWhatsAppClick('mobile-menu');
+                      setMobileMenuOpen(false);
+                    }}
+                    className="mb-4 flex items-center justify-center gap-2.5 rounded-xl bg-[#25D366] py-4 text-lg font-black text-zinc-950 transition-transform active:scale-95"
                   >
-                    🍯 اطلب الآن عبر واتساب
+                    <MessageCircle className="h-5 w-5" />
+                    اطلب الآن عبر واتساب
                   </a>
+
+                  {mobileLinks.map(({ href, label, icon: Icon, accent }) => (
+                    <Link
+                      key={href}
+                      href={href}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className={`flex min-h-[52px] items-center gap-4 border-b border-zinc-800/50 py-3 text-lg transition-colors ${
+                        accent
+                          ? 'text-amber-300 hover:text-amber-200'
+                          : 'text-zinc-300 hover:text-amber-500'
+                      }`}
+                    >
+                      <Icon className="h-6 w-6 shrink-0 text-amber-500" />
+                      <span className="font-medium">{label}</span>
+                    </Link>
+                  ))}
                 </div>
               </div>
             )}
