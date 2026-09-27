@@ -47,13 +47,22 @@ export default async function JarWelcome({ params }: Params) {
   return (
     <section className="mx-auto flex min-h-dvh max-w-md flex-col gap-4 px-5 py-6">
       <header className="text-center">
-        <img
-          src="/images/logo.webp"
-          width={112}
-          height={112}
-          alt={SITE.name}
-          className="mx-auto h-20 w-auto rounded-2xl object-contain brightness-110 drop-shadow-[0_0_12px_rgba(212,175,55,0.3)]"
-        />
+        <Link
+          href="/"
+          aria-label="الصفحة الرئيسية للموقع"
+          className="group mx-auto inline-flex flex-col items-center gap-1 rounded-2xl transition-transform active:scale-95"
+        >
+          <img
+            src="/images/logo.webp"
+            width={80}
+            height={80}
+            alt={SITE.name}
+            className="h-20 w-auto rounded-2xl object-contain ring-1 ring-amber-500/40 brightness-110 drop-shadow-[0_0_12px_rgba(212,175,55,0.3)] transition group-hover:ring-amber-400"
+          />
+          <span className="text-[11px] text-amber-400/80 group-hover:text-amber-300">
+            زيارة الموقع ←
+          </span>
+        </Link>
         <h1 className="mt-2 font-amiri text-2xl font-bold text-white">
           شكراً لاختيارك <span className="text-amber-400">عسل الهيثم</span>
         </h1>
