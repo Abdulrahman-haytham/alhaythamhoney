@@ -30,16 +30,24 @@ jobs:
         env:
           HOST: ${{ secrets.VPS_HOST || vars.VPS_HOST }}
           KEY: ${{ secrets.VPS_SSH_KEY }}
+          KEY_B64: ${{ secrets.VPS_SSH_KEY_B64 }}
           PORT: ${{ secrets.VPS_PORT || vars.VPS_PORT }}
           KNOWN: ${{ secrets.VPS_KNOWN_HOSTS }}
           HOST_IN_VARS: ${{ vars.VPS_HOST != '' }}
           KEY_IN_VARS: ${{ vars.VPS_SSH_KEY != '' }}
         run: |
+          # A one-line base64 copy of the key is easier to paste from a phone.
+          if [ -z "$KEY" ] && [ -n "$KEY_B64" ]; then KEY=$(printf '%s' "$KEY_B64" | tr -d ' \r\n' | base64 -d); fi
+          # Undo what mobile pasting tends to do: CRLF line ends, or the whole key on one line.
+          KEY=$(printf '%s\n' "$KEY" | tr -d '\r')
+          if [ -n "$KEY" ] && [ "$(printf '%s\n' "$KEY" | wc -l)" -lt 3 ]; then
+            KEY=$(printf '%s' "$KEY" | sed -E 's/-----(BEGIN|END) ([A-Z ]+)-----/\n&\n/g' | sed -E '/^-----/!s/ +/\n/g' | sed '/^$/d')
+          fi
           for n in HOST KEY PORT KNOWN; do printf '%-6s %s\n' "$n" "$([ -n "${!n}" ] && echo set || echo empty)"; done
           echo "VPS_HOST saved as a variable: $HOST_IN_VARS"
           if [ "$KEY_IN_VARS" = true ]; then echo "::error::VPS_SSH_KEY was saved as a Variable, which is not hidden. Delete it there and add it under the Secrets tab."; exit 1; fi
           if [ -z "$HOST" ] || [ -z "$KEY" ]; then
-            echo "::error::Missing $([ -z "$HOST" ] && echo VPS_HOST) $([ -z "$KEY" ] && echo VPS_SSH_KEY) — add them under Settings → Secrets and variables → Actions → Repository secrets."
+            echo "::error::Missing $([ -z "$HOST" ] && echo VPS_HOST) $([ -z "$KEY" ] && echo VPS_SSH_KEY or VPS_SSH_KEY_B64) — add them under Settings → Secrets and variables → Actions → Repository secrets."
             exit 1
           fi
           case "$KEY" in *"BEGIN OPENSSH PRIVATE KEY"*|*"BEGIN RSA PRIVATE KEY"*|*"BEGIN EC PRIVATE KEY"*) ;; *) echo "::error::VPS_SSH_KEY does not look like a private key (paste the whole file, BEGIN to END)."; exit 1 ;; esac
