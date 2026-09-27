@@ -8,14 +8,14 @@ import {
   FileCheck2,
   Hexagon,
   MapPin,
-  MessageCircle,
   ShieldCheck,
 } from 'lucide-react';
 import { getHarvestJourney } from '@/lib/harvest.server';
 import { formatArticleDate, toIsoDay } from '@/lib/articles';
-import { SITE, getWhatsAppLink } from '@/lib/config';
+import { SITE } from '@/lib/config';
 import { getSettings } from '@/lib/settings.server';
 import { HarvestStep } from './HarvestStep';
+import WhatsAppButton from '@/components/WhatsAppButton';
 
 // الاستعلام وقت الطلب: بناء الإنتاج لا يحتاج قاعدة بيانات حيّة.
 export const dynamic = 'force-dynamic';
@@ -203,16 +203,15 @@ export default async function HarvestPage() {
                           اطلب هذا العسل
                         </Link>
                       )}
-                      <a
-                        href={getWhatsAppLink(
-                          `مرحباً ${SITE.name}، شاهدت رحلة القطاف وأودّ الاستفسار عن الدفعة ${passport.code}.`,
-                        )}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex h-11 items-center gap-2 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-5 text-sm font-bold text-emerald-300 transition hover:bg-emerald-500/20"
+                      <WhatsAppButton
+                        source="harvest"
+                        variant="soft"
+                        message={`مرحباً ${SITE.name}، شاهدت رحلة القطاف وأودّ الاستفسار عن الدفعة ${passport.code}.`}
+                        className="h-11 rounded-full px-5 text-sm"
+                        iconClassName="h-4 w-4"
                       >
-                        <MessageCircle className="h-4 w-4" /> استفسر عبر واتساب
-                      </a>
+                        استفسر عبر واتساب
+                      </WhatsAppButton>
                     </div>
                   </div>
                 ) : (

@@ -23,16 +23,14 @@ import {
   FlaskConical,
   Users,
   HelpCircle,
-  MessageCircle,
 } from 'lucide-react';
-import { SITE, getWhatsAppLink } from '@/lib/config';
-import { trackWhatsAppClick } from '@/lib/analytics';
 import { useCart } from '@/store/cartStore';
 import { useWishlist } from '@/store/wishlistStore';
 import { useSettings } from '@/components/SettingsProvider';
 import { useSiteContent } from '@/components/SiteContentProvider';
 import { SearchDialog } from '@/components/SearchDialog';
 import { useCustomer } from '@/components/CustomerProvider';
+import WhatsAppButton from '@/components/WhatsAppButton';
 
 function SkipLink() {
   return (
@@ -329,14 +327,13 @@ export default function Header() {
               </Link>
 
               {/* دعوة واتساب (سطح المكتب) */}
-              <a
-                href={getWhatsAppLink(SITE.whatsappDefaultMessage)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hidden md:block px-4 lg:px-6 py-1.5 lg:py-2 gold-gradient rounded-full text-zinc-950 text-xs lg:text-sm font-black luxury-shadow hover:scale-105 transition-transform"
+              <WhatsAppButton
+                source="header"
+                className="hidden rounded-full px-4 py-1.5 text-xs md:inline-flex lg:px-6 lg:py-2 lg:text-sm"
+                iconClassName="h-4 w-4"
               >
                 اطلب الآن
-              </a>
+              </WhatsAppButton>
 
               {/* زر قائمة الجوال */}
               <button
@@ -361,19 +358,13 @@ export default function Header() {
                 <div className="flex flex-col gap-1 px-5 py-5 pb-24">
                   {/* الدعوة أولاً لا أخيراً: هذا هو الإجراء المقصود من الموقع كله،
                       وبالأخضر المعروف لا بالذهبي الذي يشبه كل شيء آخر. */}
-                  <a
-                    href={getWhatsAppLink(SITE.whatsappDefaultMessage)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={() => {
-                      trackWhatsAppClick('mobile-menu');
-                      setMobileMenuOpen(false);
-                    }}
-                    className="mb-4 flex items-center justify-center gap-2.5 rounded-xl bg-[#25D366] py-4 text-lg font-black text-zinc-950 transition-transform active:scale-95"
+                  <WhatsAppButton
+                    source="mobile-menu"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="mb-4 gap-2.5 rounded-xl py-4 text-lg"
                   >
-                    <MessageCircle className="h-5 w-5" />
                     اطلب الآن عبر واتساب
-                  </a>
+                  </WhatsAppButton>
 
                   {mobileLinks.map(({ href, label, icon: Icon }) => {
                     const current = isCurrent(href);

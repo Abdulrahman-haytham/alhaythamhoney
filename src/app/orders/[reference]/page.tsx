@@ -1,10 +1,9 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { Check, Clock, MessageCircle, XCircle } from 'lucide-react';
+import { Check, Clock, XCircle } from 'lucide-react';
 import { db } from '@/lib/db';
 import { getSettings } from '@/lib/settings.server';
-import { getWhatsAppLink } from '@/lib/config';
 import {
   normalizeOrderReference,
   ORDER_STATUS_LABELS,
@@ -13,6 +12,7 @@ import {
 } from '@/lib/orders';
 import { type QuoteAdjustment } from '@/lib/pricing';
 import { formatPrice } from '@/lib/money';
+import WhatsAppButton from '@/components/WhatsAppButton';
 
 export const metadata: Metadata = { title: 'تتبّع الطلب', robots: { index: false } };
 export const dynamic = 'force-dynamic';
@@ -149,14 +149,14 @@ export default async function OrderTrackingPage({
         </div>
 
         <div className="mt-6 flex flex-wrap gap-3">
-          <a
-            href={getWhatsAppLink(`مرحباً، أستفسر عن طلبي رقم ${order.reference}`)}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 rounded-xl bg-green-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-green-500"
+          <WhatsAppButton
+            source="order-page"
+            message={`مرحباً عسل الهيثم، أستفسر عن طلبي رقم ${order.reference}`}
+            className="rounded-xl px-5 py-2.5 text-sm"
+            iconClassName="h-4 w-4"
           >
-            <MessageCircle className="h-4 w-4" /> استفسر عن الطلب
-          </a>
+            استفسر عن الطلب
+          </WhatsAppButton>
           <Link
             href="/shop"
             className="inline-flex items-center rounded-xl border border-zinc-700 px-5 py-2.5 text-sm text-zinc-300 hover:border-zinc-500"

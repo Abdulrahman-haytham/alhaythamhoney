@@ -2,19 +2,10 @@
 
 import Link from 'next/link';
 import { Reveal } from '@/components/motion/Reveal';
-import {
-  FlaskConical,
-  Hexagon,
-  Award,
-  Ban,
-  HandCoins,
-  Truck,
-  MessageCircle,
-  Store,
-} from 'lucide-react';
-import { SHIPPING, getWhatsAppLink } from '@/lib/config';
-import { trackWhatsAppClick } from '@/lib/analytics';
+import { FlaskConical, Hexagon, Award, Ban, HandCoins, Truck, Store } from 'lucide-react';
+import { SHIPPING } from '@/lib/config';
 import { formatPrice } from '@/lib/money';
+import WhatsAppButton from '@/components/WhatsAppButton';
 
 /**
  * التزامات محدّدة بدل مقارنة «نحن مقابل الآخرون».
@@ -97,16 +88,12 @@ export default function WhyChooseUs() {
         </div>
 
         <Reveal className="mt-12 flex flex-col items-center justify-center gap-3 sm:mt-16 sm:flex-row sm:gap-4">
-          <a
-            href={getWhatsAppLink('مرحباً، أود الاستفسار عن منتجات الهيثم.')}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={() => trackWhatsAppClick('why-choose-us')}
-            className="inline-flex h-13 w-full items-center justify-center gap-2.5 rounded-xl bg-amber-500 px-8 py-4 font-bold text-zinc-950 shadow-lg shadow-amber-500/20 transition-colors hover:bg-amber-400 sm:w-auto"
+          <WhatsAppButton
+            source="why-choose-us"
+            className="h-13 w-full gap-2.5 rounded-xl px-8 py-4 sm:w-auto"
           >
-            <MessageCircle className="h-5 w-5" />
             تحدّث إلينا على واتساب
-          </a>
+          </WhatsAppButton>
           <Link
             href="/shop"
             className="inline-flex w-full items-center justify-center gap-2.5 rounded-xl border border-zinc-700 px-8 py-4 font-bold text-zinc-200 transition-colors hover:border-amber-500/40 hover:text-amber-300 sm:w-auto"

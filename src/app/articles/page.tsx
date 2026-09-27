@@ -1,9 +1,10 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { ArrowLeft, BookOpen, Calendar, Clock, FileText, MessageCircle } from 'lucide-react';
+import { ArrowLeft, BookOpen, Calendar, Clock, FileText } from 'lucide-react';
 import { getAllArticles, formatArticleDate, formatReadingTime } from '@/lib/articles';
-import { SITE, getWhatsAppLink } from '@/lib/config';
+import { SITE } from '@/lib/config';
 import { getSettings } from '@/lib/settings.server';
+import WhatsAppButton from '@/components/WhatsAppButton';
 
 // الاستعلام وقت الطلب: بناء الإنتاج لا يحتاج قاعدة بيانات حيّة.
 export const dynamic = 'force-dynamic';
@@ -115,15 +116,9 @@ export default async function ArticlesPage() {
           <p className="mb-8 text-lg text-zinc-400">
             اطلب الآن واحصل على عسل طبيعي 100% مفحوص مخبرياً
           </p>
-          <a
-            href={getWhatsAppLink(SITE.whatsappDefaultMessage)}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 rounded-xl gold-gradient px-8 py-4 font-black text-zinc-950 luxury-shadow transition-transform hover:scale-105"
-          >
-            <MessageCircle className="h-5 w-5" />
+          <WhatsAppButton source="articles" className="rounded-xl px-8 py-4">
             اطلب الآن عبر واتساب
-          </a>
+          </WhatsAppButton>
         </div>
       </div>
     </section>

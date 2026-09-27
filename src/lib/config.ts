@@ -33,7 +33,7 @@ export const SITE = {
   get workingHours() {
     return runtime.workingHours;
   },
-  whatsappDefaultMessage: 'مرحباً عسل الهيثم، أود الاستفسار عن المنتج المعروض في الموقع.',
+  whatsappDefaultMessage: 'مرحباً عسل الهيثم، أود الاستفسار عن منتجاتكم.',
   /** حسابات العلامة — تُدار من `/admin/settings`، والقيم الافتراضية للتطوير المحلي فقط */
   social: {
     get facebook() {

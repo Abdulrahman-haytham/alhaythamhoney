@@ -1,14 +1,14 @@
 'use client';
 
 import Link from 'next/link';
-import { ShoppingCart, MessageCircle } from 'lucide-react';
+import { ShoppingCart } from 'lucide-react';
 import { variantCartId } from '@/lib/variants';
 import { useCart } from '@/store/cartStore';
-import { getWhatsAppLink } from '@/lib/config';
 import { trackAddToCart } from '@/lib/analytics';
 import { isAvailable } from '@/lib/settings';
 import type { ArticleProduct } from '@/lib/articles';
 import { CURRENCY, formatAmount } from '@/lib/money';
+import WhatsAppButton from '@/components/WhatsAppButton';
 
 /** بطاقة مضغوطة «المنتج المذكور في المقال» — من القراءة إلى السلة بضغطة. */
 export default function ArticleProductCard({ product }: { product: ArticleProduct }) {
@@ -71,15 +71,15 @@ export default function ArticleProductCard({ product }: { product: ArticleProduc
               <ShoppingCart className="h-3.5 w-3.5" /> أضف إلى السلة
             </button>
           ) : (
-            <a
-              href={getWhatsAppLink(`مرحباً عسل الهيثم، أود الاستفسار عن: ${product.name}`)}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-700 px-3 py-1.5 text-xs font-bold text-zinc-300 hover:border-amber-500/40"
+            <WhatsAppButton
+              source="article-product"
+              variant="soft"
+              message={`مرحباً عسل الهيثم، أود الاستفسار عن: ${product.name}`}
+              className="gap-1.5 rounded-lg px-3 py-1.5 text-xs"
+              iconClassName="h-3.5 w-3.5"
             >
-              <MessageCircle className="h-3.5 w-3.5" />
               {available ? 'اسأل عن السعر' : 'أبلغني عند توفره'}
-            </a>
+            </WhatsAppButton>
           )}
         </div>
       </div>
