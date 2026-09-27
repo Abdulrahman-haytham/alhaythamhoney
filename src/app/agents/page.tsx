@@ -6,8 +6,8 @@ import { SITE } from '@/lib/config';
 import { FacebookIcon } from '@/components/BrandIcons';
 import WhatsAppButton from '@/components/WhatsAppButton';
 
-// مخزّنة، وتعديل الوكلاء في اللوحة يبطلها فوراً (revalidatePublic('agent'))
-export const revalidate = 3600;
+// الاستعلام وقت الطلب: بناء الإنتاج يجري بلا قاعدة بيانات فلا تُولَّد الصفحة مسبقاً.
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: 'الوكلاء المعتمدون',

@@ -111,7 +111,7 @@ jobs:
           rc=${PIPESTATUS[1]}
           # Also publish the output as an annotation: the API serves annotations
           # even where raw log downloads are not reachable.
-          out=$(tail -c 60000 "$RUNNER_TEMP/out.txt")
+          out=$(tail -c 3500 "$RUNNER_TEMP/out.txt") # annotations keep ~4 KB; the end holds the verdict
           out=${out//'%'/'%25'}; out=${out//$'\r'/'%0D'}; out=${out//$'\n'/'%0A'}
           echo "::notice title=$ACTION (exit $rc)::$out"
           exit "$rc"
