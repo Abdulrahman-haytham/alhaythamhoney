@@ -1,12 +1,14 @@
 'use client';
 
-import { useState } from 'react';
-import { MessageCircle, Layers, BadgePercent, Gift } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { Layers, BadgePercent, Gift } from 'lucide-react';
 import type { CartProduct } from '@/store/cartStore';
-import { getWhatsAppLink } from '@/lib/config';
+import { SITE } from '@/lib/config';
 import { lowStockLabel } from '@/lib/settings';
 import { useSettings } from '@/components/SettingsProvider';
-import { trackWhatsAppClick } from '@/lib/analytics';
+import { productMessage } from '@/lib/whatsappMessage';
+import { usePageWhatsAppMessage } from '@/store/pageActionStore';
+import WhatsAppButton from '@/components/WhatsAppButton';
 import { defaultVariant, variantAvailable, variantCartId, type VariantLite } from '@/lib/variants';
 import { bestTier, type PriceTierRule } from '@/lib/pricing';
 import AddToCartButton from './AddToCartButton';
@@ -41,13 +43,25 @@ export default function BuyBox({
   const price = variant ? variant.price : product.price;
   const canOrder = available && (variant ? variantAvailable(variant) : true);
   const lowStock = lowStockLabel(variant ? variant.stockQty : stockQty, lowStockThreshold);
-  const cartProduct: CartProduct = {
-    ...product,
-    id: variant ? variantCartId(product.productId, variant.id) : product.productId,
-    variantId: variant?.id,
+  const cartProduct: CartProduct = useMemo(
+    () => ({
+      ...product,
+      id: variant ? variantCartId(product.productId, variant.id) : product.productId,
+      variantId: variant?.id,
+      price,
+      weight: variant ? variant.label : product.weight,
+    }),
+    [product, variant, price],
+  );
+  // كل أزرار واتساب في الصفحة (والشريط السفلي) ترسل المنتج بالحجم المختار وسعره ورابطه
+  const waMessage = productMessage({
+    name: product.name,
+    weight: cartProduct.weight,
     price,
-    weight: variant ? variant.label : product.weight,
-  };
+    url: `${SITE.url}/product/${product.slug}`,
+    orderable: canOrder && price != null,
+  });
+  usePageWhatsAppMessage(waMessage);
   const visibleTiers = tieredPricingEnabled ? tiers : [];
   const sampleTier = bestTier(visibleTiers, 999);
 
@@ -151,18 +165,14 @@ export default function BuyBox({
             className="flex w-full items-center justify-center gap-2 rounded-xl border border-amber-500/40 bg-amber-500/10 py-4 font-bold text-amber-300 transition-colors hover:bg-amber-500/20"
           />
         )}
-        <a
-          href={getWhatsAppLink(
-            `مرحباً عسل الهيثم، أود الاستفسار عن المنتج المعروض في الموقع: ${product.name}${cartProduct.weight ? ` (${cartProduct.weight})` : ''}`,
-          )}
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={() => trackWhatsAppClick('product-page')}
-          className="w-full flex items-center justify-center gap-2 border border-amber-500/30 text-amber-400 py-3.5 rounded-xl font-bold hover:bg-amber-500/10 transition-all"
+        <WhatsAppButton
+          source="product-page"
+          variant="soft"
+          message={waMessage}
+          className="w-full rounded-xl py-3.5"
         >
-          <MessageCircle className="w-5 h-5" />
-          <span>اطلب الآن عبر واتساب</span>
-        </a>
+          اطلب عبر واتساب
+        </WhatsAppButton>
       </div>
       <StickyBuyBar product={cartProduct} available={canOrder} anchorId="buy-box" />
     </>

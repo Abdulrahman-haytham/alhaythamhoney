@@ -5,15 +5,17 @@ import {
   Check,
   ChevronDown,
   Lock,
-  MessageCircle,
   RotateCcw,
   ShoppingCart,
   SlidersHorizontal,
   AlertTriangle,
 } from 'lucide-react';
 import { useCart } from '@/store/cartStore';
-import { getWhatsAppLink } from '@/lib/config';
-import { trackAddToCart, trackWhatsAppClick } from '@/lib/analytics';
+import { SITE } from '@/lib/config';
+import { trackAddToCart } from '@/lib/analytics';
+import { GREETING } from '@/lib/whatsappMessage';
+import { usePageWhatsAppMessage } from '@/store/pageActionStore';
+import WhatsAppButton from '@/components/WhatsAppButton';
 import {
   computePrice,
   clampToStep,
@@ -85,6 +87,22 @@ export function MixtureBuilder({
   const isCustomized = specs.some((s) => grams[s.id] !== s.recommended);
   const aboveRecommended = specs.filter((s) => grams[s.id] > s.recommended);
 
+  // الوصفة المختارة كما هي — يرسلها زر الصفحة والشريط السفلي معاً
+  const waMessage =
+    honey && price?.valid
+      ? [
+          `${GREETING} أود طلب خلطة «${mixture.name}»:`,
+          `• الحجم: ${size} غرام`,
+          `• العسل الأساسي: ${honey.name}`,
+          ...price.ingredients
+            .filter((i) => i.grams > 0)
+            .map((i) => `• ${i.name}: ${i.grams} غرام`),
+          `• السعر في الموقع: ${formatPrice(price.total)}`,
+          `${SITE.url}/custom-mixtures/${mixture.slug}`,
+        ].join('\n')
+      : null;
+  usePageWhatsAppMessage(waMessage);
+
   if (!honey || !price) {
     return <p className="text-zinc-500">لا يتوفر عسل أساسي حالياً — تواصل معنا عبر واتساب.</p>;
   }
@@ -108,14 +126,6 @@ export function MixtureBuilder({
     setAdded(true);
     setTimeout(() => setAdded(false), 2200);
   }
-
-  const waMessage = [
-    `مرحباً، أود طلب خلطة «${mixture.name}»:`,
-    `• الحجم: ${size} غرام`,
-    `• العسل الأساسي: ${honey.name}`,
-    ...price.ingredients.filter((i) => i.grams > 0).map((i) => `• ${i.name}: ${i.grams} غرام`),
-    `السعر: ${formatPrice(price.total)}`,
-  ].join('\n');
 
   return (
     <div className="space-y-8">
@@ -392,20 +402,16 @@ export function MixtureBuilder({
           {added ? <Check className="h-5 w-5" /> : <ShoppingCart className="h-5 w-5" />}
           {added ? 'أُضيفت إلى السلة' : 'أضف إلى السلة'}
         </button>
-        <a
-          href={price.valid ? getWhatsAppLink(waMessage) : undefined}
-          aria-disabled={!price.valid}
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={(e) => {
-            if (!price.valid) e.preventDefault();
-            else trackWhatsAppClick('mixture-builder');
-          }}
-          className="inline-flex h-13 flex-1 items-center justify-center gap-2.5 rounded-xl border border-green-600/50 bg-green-600/10 py-4 font-bold text-green-300 transition-colors hover:bg-green-600/20"
-        >
-          <MessageCircle className="h-5 w-5" />
-          اطلبها عبر واتساب
-        </a>
+        {waMessage ? (
+          <WhatsAppButton
+            source="mixture-builder"
+            variant="soft"
+            message={waMessage}
+            className="h-13 flex-1 gap-2.5 rounded-xl py-4"
+          >
+            اطلبها عبر واتساب
+          </WhatsAppButton>
+        ) : null}
       </div>
     </div>
   );

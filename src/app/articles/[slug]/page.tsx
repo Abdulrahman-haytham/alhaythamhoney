@@ -1,25 +1,18 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import {
-  ArrowLeft,
-  ArrowRight,
-  BookOpen,
-  Calendar,
-  Clock,
-  FileText,
-  MessageCircle,
-} from 'lucide-react';
+import { ArrowLeft, ArrowRight, BookOpen, Calendar, Clock, FileText } from 'lucide-react';
 import {
   getAllArticles,
   getArticleBySlug,
   formatArticleDate,
   formatReadingTime,
 } from '@/lib/articles';
-import { SITE, getWhatsAppLink } from '@/lib/config';
+import { SITE } from '@/lib/config';
 import { requireAdmin } from '@/lib/auth';
 import { getSettings } from '@/lib/settings.server';
 import ArticleProductCard from '@/components/ArticleProductCard';
+import WhatsAppButton from '@/components/WhatsAppButton';
 
 type Params = Promise<{ slug: string }>;
 
@@ -157,17 +150,13 @@ export default async function ArticlePage({ params }: { params: Params }) {
           <p className="mb-8 text-lg text-zinc-400">
             اطلب الآن واحصل على عسل طبيعي 100% مفحوص مخبرياً
           </p>
-          <a
-            href={getWhatsAppLink(
-              `مرحباً عسل الهيثم، قرأت مقال «${article.title}» في الموقع وأود الاستفسار عن منتجاتكم.`,
-            )}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 rounded-xl gold-gradient px-8 py-4 font-black text-zinc-950 luxury-shadow transition-transform hover:scale-105"
+          <WhatsAppButton
+            source="article"
+            message={`مرحباً عسل الهيثم، قرأت مقال «${article.title}» في الموقع وأود الاستفسار عن منتجاتكم.`}
+            className="rounded-xl px-8 py-4"
           >
-            <MessageCircle className="h-5 w-5" />
             اطلب الآن عبر واتساب
-          </a>
+          </WhatsAppButton>
         </div>
 
         {related.length > 0 && (

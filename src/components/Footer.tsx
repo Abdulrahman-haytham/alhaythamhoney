@@ -1,8 +1,9 @@
 import Link from 'next/link';
 import { MessageCircle, Phone, Heart, MapPin } from 'lucide-react';
-import { FacebookIcon, InstagramIcon, WhatsAppIcon } from '@/components/BrandIcons';
-import { SITE, getTelLink, getWhatsAppLink, getRuntimeSettings } from '@/lib/config';
+import { FacebookIcon, InstagramIcon } from '@/components/BrandIcons';
+import { SITE, getTelLink, getRuntimeSettings } from '@/lib/config';
 import { getSiteContentFlags } from '@/lib/content.server';
+import WhatsAppButton from '@/components/WhatsAppButton';
 
 /** تذييل الموقع — مكوّن خادم بلا تفاعلية، يعتمد فقط على ثوابت SITE. */
 export default async function Footer() {
@@ -31,15 +32,13 @@ export default async function Footer() {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
-              <a
-                href={getWhatsAppLink()}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 sm:gap-3 bg-amber-500 text-zinc-950 px-5 sm:px-8 md:px-10 py-3 sm:py-3.5 md:py-4 rounded-full font-black text-sm sm:text-base md:text-lg shadow-lg shadow-amber-500/20 hover:shadow-amber-500/40 hover:scale-105 transition-all"
+              <WhatsAppButton
+                source="footer"
+                className="gap-2 rounded-full px-5 py-3 text-sm sm:gap-3 sm:px-8 sm:py-3.5 sm:text-base md:px-10 md:py-4 md:text-lg"
+                iconClassName="h-5 w-5 sm:h-6 sm:w-6"
               >
-                <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6" />
                 اطلب الآن عبر واتساب
-              </a>
+              </WhatsAppButton>
               {/* حساباتنا — بشعاراتها المعروفة لا بكرة أرضية لا تدلّ على شيء */}
               <div className="flex items-center justify-center gap-2 rounded-full border border-white/5 bg-zinc-900/50 px-3 py-2 sm:gap-3 sm:px-4">
                 {facebookLink && (
@@ -64,15 +63,13 @@ export default async function Footer() {
                     <InstagramIcon className="h-5 w-5 sm:h-6 sm:w-6" />
                   </a>
                 )}
-                <a
-                  href={getWhatsAppLink()}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label="راسلنا على واتساب"
-                  className="flex h-11 w-11 items-center justify-center rounded-full text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-[#25D366]"
-                >
-                  <WhatsAppIcon className="h-5 w-5 sm:h-6 sm:w-6" />
-                </a>
+                <WhatsAppButton
+                  source="footer-icon"
+                  variant="icon"
+                  ariaLabel="راسلنا على واتساب"
+                  className="h-11 w-11 rounded-full"
+                  iconClassName="h-5 w-5 sm:h-6 sm:w-6"
+                />
                 <a
                   href={getTelLink()}
                   aria-label="اتصل بنا"
@@ -212,14 +209,14 @@ export default async function Footer() {
               </li>
               <li className="flex items-center gap-2">
                 <MessageCircle className="w-4 h-4 text-amber-500" />
-                <a
-                  href={getWhatsAppLink()}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:text-amber-500 transition-colors"
+                <WhatsAppButton
+                  source="footer-link"
+                  variant="link"
+                  icon={false}
+                  className="font-normal"
                 >
                   تواصل عبر واتساب
-                </a>
+                </WhatsAppButton>
               </li>
             </ul>
           </div>

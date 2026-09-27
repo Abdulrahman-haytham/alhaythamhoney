@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { Building2, Truck, BadgeCheck, MessageCircle } from 'lucide-react';
+import { Building2, Truck, BadgeCheck } from 'lucide-react';
 import { getSettings } from '@/lib/settings.server';
-import { getWhatsAppLink } from '@/lib/config';
 import { LeadForm } from './LeadForm';
+import WhatsAppButton from '@/components/WhatsAppButton';
 
 export const metadata: Metadata = {
   title: 'الجملة والمحلات',
@@ -50,14 +50,15 @@ export default async function WholesalePage() {
         <LeadForm />
         <p className="mt-6 text-center text-sm text-zinc-500">
           تفضّل الاتصال؟{' '}
-          <a
-            href={getWhatsAppLink('مرحباً، أستفسر عن أسعار الجملة.')}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 font-bold text-green-400 hover:underline"
+          <WhatsAppButton
+            source="wholesale"
+            variant="link"
+            message="مرحباً عسل الهيثم، أستفسر عن أسعار الجملة."
+            className="gap-1"
+            iconClassName="h-4 w-4"
           >
-            <MessageCircle className="h-4 w-4" /> راسلنا على واتساب
-          </a>
+            راسلنا على واتساب
+          </WhatsAppButton>
         </p>
       </div>
     </section>

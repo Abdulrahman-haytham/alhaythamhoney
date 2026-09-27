@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useMemo, useState, useRef } from 'react';
 import { useHydrated } from '@/lib/useHydrated';
 import Link from 'next/link';
 import {
@@ -21,6 +21,7 @@ import {
   Coins,
 } from 'lucide-react';
 import { useCart } from '@/store/cartStore';
+import { usePagePrimaryAction } from '@/store/pageActionStore';
 import { useSettings } from '@/components/SettingsProvider';
 import { trackBeginCheckout, trackWhatsAppClick } from '@/lib/analytics';
 import { normalizeCouponCode, LOGIN_REQUIRED_REASON } from '@/lib/coupons';
@@ -161,13 +162,13 @@ function OrderPlaced({
           target="_blank"
           rel="noopener noreferrer"
           onClick={() => trackWhatsAppClick('cart-order')}
-          className="flex min-h-11 items-center rounded-xl bg-green-600 px-4 py-2 text-sm font-bold text-white"
+          className="flex min-h-11 items-center rounded-xl bg-whatsapp px-4 py-2 text-sm font-black text-zinc-950"
         >
           فتح واتساب وإرسال الطلب
         </a>
         <Link
           href={`/orders/${reference}`}
-          className="rounded-xl bg-green-600 px-4 py-2 text-sm font-bold text-white hover:bg-green-500"
+          className="flex min-h-11 items-center rounded-xl border border-zinc-600 px-4 py-2 text-sm font-bold text-zinc-100 hover:border-zinc-400"
         >
           تتبّع الطلب
         </Link>
@@ -259,6 +260,22 @@ export function CartClient() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mounted, signature, couponCode, zoneId, usePoints]);
+
+  // الزر الأخضر في الشريط السفلي يُتمّ الطلب نفسه — لا يرسل رسالة عامة تتجاوز حفظه برقم.
+  // يضغط زر الإتمام الأصلي فيبقى المسار واحداً (ومنه نافذة واتساب المحجوزة أثناء النقرة).
+  const hasItems = mounted && items.length > 0;
+  const checkoutAction = useMemo(
+    () =>
+      hasItems
+        ? {
+            label: placed ? 'أرسل الطلب في واتساب' : 'أكمل الطلب',
+            busy: placing,
+            run: () => document.getElementById('place-order')?.click(),
+          }
+        : null,
+    [hasItems, placed, placing],
+  );
+  usePagePrimaryAction(checkoutAction);
 
   if (!mounted) {
     return (
@@ -656,10 +673,11 @@ export function CartClient() {
             </p>
           )}
           <button
+            id="place-order"
             type="button"
             onClick={() => void placeOrder()}
             disabled={placing || quoting || quote.lines.length === 0}
-            className="mt-6 flex h-13 w-full items-center justify-center gap-2.5 rounded-xl bg-green-600 py-4 font-bold text-white shadow-lg shadow-green-600/20 transition-colors hover:bg-green-500 disabled:opacity-50"
+            className="mt-6 flex h-13 w-full items-center justify-center gap-2.5 rounded-xl bg-whatsapp py-4 font-black text-zinc-950 transition hover:brightness-110 disabled:opacity-50"
           >
             {placing ? (
               <Loader2 className="h-5 w-5 animate-spin" />

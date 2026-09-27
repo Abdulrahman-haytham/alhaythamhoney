@@ -1,6 +1,6 @@
-import { Star, BadgeCheck, Quote, MessageCircle } from 'lucide-react';
+import { Star, BadgeCheck, Quote } from 'lucide-react';
 import { getApprovedReviews } from '@/lib/reviews.server';
-import { getWhatsAppLink } from '@/lib/config';
+import WhatsAppButton from '@/components/WhatsAppButton';
 
 function Stars({ value }: { value: number }) {
   return (
@@ -75,15 +75,14 @@ export default async function CustomerReviews() {
         {/* Call to Action */}
         <div className="text-center mt-10">
           <p className="text-zinc-400 mb-4 text-sm">شاركنا تجربتك مع منتجاتنا</p>
-          <a
-            href={getWhatsAppLink('أريد مشاركة تجربتي مع منتجاتكم')}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-amber-500 text-zinc-950 rounded-full font-bold hover:bg-amber-400 transition-all duration-300 hover:scale-105 text-sm"
+          <WhatsAppButton
+            source="reviews"
+            message="مرحباً عسل الهيثم، أريد مشاركة تجربتي مع منتجاتكم."
+            className="rounded-full px-6 py-3 text-sm"
+            iconClassName="h-4 w-4"
           >
             شارك رأيك
-            <MessageCircle className="w-4 h-4" />
-          </a>
+          </WhatsAppButton>
         </div>
       </div>
     </section>

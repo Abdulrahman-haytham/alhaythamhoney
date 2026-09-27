@@ -1,6 +1,5 @@
 import Image from 'next/image';
 import { ShieldCheck, Microscope, Award, Truck } from 'lucide-react';
-import { getWhatsAppLink } from '@/lib/config';
 import { getSettings } from '@/lib/settings.server';
 
 const trustIcons = [
@@ -79,10 +78,10 @@ export default async function Hero() {
         {/* زر الدعوة لاتخاذ إجراء */}
         <div style={{ animationDelay: '0.45s' }} className="rise flex justify-center">
           <a
-            href={getWhatsAppLink()}
+            href="#products"
             className="group relative px-6 sm:px-8 md:px-12 py-3 sm:py-4 md:py-5 gold-gradient rounded-full text-zinc-950 font-black text-sm sm:text-base md:text-xl luxury-shadow transition-all hover:scale-105 active:scale-95"
           >
-            🍯 اطلب عبر واتساب
+            🍯 تسوّق العسل
           </a>
         </div>
       </div>

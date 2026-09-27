@@ -1,9 +1,8 @@
 import type { Metadata } from 'next';
-import { MessageCircle } from 'lucide-react';
 import FAQ from '@/components/FAQ';
 import { FAQ_ITEMS, faqPlainAnswer } from '@/lib/faq';
-import { getWhatsAppLink } from '@/lib/config';
 import { getSettings } from '@/lib/settings.server';
+import WhatsAppButton from '@/components/WhatsAppButton';
 
 export const metadata: Metadata = {
   title: 'الأسئلة الشائعة',
@@ -46,15 +45,13 @@ export default async function FAQPage() {
               راسلنا مباشرة على واتساب ونجيبك بخبرة نحّال — عن المنتج، أو الخلطة المناسبة لك، أو
               الشحن.
             </p>
-            <a
-              href={getWhatsAppLink('مرحباً، لدي سؤال لم أجد جوابه في صفحة الأسئلة الشائعة.')}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 gold-gradient text-zinc-950 py-4 px-8 rounded-xl font-black luxury-shadow hover:scale-105 transition-transform"
+            <WhatsAppButton
+              source="faq"
+              message="مرحباً عسل الهيثم، لدي سؤال لم أجد جوابه في صفحة الأسئلة الشائعة."
+              className="rounded-xl px-8 py-4"
             >
-              <MessageCircle className="w-5 h-5" />
               اسألنا على واتساب
-            </a>
+            </WhatsAppButton>
           </div>
         </div>
       </section>

@@ -18,6 +18,9 @@
   --color-gold-800: #5e4306;
   --color-gold-900: #312203;
 
+  /* لون التواصل الوحيد في الموقع (واتساب واتصال). الذهبي للشراء. نصّه داكن دائماً: الأبيض عليه تباينه 2:1 */
+  --color-whatsapp: #25d366;
+
   --animate-shine: shine 4s linear infinite;
   --animate-marquee: marquee 20s linear infinite;
   --animate-pulse-gold: pulse-gold 2s infinite ease-in-out;

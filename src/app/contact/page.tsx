@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Phone, MessageCircle, Mail, MapPin, Clock, Globe } from 'lucide-react';
 import { SITE, getWhatsAppLink, getTelLink } from '@/lib/config';
 import { getSettings } from '@/lib/settings.server';
+import WhatsAppButton from '@/components/WhatsAppButton';
 
 export const metadata: Metadata = {
   title: 'تواصل معنا',
@@ -108,15 +109,9 @@ export default async function ContactPage() {
         </div>
 
         <div className="mt-10 text-center">
-          <a
-            href={getWhatsAppLink(SITE.whatsappDefaultMessage)}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 gold-gradient text-zinc-950 py-4 px-8 rounded-xl font-black luxury-shadow hover:scale-105 transition-transform"
-          >
-            <MessageCircle className="w-5 h-5" />
+          <WhatsAppButton source="contact" className="rounded-xl px-8 py-4">
             راسلنا على واتساب
-          </a>
+          </WhatsAppButton>
         </div>
       </div>
     </section>

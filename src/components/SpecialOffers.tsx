@@ -1,8 +1,8 @@
 'use client';
 
 import { Reveal } from '@/components/motion/Reveal';
-import { Sparkles, Gift, ShoppingCart, Clock } from 'lucide-react';
-import { getWhatsAppLink } from '@/lib/config';
+import { Sparkles, Gift, Clock } from 'lucide-react';
+import WhatsAppButton from '@/components/WhatsAppButton';
 
 /**
  * عروض ترويجية ثابتة (باقات وأسعار خاصة لا ترتبط بمنتج واحد بعينه) —
@@ -97,15 +97,13 @@ export function SpecialOffers() {
                 </div>
 
                 {/* CTA */}
-                <a
-                  href={getWhatsAppLink(`أريد ${offer.title}`)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block w-full py-3 bg-gradient-to-r from-amber-500 to-amber-600 text-zinc-950 rounded-xl font-black text-center hover:from-amber-400 hover:to-amber-500 transition-all duration-300 hover:scale-[1.02] shadow-lg shadow-amber-500/20 text-sm sm:text-base"
+                <WhatsAppButton
+                  source="special-offers"
+                  message={`مرحباً عسل الهيثم، أريد ${offer.title}.`}
+                  className="w-full rounded-xl py-3 text-sm sm:text-base"
                 >
-                  <ShoppingCart className="w-5 h-5 inline-block ml-2" />
                   اطلب الآن
-                </a>
+                </WhatsAppButton>
               </div>
 
               {/* Decorative Elements */}
