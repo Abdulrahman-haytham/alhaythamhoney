@@ -25,7 +25,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Connect
         env:
           HOST: ${{ secrets.VPS_HOST }}
@@ -55,9 +55,18 @@ jobs:
           arg_b64=$(printf '%s' "$ARG" | base64 -w0)
           dir=${APP_DIR:-/opt/alhaytham}
           case "$dir" in *[!A-Za-z0-9/_.-]*) echo "::error::bad VPS_APP_DIR"; exit 1 ;; esac
+          set +e
           {
             if [ "$ACTION" = bootstrap ] && [ -n "$ADMIN_PASSWORD" ]; then printf 'export ADMIN_PASSWORD=%q\n' "$ADMIN_PASSWORD"; fi
             cat deploy/remote.sh
           } | ssh -i ~/.ssh/id_vps -p "${PORT:-22}" -o BatchMode=yes -o ServerAliveInterval=30 \
                 "${USER_:-root}@$HOST" \
-                "f=\$(mktemp) && cat > \"\$f\" && bash \"\$f\" $ACTION $dir $arg_b64 < /dev/null; rc=\$?; rm -f \"\$f\"; exit \$rc"
+                "f=\$(mktemp) && cat > \"\$f\" && bash \"\$f\" $ACTION $dir $arg_b64 < /dev/null 2>&1; rc=\$?; rm -f \"\$f\"; exit \$rc" \
+            | tee "$RUNNER_TEMP/out.txt"
+          rc=${PIPESTATUS[1]}
+          # Also publish the output as an annotation: the API serves annotations
+          # even where raw log downloads are not reachable.
+          out=$(tail -c 60000 "$RUNNER_TEMP/out.txt")
+          out=${out//'%'/'%25'}; out=${out//$'\r'/'%0D'}; out=${out//$'\n'/'%0A'}
+          echo "::notice title=$ACTION (exit $rc)::$out"
+          exit "$rc"
