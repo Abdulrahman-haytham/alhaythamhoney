@@ -1,8 +1,10 @@
 name: Screenshots
-# Phone-sized screenshots of the live site, force-pushed as a single commit to
-# the `screenshots` branch so they can be fetched with plain git from anywhere.
-# Read-only: it only loads pages, and blocks the site's own visit counter and
-# ad/analytics pixels so these visits do not show up in the dashboard.
+# Phone-sized screenshots, force-pushed as a single commit to a `screenshots…`
+# branch so they can be fetched with plain git from anywhere.
+# - ref empty: the live site. Read-only: it only loads pages, and blocks the
+#   visit counter and ad pixels so these visits do not reach the dashboard.
+# - ref set: builds that branch/commit here with seed data and a throwaway
+#   database, so a change can be looked at on a phone before it is deployed.
 on:
   workflow_dispatch:
     inputs:
@@ -11,9 +13,13 @@ on:
         required: false
         default: '/,auto,/custom-mixtures,/shop'
       base:
-        description: Site origin
+        description: Site origin (live mode)
         required: false
         default: https://alhaythamhoney.sy
+      ref:
+        description: Branch or commit to build and preview with seed data (empty = live site)
+        required: false
+        default: ''
 permissions:
   contents: write
 concurrency:
@@ -22,11 +28,45 @@ concurrency:
 jobs:
   shoot:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: preview-only-password
+          POSTGRES_DB: haytham_preview
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgresql://postgres:preview-only-password@127.0.0.1:5432/haytham_preview
+      NEXT_PUBLIC_SITE_URL: http://127.0.0.1:3005
+      ADMIN_SESSION_SECRET: preview-only-session-secret-never-used-in-production-0123456789
+      NEXT_TELEMETRY_DISABLED: '1'
     steps:
       - uses: actions/setup-node@v5
         with:
           node-version: 22
+      - uses: actions/checkout@v5
+        if: inputs.ref != ''
+        with:
+          ref: ${{ inputs.ref }}
+          path: app
+      - name: Build and start the preview
+        if: inputs.ref != ''
+        working-directory: app
+        run: |
+          npm ci --no-audit --no-fund
+          npm run db:deploy
+          ADMIN_USERNAME=preview ADMIN_PASSWORD=preview-only-password-1234 npm run db:seed
+          # Seeded content starts unpublished so the owner reviews it; a preview wants it visible.
+          psql "$DATABASE_URL" -qc 'update products set published = true; update mixtures set published = true;'
+          npm run build
+          nohup npm start > "$RUNNER_TEMP/server.log" 2>&1 &
+          for _ in $(seq 1 60); do curl -fsS http://127.0.0.1:3005/api/health >/dev/null 2>&1 && break; sleep 2; done
+          curl -fsS http://127.0.0.1:3005/api/health || { tail -50 "$RUNNER_TEMP/server.log"; exit 1; }
+          echo "PREVIEW_BASE=http://127.0.0.1:3005" >> "$GITHUB_ENV"
+          echo "SHOTS_BRANCH=screenshots-preview" >> "$GITHUB_ENV"
       - name: Install Chromium
         run: |
           mkdir -p "$RUNNER_TEMP/pw" && cd "$RUNNER_TEMP/pw"
@@ -36,8 +76,9 @@ jobs:
       - name: Shoot
         env:
           PATHS: ${{ inputs.paths }}
-          BASE: ${{ inputs.base }}
+          LIVE_BASE: ${{ inputs.base }}
         run: |
+          export BASE="${PREVIEW_BASE:-$LIVE_BASE}"
           cat > "$RUNNER_TEMP/pw/shoot.mjs" <<'EOF'
           import { chromium, devices } from 'playwright';
           import fs from 'node:fs/promises';
@@ -148,5 +189,6 @@ jobs:
           git add -A
           git -c user.name=github-actions -c user.email=41898282+github-actions[bot]@users.noreply.github.com \
             commit -qm "Screenshots at $(date -u +%FT%TZ)"
-          git push -qf "https://x-access-token:${TOKEN}@github.com/${REPO}.git" HEAD:screenshots
-          echo "::notice title=screenshots::$(ls | tr '\n' ' ')"
+          branch="${SHOTS_BRANCH:-screenshots}"
+          git push -qf "https://x-access-token:${TOKEN}@github.com/${REPO}.git" "HEAD:$branch"
+          echo "::notice title=$branch::$(ls | tr '\n' ' ')"
