@@ -1,0 +1,63 @@
+name: Server
+# Drive the VPS from a phone: Actions → Server → Run workflow (or via the API).
+# Needs repository secrets VPS_HOST and VPS_SSH_KEY; optional VPS_USER (root),
+# VPS_PORT (22), VPS_APP_DIR (/opt/alhaytham), VPS_KNOWN_HOSTS, ADMIN_PASSWORD.
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: What to run on the server
+        type: choice
+        default: status
+        options:
+          [status, deploy, logs, restart, backup, migrate, seed, jobs, rollback, bootstrap, shell]
+      arg:
+        description: 'deploy: SHA (empty = latest nextjs) · logs: "app 200" · rollback: SHA · bootstrap: site URL · shell: command'
+        required: false
+        default: ''
+permissions:
+  contents: read
+concurrency:
+  group: vps
+  cancel-in-progress: false
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Connect
+        env:
+          HOST: ${{ secrets.VPS_HOST }}
+          KEY: ${{ secrets.VPS_SSH_KEY }}
+          PORT: ${{ secrets.VPS_PORT }}
+          KNOWN: ${{ secrets.VPS_KNOWN_HOSTS }}
+        run: |
+          if [ -z "$HOST" ] || [ -z "$KEY" ]; then echo "::error::Add the VPS_HOST and VPS_SSH_KEY repository secrets first."; exit 1; fi
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$KEY" > ~/.ssh/id_vps && chmod 600 ~/.ssh/id_vps
+          if [ -n "$KNOWN" ]; then printf '%s\n' "$KNOWN" > ~/.ssh/known_hosts
+          else
+            ssh-keyscan -T 15 -p "${PORT:-22}" "$HOST" > ~/.ssh/known_hosts 2>/dev/null
+            echo "::warning::VPS_KNOWN_HOSTS not set — trusting the host key seen now. Fingerprints:"
+            ssh-keygen -lf ~/.ssh/known_hosts
+          fi
+      - name: ${{ inputs.action }}
+        env:
+          HOST: ${{ secrets.VPS_HOST }}
+          PORT: ${{ secrets.VPS_PORT }}
+          USER_: ${{ secrets.VPS_USER }}
+          APP_DIR: ${{ secrets.VPS_APP_DIR }}
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+          ACTION: ${{ inputs.action }}
+          ARG: ${{ inputs.arg }}
+        run: |
+          arg_b64=$(printf '%s' "$ARG" | base64 -w0)
+          dir=${APP_DIR:-/opt/alhaytham}
+          case "$dir" in *[!A-Za-z0-9/_.-]*) echo "::error::bad VPS_APP_DIR"; exit 1 ;; esac
+          {
+            if [ "$ACTION" = bootstrap ] && [ -n "$ADMIN_PASSWORD" ]; then printf 'export ADMIN_PASSWORD=%q\n' "$ADMIN_PASSWORD"; fi
+            cat deploy/remote.sh
+          } | ssh -i ~/.ssh/id_vps -p "${PORT:-22}" -o BatchMode=yes -o ServerAliveInterval=30 \
+                "${USER_:-root}@$HOST" \
+                "f=\$(mktemp) && cat > \"\$f\" && bash \"\$f\" $ACTION $dir $arg_b64 < /dev/null; rc=\$?; rm -f \"\$f\"; exit \$rc"
