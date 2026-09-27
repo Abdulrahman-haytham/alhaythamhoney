@@ -28,12 +28,17 @@ jobs:
       - uses: actions/checkout@v5
       - name: Connect
         env:
-          HOST: ${{ secrets.VPS_HOST }}
+          HOST: ${{ secrets.VPS_HOST || vars.VPS_HOST }}
           KEY: ${{ secrets.VPS_SSH_KEY }}
-          PORT: ${{ secrets.VPS_PORT }}
+          PORT: ${{ secrets.VPS_PORT || vars.VPS_PORT }}
           KNOWN: ${{ secrets.VPS_KNOWN_HOSTS }}
         run: |
-          if [ -z "$HOST" ] || [ -z "$KEY" ]; then echo "::error::Add the VPS_HOST and VPS_SSH_KEY repository secrets first."; exit 1; fi
+          for n in HOST KEY PORT KNOWN; do printf '%-6s %s\n' "$n" "$([ -n "${!n}" ] && echo set || echo empty)"; done
+          if [ -z "$HOST" ] || [ -z "$KEY" ]; then
+            echo "::error::Missing $([ -z "$HOST" ] && echo VPS_HOST) $([ -z "$KEY" ] && echo VPS_SSH_KEY) — add them under Settings → Secrets and variables → Actions → Repository secrets."
+            exit 1
+          fi
+          case "$KEY" in *"BEGIN OPENSSH PRIVATE KEY"*|*"BEGIN RSA PRIVATE KEY"*|*"BEGIN EC PRIVATE KEY"*) ;; *) echo "::error::VPS_SSH_KEY does not look like a private key (paste the whole file, BEGIN to END)."; exit 1 ;; esac
           install -m 700 -d ~/.ssh
           printf '%s\n' "$KEY" > ~/.ssh/id_vps && chmod 600 ~/.ssh/id_vps
           if [ -n "$KNOWN" ]; then printf '%s\n' "$KNOWN" > ~/.ssh/known_hosts
@@ -44,9 +49,9 @@ jobs:
           fi
       - name: ${{ inputs.action }}
         env:
-          HOST: ${{ secrets.VPS_HOST }}
-          PORT: ${{ secrets.VPS_PORT }}
-          USER_: ${{ secrets.VPS_USER }}
+          HOST: ${{ secrets.VPS_HOST || vars.VPS_HOST }}
+          PORT: ${{ secrets.VPS_PORT || vars.VPS_PORT }}
+          USER_: ${{ secrets.VPS_USER || vars.VPS_USER }}
           APP_DIR: ${{ secrets.VPS_APP_DIR }}
           ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
           ACTION: ${{ inputs.action }}
