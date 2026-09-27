@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { BadgeCheck, Droplets, Phone, ShieldCheck, Snowflake, Star, UserPlus } from 'lucide-react';
+import { BadgeCheck, Phone, ShieldCheck, Snowflake, Star, UserPlus } from 'lucide-react';
 import { getContact } from '@/lib/contacts';
 import { SITE } from '@/lib/config';
 import { GREETING } from '@/lib/whatsappMessage';
@@ -28,7 +28,7 @@ const REVIEW = `${GREETING} أود تقييم العسل الذي اشتريته
 /**
  * الصفحة التي يفتحها رمز QR المطبوع على كل مرطبان (الرابط ثابت: /q/haytham).
  * من يصل إليها اشترى العسل ويمسكه بيده — فالصفحة له: الطلب مجدداً، التأكد من الأصالة،
- * ما يقلقه عادة (التبلور)، والحفظ. بطاقة التواصل صارت في الأسفل.
+ * ما يقلقه عادة (التبلور)، وصفحتنا على فيسبوك. بطاقة التواصل صارت في الأسفل.
  */
 export default async function JarWelcome({ params }: Params) {
   const [, flags] = await Promise.all([getSettings(), getSiteContentFlags()]);
@@ -99,17 +99,6 @@ export default async function JarWelcome({ params }: Params) {
         </p>
       </article>
 
-      <article className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-5">
-        <h2 className="mb-2 flex items-center gap-2 font-bold text-white">
-          <Droplets className="h-5 w-5 text-amber-500" /> الحفظ والاستعمال
-        </h2>
-        <ul className="list-inside list-disc space-y-1 text-sm leading-relaxed text-zinc-300">
-          <li>أغلقه جيداً واحفظه بعيداً عن الشمس والرطوبة، ولا حاجة للبرّاد.</li>
-          <li>استعمل ملعقة جافة ونظيفة.</li>
-          <li>لا يُعطى العسل لطفل دون السنة.</li>
-        </ul>
-      </article>
-
       <WhatsAppButton
         source="jar-review"
         variant="soft"
@@ -119,6 +108,17 @@ export default async function JarWelcome({ params }: Params) {
       >
         <Star className="h-5 w-5" /> قيّم العسل الذي اشتريته
       </WhatsAppButton>
+
+      {SITE.social.facebook && (
+        <a
+          href={SITE.social.facebook}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex h-12 items-center justify-center gap-2 rounded-2xl bg-[#1877F2] font-bold text-white hover:brightness-110"
+        >
+          <FacebookIcon className="h-5 w-5" /> تابع صفحتنا على فيسبوك
+        </a>
+      )}
 
       <footer className="mt-2 border-t border-zinc-800 pt-5 text-center text-sm text-zinc-400">
         <p>
@@ -139,17 +139,6 @@ export default async function JarWelcome({ params }: Params) {
           >
             <UserPlus className="h-4 w-4" /> حفظ الرقم
           </a>
-          {SITE.social.facebook && (
-            <a
-              href={SITE.social.facebook}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="صفحتنا على فيسبوك"
-              className="flex h-11 w-11 items-center justify-center rounded-full border border-zinc-700 hover:text-[#1877F2]"
-            >
-              <FacebookIcon className="h-5 w-5" />
-            </a>
-          )}
         </div>
         <Link href="/" className="mt-4 inline-block text-amber-400 hover:underline">
           زيارة الموقع
