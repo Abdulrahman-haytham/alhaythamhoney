@@ -932,3 +932,28 @@ model CampaignRecipient {
   @@index([campaignId, sentAt])
   @@map("campaign_recipients")
 }
+
+/// وكيل معتمد يبيع مرطبانات الهيثم المختومة — يُعرض في /agents ويُخفى فوراً بـ active=false
+model Agent {
+  id            String   @id @default(cuid())
+  name          String
+  governorate   String   @default("حماة")
+  /// المدينة أو المنطقة كما يبحث عنها الزبون
+  city          String
+  /// العنوان المختصر: الحي أو الشارع
+  address       String
+  /// العنوان التفصيلي: معلم قريب، الطابق…
+  addressDetail String?
+  /// رابط الموقع من خرائط غوغل (يُلصق كما هو)
+  mapUrl        String?
+  /// رقم واتساب دولي بلا +
+  whatsapp      String?
+  facebookUrl   String?
+  active        Boolean  @default(true)
+  sortOrder     Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([active, sortOrder])
+  @@map("agents")
+}

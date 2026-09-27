@@ -2,7 +2,9 @@ import type { Metadata } from 'next';
 import { Phone, MessageCircle, Mail, MapPin, Clock, Globe } from 'lucide-react';
 import { SITE, getWhatsAppLink, getTelLink } from '@/lib/config';
 import { getSettings } from '@/lib/settings.server';
+import Link from 'next/link';
 import WhatsAppButton from '@/components/WhatsAppButton';
+import { getSiteContentFlags } from '@/lib/content.server';
 
 export const metadata: Metadata = {
   title: 'تواصل معنا',
@@ -42,7 +44,7 @@ const channels = [
 export const dynamic = 'force-dynamic';
 
 export default async function ContactPage() {
-  await getSettings();
+  const [, { hasAgents }] = await Promise.all([getSettings(), getSiteContentFlags()]);
   return (
     <section className="min-h-screen pt-32 pb-16 px-4 sm:px-6 bg-zinc-950">
       <div className="container mx-auto max-w-4xl">
@@ -112,6 +114,14 @@ export default async function ContactPage() {
           <WhatsAppButton source="contact" className="rounded-xl px-8 py-4">
             راسلنا على واتساب
           </WhatsAppButton>
+          {hasAgents && (
+            <p className="mt-5 text-sm text-zinc-400">
+              تفضّل الاستلام من محل قريب؟{' '}
+              <Link href="/agents" className="font-bold text-amber-400 hover:underline">
+                اشترِ من وكيل معتمد ←
+              </Link>
+            </p>
+          )}
         </div>
       </div>
     </section>

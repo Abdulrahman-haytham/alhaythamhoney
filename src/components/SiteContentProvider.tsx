@@ -3,7 +3,7 @@
 import { createContext, useContext } from 'react';
 import type { SiteContentFlags } from '@/lib/content.server';
 
-const EMPTY: SiteContentFlags = { hasStudioPhotos: false };
+const EMPTY: SiteContentFlags = { hasStudioPhotos: false, hasAgents: false };
 
 const SiteContentContext = createContext<SiteContentFlags>(EMPTY);
 

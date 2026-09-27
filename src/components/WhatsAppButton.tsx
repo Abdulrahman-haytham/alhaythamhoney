@@ -48,7 +48,10 @@ export default function WhatsAppButton({
   ariaLabel,
   onClick,
   tabIndex,
+  phone,
 }: {
+  /** رقم آخر غير رقم المتجر (وكيل) — حينها تُرسل `message` كما هي */
+  phone?: string;
   message?: string;
   /** يظهر في لوحة المؤشرات: من أين جاءت النقرة */
   source: string;
@@ -63,7 +66,9 @@ export default function WhatsAppButton({
 }) {
   // يعيد الرسم حين تسجّل الصفحة رسالتها، ليكون الرابط صحيحاً حتى عند النسخ بالضغط المطوّل
   const registered = usePageActions((s) => s.message?.value);
-  const href = getWhatsAppLink(message || registered || HOME_MESSAGE);
+  const link = (text: string) =>
+    phone ? `https://wa.me/${phone}?text=${encodeURIComponent(text)}` : getWhatsAppLink(text);
+  const href = link(phone ? (message ?? '') : message || registered || HOME_MESSAGE);
 
   return (
     <a
@@ -73,7 +78,7 @@ export default function WhatsAppButton({
       aria-label={ariaLabel}
       tabIndex={tabIndex}
       onClick={(e) => {
-        e.currentTarget.href = getWhatsAppLink(currentWhatsAppMessage(message));
+        if (!phone) e.currentTarget.href = link(currentWhatsAppMessage(message));
         trackWhatsAppClick(source);
         onClick?.();
       }}

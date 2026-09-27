@@ -35,7 +35,8 @@ const PATHS: Record<string, string[]> = {
  */
 export function revalidatePublic(entity: string) {
   try {
-    if (entity === 'settings') {
+    // الوكلاء يظهرون في قائمة الرأس (تظهر «وكلاؤنا» حين يوجد وكيل فعّال) فيُبطَل التخطيط كله
+    if (entity === 'settings' || entity === 'agent') {
       revalidatePath('/', 'layout');
       return;
     }
