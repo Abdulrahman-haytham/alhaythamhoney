@@ -69,6 +69,12 @@ jobs:
           insert into promotions (id, title, kind, "minSubtotal", percent, "endsAt", "updatedAt")
           values ('preview-pct', 'عرض تجريبي', 'PERCENT_OVER_AMOUNT', 5000, 5, now() + interval '10 days', now());
           SQL
+          # Sample agents, if this branch has the agents table.
+          psql "$DATABASE_URL" -q <<'SQL' || true
+          insert into agents (id, name, city, address, "addressDetail", "mapUrl", whatsapp, "facebookUrl", "updatedAt") values
+          ('preview-a1', 'وكيل تجريبي — محل الريف', 'حماة — حي البعث', 'شارع العلمين', 'بجانب الصيدلية، الطابق الأرضي', 'https://maps.app.goo.gl/example', '963900000001', 'https://facebook.com/example', now()),
+          ('preview-a2', 'وكيل تجريبي — سوق الطويل', 'حماة — السوق', 'سوق الطويل', null, 'https://maps.app.goo.gl/example2', '963900000002', null, now());
+          SQL
           npm run build
           nohup npm start > "$RUNNER_TEMP/server.log" 2>&1 &
           for _ in $(seq 1 60); do curl -fsS http://127.0.0.1:3005/api/health >/dev/null 2>&1 && break; sleep 2; done

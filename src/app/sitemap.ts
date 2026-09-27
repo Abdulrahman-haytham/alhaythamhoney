@@ -28,9 +28,10 @@ const STATIC: {
 ];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [products, mixtures] = await Promise.all([
+  const [products, mixtures, agents] = await Promise.all([
     db.product.findMany({ where: { published: true }, select: { slug: true, updatedAt: true } }),
     db.mixture.findMany({ where: { published: true }, select: { slug: true, updatedAt: true } }),
+    db.agent.count({ where: { active: true } }),
   ]);
 
   const articles = await db.article.findMany({
@@ -49,6 +50,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: s.priority,
       changeFrequency: s.changeFrequency,
     })),
+    ...(agents > 0
+      ? [{ url: `${SITE.url}/agents`, priority: 0.7, changeFrequency: 'monthly' as const }]
+      : []),
     ...products.map((p) => ({
       url: `${SITE.url}/product/${p.slug}`,
       lastModified: p.updatedAt,

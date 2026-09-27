@@ -23,6 +23,7 @@ import {
   FlaskConical,
   Users,
   HelpCircle,
+  MapPin,
 } from 'lucide-react';
 import { useCart } from '@/store/cartStore';
 import { useWishlist } from '@/store/wishlistStore';
@@ -49,7 +50,7 @@ export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const settings = useSettings();
-  const { hasStudioPhotos } = useSiteContent();
+  const { hasStudioPhotos, hasAgents } = useSiteContent();
   const customer = useCustomer();
   const mounted = useHydrated();
   const pathname = usePathname();
@@ -91,6 +92,18 @@ export default function Header() {
       wide: false,
     },
     { href: '/draw', label: 'السحب الأسبوعي', short: 'السحب', icon: Gift, wide: false },
+    // الوكلاء يظهرون حين يوجد وكيل فعّال — رابط إلى صفحة فارغة يهدم الثقة
+    ...(hasAgents
+      ? [
+          {
+            href: '/agents',
+            label: 'الوكلاء المعتمدون',
+            short: 'الوكلاء',
+            icon: MapPin,
+            wide: true,
+          },
+        ]
+      : []),
     { href: '/about-us', label: 'حكايتنا', short: 'قصتنا', icon: Users, wide: false },
     {
       href: '/quality-standards',

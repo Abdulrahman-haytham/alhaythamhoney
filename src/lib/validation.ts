@@ -439,6 +439,28 @@ export const zoneInput = z
   })
   .strict();
 
+// ---- الوكلاء المعتمدون ----
+export const agentInput = z
+  .object({
+    name: text(100).min(2, 'اسم الوكيل مطلوب.'),
+    governorate: text(40).min(2, 'المحافظة مطلوبة.'),
+    city: text(80).min(2, 'المدينة أو المنطقة مطلوبة.'),
+    address: text(200).min(3, 'العنوان مطلوب.'),
+    addressDetail: optionalText(300),
+    mapUrl: httpsUrl.nullable(),
+    whatsapp: z
+      .string()
+      .trim()
+      .transform((v) => v.replace(/[\s+\-()]/g, '').replace(/^00/, ''))
+      .refine((v) => !v || /^[1-9]\d{7,14}$/.test(v), 'رقم واتساب دولي (مثال 963947931959).')
+      .transform((v) => (v.length ? v : null))
+      .nullable(),
+    facebookUrl: httpsUrl.nullable(),
+    active: z.boolean(),
+    sortOrder: z.number().int().min(0).max(1000),
+  })
+  .strict();
+
 export const promotionInput = z
   .object({
     title: text(120).min(3, 'العنوان قصير.'),

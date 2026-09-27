@@ -14,6 +14,7 @@ const TABS = [
   { href: '/admin/glossary', label: 'الموسوعة' },
   { href: '/admin/coupons', label: 'الكوبونات' },
   { href: '/admin/promotions', label: 'العروض' },
+  { href: '/admin/agents', label: 'الوكلاء' },
   { href: '/admin/draws', label: 'السحب' },
   { href: '/admin/batches', label: 'الدفعات' },
   { href: '/admin/leads', label: 'الجملة' },
