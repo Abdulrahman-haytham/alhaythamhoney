@@ -67,6 +67,9 @@ jobs:
           } >> "$GITHUB_ENV"
           echo "::add-mask::$h"
           if ! timeout 20 bash -c "exec 3<>/dev/tcp/$h/$PORT" 2>/dev/null; then
+            kind=$(printf '%s' "$h" | grep -qE '^[0-9.]+$' && echo "an IPv4 address" || echo "a hostname ($(getent hosts "$h" >/dev/null && echo resolves || echo does NOT resolve))")
+            open=''; for p in 22 2222 2200 22022 80 443 8080; do timeout 6 bash -c "exec 3<>/dev/tcp/$h/$p" 2>/dev/null && open="$open $p"; done
+            echo "::error::VPS_HOST is $kind. Ports open from GitHub:${open:- none of 22 2222 2200 22022 80 443 8080}."
             echo "::error::Cannot reach the server on port $PORT from GitHub. Check the IP in VPS_HOST, that sshd listens on $PORT, and that the firewall/provider allows inbound SSH from the Internet."
             exit 1
           fi
