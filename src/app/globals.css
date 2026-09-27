@@ -184,6 +184,18 @@ html[data-js] [data-reveal='out'] {
 .fade-in {
   animation: haytham-fade 0.2s ease-out both;
 }
+/* درج القائمة يدخل من اليمين (بداية السطر في العربية) */
+@keyframes haytham-drawer {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: none;
+  }
+}
+.drawer-in {
+  animation: haytham-drawer 0.25s ease-out both;
+}
 
 /* أكورديون بلا JavaScript للقياس: grid-rows تنتقل من 0fr إلى 1fr.
    لا تُسمَّ هذه الفئة `collapse`: هي أداة في Tailwind تعني visibility:collapse،
@@ -221,7 +233,8 @@ html[data-js] [data-reveal='out'] {
     transition: none;
   }
   .pop-in,
-  .fade-in {
+  .fade-in,
+  .drawer-in {
     animation: none;
   }
 }

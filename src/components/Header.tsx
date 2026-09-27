@@ -147,6 +147,13 @@ export default function Header() {
     };
   }, [mobileMenuOpen]);
 
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setMobileMenuOpen(false);
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [mobileMenuOpen]);
+
   const handleLogoClick = (e: React.MouseEvent) => {
     e.preventDefault();
     if (pathname === '/') {
@@ -348,55 +355,70 @@ export default function Header() {
                 {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
               </button>
             </div>
-
-            {/* قائمة الجوال المنبثقة.
-                ارتفاعها محدود بالشاشة ناقص الرأس والشريط السفلي: كانت h-screen
-                تبدأ تحت الرأس فتمتدّ خلف حافة الشاشة وتدفن آخر عناصرها. */}
-            {mobileMenuOpen && (
-              <div
-                id="mobile-menu"
-                className="md:hidden absolute top-full left-0 right-0 max-h-[calc(100dvh-7rem)] overflow-y-auto overscroll-contain border-b border-amber-900/20 bg-zinc-950"
-              >
-                <div className="flex flex-col gap-1 px-5 py-5 pb-24">
-                  {/* الدعوة أولاً لا أخيراً: هذا هو الإجراء المقصود من الموقع كله،
-                      وبالأخضر المعروف لا بالذهبي الذي يشبه كل شيء آخر. */}
-                  <WhatsAppButton
-                    source="mobile-menu"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="mb-4 gap-2.5 rounded-xl py-4 text-lg"
-                  >
-                    اطلب الآن عبر واتساب
-                  </WhatsAppButton>
-
-                  {mobileLinks.map(({ href, label, icon: Icon }) => {
-                    const current = isCurrent(href);
-                    return (
-                      <Link
-                        key={href}
-                        href={href}
-                        aria-current={current ? 'page' : undefined}
-                        onClick={() => setMobileMenuOpen(false)}
-                        className={`flex min-h-[52px] items-center gap-4 border-b border-zinc-800/50 py-3 text-lg transition-colors ${
-                          current ? 'text-amber-400' : 'text-zinc-300 hover:text-amber-500'
-                        }`}
-                      >
-                        <Icon className="h-6 w-6 shrink-0 text-amber-500" />
-                        <span className={current ? 'font-bold' : 'font-medium'}>{label}</span>
-                        {current && (
-                          <span
-                            className="mr-auto h-1.5 w-1.5 rounded-full bg-amber-400"
-                            aria-hidden
-                          />
-                        )}
-                      </Link>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
           </div>
         </nav>
       </header>
+      {/* قائمة الجوال: درج يغطي الشاشة كلها فوق الشريط السفلي، وخلفه الصفحة معتمة
+          بشفافية تُبقيها مرئية قليلاً. النقر في أي مكان خارجه أو Esc يغلقه.
+          خارج <header> لأن الرأس يحتوي عناصر بـ backdrop-blur تجعل fixed نسبياً إليها. */}
+      {mobileMenuOpen && (
+        <div
+          className="fixed inset-0 z-[100] md:hidden"
+          role="dialog"
+          aria-modal="true"
+          aria-label="القائمة"
+        >
+          <button
+            type="button"
+            aria-label="إغلاق القائمة"
+            tabIndex={-1}
+            onClick={() => setMobileMenuOpen(false)}
+            className="fade-in absolute inset-0 h-full w-full cursor-default bg-zinc-950/65 backdrop-blur-[2px]"
+          />
+          <nav
+            id="mobile-menu"
+            className="drawer-in absolute inset-y-0 right-0 flex w-[84%] max-w-sm flex-col border-l border-amber-900/20 bg-zinc-950/95 shadow-2xl shadow-black/60 backdrop-blur-md"
+            style={{
+              paddingTop: 'env(safe-area-inset-top, 0px)',
+              paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+            }}
+          >
+            <div className="flex items-center justify-between border-b border-zinc-800/60 px-5 py-3">
+              <span className="font-amiri text-xl font-bold text-amber-500">الهيثم</span>
+              <button
+                type="button"
+                onClick={() => setMobileMenuOpen(false)}
+                aria-label="إغلاق القائمة"
+                className="rounded-lg p-3 text-zinc-400 transition-colors hover:bg-zinc-900 hover:text-amber-500"
+              >
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto overscroll-contain px-5 py-2">
+              {mobileLinks.map(({ href, label, icon: Icon }) => {
+                const current = isCurrent(href);
+                return (
+                  <Link
+                    key={href}
+                    href={href}
+                    aria-current={current ? 'page' : undefined}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={`flex min-h-[52px] items-center gap-4 border-b border-zinc-800/50 py-3 text-lg transition-colors ${
+                      current ? 'text-amber-400' : 'text-zinc-300 hover:text-amber-500'
+                    }`}
+                  >
+                    <Icon className="h-6 w-6 shrink-0 text-amber-500" />
+                    <span className={current ? 'font-bold' : 'font-medium'}>{label}</span>
+                    {current && (
+                      <span className="mr-auto h-1.5 w-1.5 rounded-full bg-amber-400" aria-hidden />
+                    )}
+                  </Link>
+                );
+              })}
+            </div>
+          </nav>
+        </div>
+      )}
       <SearchDialog open={searchOpen} onClose={() => setSearchOpen(false)} />
     </>
   );

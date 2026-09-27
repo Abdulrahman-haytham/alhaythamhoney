@@ -112,8 +112,10 @@ jobs:
           await ctx.route(/\/api\/events|google-analytics|googletagmanager|connect\.facebook\.net|facebook\.com\/tr/, (r) => r.abort());
 
           const report = [];
-          for (const [i, p] of paths.entries()) {
-            const slug = p === '/' ? 'home' : p.replace(/^\/|\/$/g, '').replace(/[^a-z0-9]+/gi, '-');
+          for (const [i, entry] of paths.entries()) {
+            // "path|css-selector" clicks that element after load (e.g. "/|[aria-controls=mobile-menu]")
+            const [p, click] = entry.split('|');
+            const slug = (p === '/' ? 'home' : p.replace(/^\/|\/$/g, '').replace(/[^a-z0-9]+/gi, '-')) + (click ? '-click' : '');
             const name = `${String(i + 1).padStart(2, '0')}-${slug}`.slice(0, 70);
             const page = await ctx.newPage();
             try {
@@ -124,6 +126,14 @@ jobs:
               continue;
             }
             await page.waitForTimeout(2000);
+            if (click) {
+              await page.click(click);
+              await page.waitForTimeout(800);
+              await page.screenshot({ path: `${out}/${name}-clicked.jpg`, type: 'jpeg', quality: 70 });
+              report.push({ path: entry, name });
+              await page.close();
+              continue;
+            }
             await page.screenshot({ path: `${out}/${name}-top.jpg`, type: 'jpeg', quality: 70 });
 
             // Walk down the page so scroll-triggered reveals and lazy images render.
