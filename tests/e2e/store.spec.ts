@@ -63,6 +63,7 @@ test('mobile storefront, wishlist links, cart and WhatsApp checkout', async ({
 
 test('contact QR, download and minimal mobile layout', async ({ page, request }) => {
   await page.goto('/q/haytham');
+  await expect(page.getByRole('link', { name: 'اطلب مرة أخرى عبر واتساب' })).toBeVisible();
   await expect(page.getByRole('link', { name: 'حفظ جهة الاتصال' })).toBeVisible();
   expect(await page.getByRole('navigation', { name: 'التنقل الرئيسي' }).count()).toBe(0);
   const card = await request.get('/q/haytham/vcard');
