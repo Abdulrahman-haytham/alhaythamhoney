@@ -134,6 +134,13 @@ export default async function JarWelcome({ params }: Params) {
         </a>
       )}
 
+      <a
+        href={`/q/${slug}/vcard`}
+        className="flex h-12 items-center justify-center gap-2 rounded-2xl bg-amber-500 font-bold text-zinc-950 hover:bg-amber-400"
+      >
+        <UserPlus className="h-5 w-5" /> حفظ جهة الاتصال
+      </a>
+
       <footer className="mt-auto border-t border-zinc-800 pt-4 text-center text-sm text-zinc-400">
         <p>
           {c.street} — {c.city}، {c.region}
@@ -145,13 +152,6 @@ export default async function JarWelcome({ params }: Params) {
             className="flex h-11 w-11 items-center justify-center rounded-full border border-zinc-700 hover:text-amber-400"
           >
             <Phone className="h-5 w-5" />
-          </a>
-          <a
-            href={`/q/${slug}/vcard`}
-            aria-label="حفظ جهة الاتصال"
-            className="flex h-11 items-center gap-1.5 rounded-full border border-zinc-700 px-4 hover:text-amber-400"
-          >
-            <UserPlus className="h-4 w-4" /> حفظ الرقم
           </a>
         </div>
       </footer>
