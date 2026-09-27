@@ -32,8 +32,12 @@ jobs:
           KEY: ${{ secrets.VPS_SSH_KEY }}
           PORT: ${{ secrets.VPS_PORT || vars.VPS_PORT }}
           KNOWN: ${{ secrets.VPS_KNOWN_HOSTS }}
+          HOST_IN_VARS: ${{ vars.VPS_HOST != '' }}
+          KEY_IN_VARS: ${{ vars.VPS_SSH_KEY != '' }}
         run: |
           for n in HOST KEY PORT KNOWN; do printf '%-6s %s\n' "$n" "$([ -n "${!n}" ] && echo set || echo empty)"; done
+          echo "VPS_HOST saved as a variable: $HOST_IN_VARS"
+          if [ "$KEY_IN_VARS" = true ]; then echo "::error::VPS_SSH_KEY was saved as a Variable, which is not hidden. Delete it there and add it under the Secrets tab."; exit 1; fi
           if [ -z "$HOST" ] || [ -z "$KEY" ]; then
             echo "::error::Missing $([ -z "$HOST" ] && echo VPS_HOST) $([ -z "$KEY" ] && echo VPS_SSH_KEY) — add them under Settings → Secrets and variables → Actions → Repository secrets."
             exit 1
