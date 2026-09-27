@@ -40,11 +40,11 @@ export default async function JarWelcome({ params }: Params) {
     <section className="mx-auto flex min-h-screen max-w-md flex-col gap-6 px-5 py-8">
       <header className="text-center">
         <img
-          src="/haytham-logo-static.svg"
-          width={96}
-          height={96}
+          src="/images/logo.webp"
+          width={112}
+          height={112}
           alt={SITE.name}
-          className="mx-auto"
+          className="mx-auto h-28 w-auto rounded-2xl object-contain brightness-110 drop-shadow-[0_0_12px_rgba(212,175,55,0.3)]"
         />
         <h1 className="mt-3 font-amiri text-3xl font-bold text-white">
           شكراً لاختيارك <span className="text-amber-400">عسل الهيثم</span>
