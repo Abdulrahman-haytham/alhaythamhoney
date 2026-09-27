@@ -1,0 +1,152 @@
+name: Screenshots
+# Phone-sized screenshots of the live site, force-pushed as a single commit to
+# the `screenshots` branch so they can be fetched with plain git from anywhere.
+# Read-only: it only loads pages, and blocks the site's own visit counter and
+# ad/analytics pixels so these visits do not show up in the dashboard.
+on:
+  workflow_dispatch:
+    inputs:
+      paths:
+        description: 'Comma-separated paths. "auto" adds the first product and mixture from the sitemap.'
+        required: false
+        default: '/,auto,/custom-mixtures,/shop'
+      base:
+        description: Site origin
+        required: false
+        default: https://alhaythamhoney.sy
+permissions:
+  contents: write
+concurrency:
+  group: screenshots
+  cancel-in-progress: false
+jobs:
+  shoot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Install Chromium
+        run: |
+          mkdir -p "$RUNNER_TEMP/pw" && cd "$RUNNER_TEMP/pw"
+          npm init -y >/dev/null
+          npm i --no-audit --no-fund playwright@^1.63.0 >/dev/null
+          npx playwright install --with-deps chromium >/dev/null
+      - name: Shoot
+        env:
+          PATHS: ${{ inputs.paths }}
+          BASE: ${{ inputs.base }}
+        run: |
+          cat > "$RUNNER_TEMP/pw/shoot.mjs" <<'EOF'
+          import { chromium, devices } from 'playwright';
+          import fs from 'node:fs/promises';
+
+          const out = process.argv[2];
+          const base = (process.env.BASE || 'https://alhaythamhoney.sy').replace(/\/$/, '');
+          let paths = (process.env.PATHS || '/').split(',').map((s) => s.trim()).filter(Boolean);
+          await fs.mkdir(out, { recursive: true });
+
+          if (paths.includes('auto')) {
+            const xml = await (await fetch(`${base}/sitemap.xml`)).text();
+            const locs = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => new URL(m[1]).pathname);
+            const pick = (re) => locs.find((p) => re.test(p));
+            paths = paths.flatMap((p) =>
+              p === 'auto' ? [pick(/^\/product\/./), pick(/^\/custom-mixtures\/./)].filter(Boolean) : [p],
+            );
+          }
+
+          const browser = await chromium.launch();
+          const ctx = await browser.newContext({
+            ...devices['Pixel 7'],
+            deviceScaleFactor: 2,
+            locale: 'ar-SY',
+            timezoneId: 'Asia/Damascus',
+          });
+          await ctx.addInitScript(() => {
+            try {
+              Object.defineProperty(navigator, 'sendBeacon', { value: () => true });
+            } catch {}
+          });
+          await ctx.route(/\/api\/events|google-analytics|googletagmanager|connect\.facebook\.net|facebook\.com\/tr/, (r) => r.abort());
+
+          const report = [];
+          for (const [i, p] of paths.entries()) {
+            const slug = p === '/' ? 'home' : p.replace(/^\/|\/$/g, '').replace(/[^a-z0-9]+/gi, '-');
+            const name = `${String(i + 1).padStart(2, '0')}-${slug}`.slice(0, 70);
+            const page = await ctx.newPage();
+            try {
+              await page.goto(base + p, { waitUntil: 'networkidle', timeout: 60000 });
+            } catch (e) {
+              report.push({ path: p, error: String(e) });
+              await page.close();
+              continue;
+            }
+            await page.waitForTimeout(2000);
+            await page.screenshot({ path: `${out}/${name}-top.jpg`, type: 'jpeg', quality: 70 });
+
+            // Walk down the page so scroll-triggered reveals and lazy images render.
+            const height = await page.evaluate(() => document.documentElement.scrollHeight);
+            for (let y = 0; y < height; y += 350) {
+              await page.evaluate((yy) => window.scrollTo(0, yy), y);
+              await page.waitForTimeout(150);
+            }
+            await page.evaluate((yy) => window.scrollTo(0, yy), Math.round(height * 0.4));
+            await page.waitForTimeout(900);
+            await page.screenshot({ path: `${out}/${name}-mid.jpg`, type: 'jpeg', quality: 70 });
+            await page.evaluate(() => window.scrollTo(0, 0));
+            await page.waitForTimeout(600);
+            await page.screenshot({ path: `${out}/${name}-full.jpg`, type: 'jpeg', quality: 60, fullPage: true });
+
+            const data = await page.evaluate(() => {
+              const links = [...document.querySelectorAll('a[href]')]
+                .filter((a) => /wa\.me|whatsapp|^tel:/.test(a.getAttribute('href') || ''))
+                .map((a) => {
+                  const cs = getComputedStyle(a);
+                  const r = a.getBoundingClientRect();
+                  let msg = null;
+                  try {
+                    msg = new URL(a.href).searchParams.get('text');
+                  } catch {}
+                  return {
+                    kind: a.href.startsWith('tel:') ? 'tel' : 'whatsapp',
+                    text: a.innerText.trim().replace(/\s+/g, ' ').slice(0, 60),
+                    msg,
+                    bg: cs.backgroundColor,
+                    bgImage: cs.backgroundImage === 'none' ? null : cs.backgroundImage.slice(0, 80),
+                    color: cs.color,
+                    border: cs.borderColor,
+                    size: `${Math.round(r.width)}x${Math.round(r.height)}`,
+                    top: Math.round(r.top + window.scrollY),
+                    fixed: !!a.closest('.fixed'),
+                    visible: r.width > 0 && r.height > 0,
+                  };
+                });
+              const sections = [...document.querySelectorAll('main section')].map((s) => ({
+                id: s.id || null,
+                heading: s.querySelector('h1,h2')?.innerText.trim().replace(/\s+/g, ' ').slice(0, 80) || null,
+                top: Math.round(s.getBoundingClientRect().top + window.scrollY),
+                height: Math.round(s.getBoundingClientRect().height),
+              }));
+              return { links, sections };
+            });
+            report.push({ path: p, name, title: await page.title(), height, ...data });
+            await page.close();
+          }
+          await fs.writeFile(`${out}/report.json`, JSON.stringify({ base, at: new Date().toISOString(), pages: report }, null, 2));
+          await browser.close();
+          EOF
+          cd "$RUNNER_TEMP/pw" && node shoot.mjs "$RUNNER_TEMP/shots"
+      - name: Publish to the screenshots branch
+        env:
+          TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          cd "$RUNNER_TEMP/shots"
+          ls -la
+          git init -q -b screenshots
+          git add -A
+          git -c user.name=github-actions -c user.email=41898282+github-actions[bot]@users.noreply.github.com \
+            commit -qm "Screenshots at $(date -u +%FT%TZ)"
+          git push -qf "https://x-access-token:${TOKEN}@github.com/${REPO}.git" HEAD:screenshots
+          echo "::notice title=screenshots::$(ls | tr '\n' ' ')"
