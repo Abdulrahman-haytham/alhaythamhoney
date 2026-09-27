@@ -53,16 +53,32 @@ jobs:
           case "$KEY" in *"BEGIN OPENSSH PRIVATE KEY"*|*"BEGIN RSA PRIVATE KEY"*|*"BEGIN EC PRIVATE KEY"*) ;; *) echo "::error::VPS_SSH_KEY does not look like a private key (paste the whole file, BEGIN to END)."; exit 1 ;; esac
           install -m 700 -d ~/.ssh
           printf '%s\n' "$KEY" > ~/.ssh/id_vps && chmod 600 ~/.ssh/id_vps
+          if ! pub=$(ssh-keygen -y -f ~/.ssh/id_vps 2>&1); then echo "::error::The SSH key could not be read: $pub"; exit 1; fi
+          echo "key: $(ssh-keygen -lf ~/.ssh/id_vps | awk '{print $2, $3}')"
+          # Tolerate "root@1.2.3.4", "ssh://…", "http://…/", "host:port" and stray spaces in VPS_HOST.
+          h=$(printf '%s' "$HOST" | tr -d ' \r\n'); h=${h#*://}; h=${h%%/*}
+          case "$h" in *@*) u=${h%@*}; h=${h#*@} ;; esac
+          case "$h" in *:*:*) ;; *:*) PORT=${PORT:-${h#*:}}; h=${h%:*} ;; esac
+          PORT=${PORT:-22}
+          {
+            echo "VPS_HOST=$h"
+            echo "VPS_PORT=$PORT"
+            if [ -n "${u:-}" ]; then echo "VPS_USER_FROM_HOST=$u"; fi
+          } >> "$GITHUB_ENV"
+          echo "::add-mask::$h"
+          if ! timeout 20 bash -c "exec 3<>/dev/tcp/$h/$PORT" 2>/dev/null; then
+            echo "::error::Cannot reach the server on port $PORT from GitHub. Check the IP in VPS_HOST, that sshd listens on $PORT, and that the firewall/provider allows inbound SSH from the Internet."
+            exit 1
+          fi
+          echo "port $PORT: reachable"
           if [ -n "$KNOWN" ]; then printf '%s\n' "$KNOWN" > ~/.ssh/known_hosts
           else
-            ssh-keyscan -T 15 -p "${PORT:-22}" "$HOST" > ~/.ssh/known_hosts 2>/dev/null
-            echo "::warning::VPS_KNOWN_HOSTS not set — trusting the host key seen now. Fingerprints:"
-            ssh-keygen -lf ~/.ssh/known_hosts
+            ssh-keyscan -T 15 -p "$PORT" "$h" > ~/.ssh/known_hosts 2>/dev/null || true
+            if [ ! -s ~/.ssh/known_hosts ]; then echo "::error::Port $PORT answers but no SSH host key came back — is it really sshd on that port?"; exit 1; fi
+            echo "::warning::VPS_KNOWN_HOSTS not set — trusting the host key seen now:%0A$(ssh-keygen -lf ~/.ssh/known_hosts | awk '{print $2, $4}' | sed ':a;N;$!ba;s/\n/%0A/g')"
           fi
       - name: ${{ inputs.action }}
         env:
-          HOST: ${{ secrets.VPS_HOST || vars.VPS_HOST }}
-          PORT: ${{ secrets.VPS_PORT || vars.VPS_PORT }}
           USER_: ${{ secrets.VPS_USER || vars.VPS_USER }}
           APP_DIR: ${{ secrets.VPS_APP_DIR }}
           ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
@@ -76,8 +92,8 @@ jobs:
           {
             if [ "$ACTION" = bootstrap ] && [ -n "$ADMIN_PASSWORD" ]; then printf 'export ADMIN_PASSWORD=%q\n' "$ADMIN_PASSWORD"; fi
             cat deploy/remote.sh
-          } | ssh -i ~/.ssh/id_vps -p "${PORT:-22}" -o BatchMode=yes -o ServerAliveInterval=30 \
-                "${USER_:-root}@$HOST" \
+          } | ssh -i ~/.ssh/id_vps -p "$VPS_PORT" -o BatchMode=yes -o ServerAliveInterval=30 \
+                "${USER_:-${VPS_USER_FROM_HOST:-root}}@$VPS_HOST" \
                 "f=\$(mktemp) && cat > \"\$f\" && bash \"\$f\" $ACTION $dir $arg_b64 < /dev/null 2>&1; rc=\$?; rm -f \"\$f\"; exit \$rc" \
             | tee "$RUNNER_TEMP/out.txt"
           rc=${PIPESTATUS[1]}
