@@ -327,13 +327,15 @@ export default function Header() {
               </Link>
 
               {/* دعوة واتساب (سطح المكتب) */}
-              <WhatsAppButton
-                source="header"
-                className="hidden rounded-full px-4 py-1.5 text-xs md:inline-flex lg:px-6 lg:py-2 lg:text-sm"
-                iconClassName="h-4 w-4"
-              >
-                اطلب الآن
-              </WhatsAppButton>
+              <span className="hidden md:block">
+                <WhatsAppButton
+                  source="header"
+                  className="rounded-full px-4 py-1.5 text-xs lg:px-6 lg:py-2 lg:text-sm"
+                  iconClassName="h-4 w-4"
+                >
+                  اطلب الآن
+                </WhatsAppButton>
+              </span>
 
               {/* زر قائمة الجوال */}
               <button
