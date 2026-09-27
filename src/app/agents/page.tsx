@@ -66,7 +66,7 @@ export default async function AgentsPage() {
                         <h3 className="text-lg font-bold text-white">{a.name}</h3>
                         <p className="text-sm text-amber-400">
                           {a.city}
-                          {governorates.length === 1 && a.city !== a.governorate
+                          {governorates.length === 1 && !a.city.includes(a.governorate)
                             ? ` — ${a.governorate}`
                             : ''}
                         </p>
@@ -101,7 +101,7 @@ export default async function AgentsPage() {
                           rel="noopener noreferrer"
                           className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl border border-zinc-700 px-4 text-sm font-bold text-zinc-100 hover:border-amber-500/50"
                         >
-                          <Navigation className="h-4 w-4 text-amber-500" /> الموقع على الخريطة
+                          <Navigation className="h-4 w-4 text-amber-500" /> الخريطة
                         </a>
                       )}
                       {a.facebookUrl && (
