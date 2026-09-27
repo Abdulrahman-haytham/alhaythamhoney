@@ -61,6 +61,14 @@ jobs:
           ADMIN_USERNAME=preview ADMIN_PASSWORD=preview-only-password-1234 npm run db:seed
           # Seeded content starts unpublished so the owner reviews it; a preview wants it visible.
           psql "$DATABASE_URL" -qc 'update products set published = true; update mixtures set published = true;'
+          # Two sample offers so the offers section has something to show in a preview.
+          psql "$DATABASE_URL" -q <<'SQL'
+          insert into promotions (id, title, kind, "minSubtotal", percent, "buyProductId", "buyQty", "giftProductId", "giftQty", "updatedAt")
+          select 'preview-bxgy', 'عرض تجريبي', 'BUY_X_GET_Y', 0, 0, id, 2, id, 1, now()
+          from products where category = 'HONEY' order by "sortOrder" limit 1;
+          insert into promotions (id, title, kind, "minSubtotal", percent, "endsAt", "updatedAt")
+          values ('preview-pct', 'عرض تجريبي', 'PERCENT_OVER_AMOUNT', 5000, 5, now() + interval '10 days', now());
+          SQL
           npm run build
           nohup npm start > "$RUNNER_TEMP/server.log" 2>&1 &
           for _ in $(seq 1 60); do curl -fsS http://127.0.0.1:3005/api/health >/dev/null 2>&1 && break; sleep 2; done

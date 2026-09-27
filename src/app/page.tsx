@@ -12,6 +12,7 @@ import { Location } from '@/components/Location';
 import { getProducts } from '@/lib/products.server';
 import { getMixtureCards } from '@/lib/mixtures.server';
 import { getSettings } from '@/lib/settings.server';
+import { getPromotionCards } from '@/lib/promotions.server';
 import RecentlyViewed from '@/components/RecentlyViewed';
 import type { Metadata } from 'next';
 
@@ -38,7 +39,12 @@ export const dynamic = 'force-dynamic';
  * الحكاية أُخّرت لأن الزائر على الجوال يريد رؤية ما يُباع قبل تاريخ العلامة.
  */
 export default async function HomePage() {
-  const [products, mixtures] = await Promise.all([getProducts(), getMixtureCards(), getSettings()]);
+  const [products, mixtures, settings] = await Promise.all([
+    getProducts(),
+    getMixtureCards(),
+    getSettings(),
+  ]);
+  const offers = settings.promotionsEnabled ? await getPromotionCards() : [];
 
   return (
     <>
@@ -47,7 +53,7 @@ export default async function HomePage() {
       <Products products={products} mobileCarousel />
       <MixturesSection mixtures={mixtures} mobileCarousel />
       <RecentlyViewed />
-      <SpecialOffers />
+      <SpecialOffers offers={offers} />
       <CustomerReviews />
       <WhyChooseUs />
       <GlossaryTeaser />
