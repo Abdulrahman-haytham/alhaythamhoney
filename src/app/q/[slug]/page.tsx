@@ -8,6 +8,7 @@ import {
   ShieldCheck,
   Snowflake,
   Star,
+  Store,
   UserPlus,
 } from 'lucide-react';
 import { getContact } from '@/lib/contacts';
@@ -31,6 +32,11 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 }
 
 const REORDER = `${GREETING} اشتريت مرطبان عسل الهيثم وأود الطلب مجدداً.`;
+const TILE =
+  'flex h-[4.5rem] flex-col items-center justify-center gap-1.5 rounded-2xl border border-zinc-800 bg-zinc-900/60 text-xs font-medium text-zinc-300 transition hover:border-amber-500/40 active:scale-95';
+const TILE_ICON = 'h-5 w-5 text-amber-400';
+const SUMMARY =
+  'flex cursor-pointer list-none items-center gap-2 py-3 text-sm font-bold text-zinc-200 [&::-webkit-details-marker]:hidden';
 const REVIEW = `${GREETING} أود تقييم العسل الذي اشتريته:\n• النوع:\n• رأيي:`;
 
 /**
@@ -71,32 +77,58 @@ export default async function JarWelcome({ params }: Params) {
         </p>
       </header>
 
-      <div className="flex flex-col gap-2">
-        <WhatsAppButton
-          source="jar-reorder"
-          message={REORDER}
-          className="h-14 rounded-2xl text-lg"
-          iconClassName="h-6 w-6"
-        >
-          اطلب مرة أخرى عبر واتساب
-        </WhatsAppButton>
-        <Link
-          href="/shop"
-          className="flex h-12 items-center justify-center rounded-2xl border border-amber-500/40 font-bold text-amber-300 hover:bg-amber-500/10"
-        >
-          تسوّق من الموقع
-        </Link>
-      </div>
+      {/* زر واحد أساسي بذهب العلامة؛ كل ما عداه صف أيقونات هادئ */}
+      <WhatsAppButton
+        source="jar-reorder"
+        variant="plain"
+        message={REORDER}
+        className="h-14 rounded-2xl bg-amber-500 text-lg font-black text-zinc-950 shadow-lg shadow-amber-500/20 hover:bg-amber-400 active:scale-[0.98]"
+        iconClassName="h-6 w-6"
+      >
+        اطلب مرة أخرى
+      </WhatsAppButton>
 
-      {/* مطويّان: لمن يسأل فقط — فتبقى الصفحة شاشة واحدة بلا تمرير */}
-      <div className="divide-y divide-zinc-800 rounded-2xl border border-zinc-800 bg-zinc-900/50">
-        <details className="group px-4">
-          <summary className="flex cursor-pointer list-none items-center gap-2 py-3.5 font-bold text-white [&::-webkit-details-marker]:hidden">
-            <ShieldCheck className="h-5 w-5 shrink-0 text-amber-500" />
+      <nav aria-label="روابط سريعة" className="grid grid-cols-4 gap-2">
+        <Link href="/shop" className={TILE}>
+          <Store className={TILE_ICON} />
+          المتجر
+        </Link>
+        <WhatsAppButton
+          source="jar-review"
+          variant="plain"
+          message={REVIEW}
+          icon={false}
+          className={TILE}
+        >
+          <Star className={TILE_ICON} />
+          قيّم العسل
+        </WhatsAppButton>
+        {SITE.social.facebook ? (
+          <a href={SITE.social.facebook} target="_blank" rel="noopener noreferrer" className={TILE}>
+            <FacebookIcon className={TILE_ICON} />
+            فيسبوك
+          </a>
+        ) : (
+          <a href={`tel:${c.phone}`} className={TILE}>
+            <Phone className={TILE_ICON} />
+            اتصال
+          </a>
+        )}
+        <a href={`/q/${slug}/vcard`} className={TILE}>
+          <UserPlus className={TILE_ICON} />
+          حفظ الرقم
+        </a>
+      </nav>
+
+      {/* مطويّان: لمن يسأل فقط */}
+      <div className="divide-y divide-zinc-800/80 border-y border-zinc-800/80">
+        <details className="group">
+          <summary className={SUMMARY}>
+            <ShieldCheck className="h-4 w-4 shrink-0 text-amber-500" />
             <span className="flex-1">تأكّد أن عسلك أصلي</span>
-            <ChevronDown className="h-4 w-4 text-zinc-500 transition-transform group-open:rotate-180" />
+            <ChevronDown className="h-4 w-4 text-zinc-600 transition-transform group-open:rotate-180" />
           </summary>
-          <div className="pb-4 text-sm leading-relaxed text-zinc-300">
+          <div className="pb-3 text-sm leading-relaxed text-zinc-400">
             عسل الهيثم يُباع في مرطبانات مختومة فقط. إن كان الختم مفتوحاً أو مفقوداً عند الشراء، أو
             اشتريت عسلاً باسمنا وشككت فيه، راسلنا قبل استعماله.
             {flags.hasAgents && (
@@ -109,60 +141,25 @@ export default async function JarWelcome({ params }: Params) {
             )}
           </div>
         </details>
-        <details className="group px-4">
-          <summary className="flex cursor-pointer list-none items-center gap-2 py-3.5 font-bold text-white [&::-webkit-details-marker]:hidden">
-            <Snowflake className="h-5 w-5 shrink-0 text-amber-500" />
+        <details className="group">
+          <summary className={SUMMARY}>
+            <Snowflake className="h-4 w-4 shrink-0 text-amber-500" />
             <span className="flex-1">إن تجمّد عسلك فهذا طبيعي</span>
-            <ChevronDown className="h-4 w-4 text-zinc-500 transition-transform group-open:rotate-180" />
+            <ChevronDown className="h-4 w-4 text-zinc-600 transition-transform group-open:rotate-180" />
           </summary>
-          <p className="pb-4 text-sm leading-relaxed text-zinc-300">
+          <p className="pb-3 text-sm leading-relaxed text-zinc-400">
             التبلّور يحدث للعسل الطبيعي مع البرد والوقت، وليس دليل غشّ ولا فساد. لإعادته سائلاً: ضع
             المرطبان مغلقاً في ماء دافئ (لا يغلي) وحرّكه قليلاً حتى يذوب.
           </p>
         </details>
       </div>
 
-      <WhatsAppButton
-        source="jar-review"
-        variant="soft"
-        message={REVIEW}
-        icon={false}
-        className="h-12 gap-2 rounded-2xl"
-      >
-        <Star className="h-5 w-5" /> قيّم العسل الذي اشتريته
-      </WhatsAppButton>
-
-      {SITE.social.facebook && (
-        <a
-          href={SITE.social.facebook}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex h-12 items-center justify-center gap-2 rounded-2xl bg-[#1877F2] font-bold text-white hover:brightness-110"
-        >
-          <FacebookIcon className="h-5 w-5" /> تابع صفحتنا على فيسبوك
+      <footer className="mt-auto pt-4 text-center text-xs leading-relaxed text-zinc-500">
+        {c.street} — {c.city}، {c.region}
+        <br />
+        <a href={`tel:${c.phone}`} className="text-zinc-400 hover:text-amber-400" dir="ltr">
+          {c.phone}
         </a>
-      )}
-
-      <a
-        href={`/q/${slug}/vcard`}
-        className="flex h-12 items-center justify-center gap-2 rounded-2xl bg-amber-500 font-bold text-zinc-950 hover:bg-amber-400"
-      >
-        <UserPlus className="h-5 w-5" /> حفظ جهة الاتصال
-      </a>
-
-      <footer className="mt-auto border-t border-zinc-800 pt-4 text-center text-sm text-zinc-400">
-        <p>
-          {c.street} — {c.city}، {c.region}
-        </p>
-        <div className="mt-3 flex items-center justify-center gap-3">
-          <a
-            href={`tel:${c.phone}`}
-            aria-label="اتصال"
-            className="flex h-11 w-11 items-center justify-center rounded-full border border-zinc-700 hover:text-amber-400"
-          >
-            <Phone className="h-5 w-5" />
-          </a>
-        </div>
       </footer>
     </section>
   );
