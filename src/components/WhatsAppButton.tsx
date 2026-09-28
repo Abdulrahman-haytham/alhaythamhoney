@@ -23,6 +23,8 @@ const VARIANTS = {
   link: 'font-bold text-whatsapp hover:underline',
   /** أيقونة فقط بين أيقونات أخرى */
   icon: 'text-zinc-400 hover:bg-zinc-800 hover:text-whatsapp',
+  /** بلا لون — للصفحات التي يحدّد تصميمها ألوانه بنفسه (صفحة المرطبان بألوان العلامة) */
+  plain: '',
 } as const;
 
 export function currentWhatsAppMessage(explicit?: string): string {
