@@ -52,7 +52,8 @@ export default async function JarWelcome({ params }: Params) {
 
   return (
     <section className="mx-auto flex min-h-dvh max-w-md flex-col gap-4 px-5 py-6">
-      <header className="text-center">
+      {/* mt-auto هنا وفي التذييل يقسمان الفراغ فيتوسّط المحتوى الشاشة */}
+      <header className="mt-auto text-center">
         <Link
           href="/"
           aria-label="الصفحة الرئيسية للموقع"
