@@ -15,6 +15,7 @@ import {
   X,
   Loader2,
   PackageCheck,
+  FileText,
   AlertTriangle,
   Gift,
   MapPin,
@@ -179,6 +180,21 @@ function OrderPlaced({
         >
           إفراغ السلة
         </button>
+      </div>
+      {/* رسالة واتساب تبقى نصاً (لا يمكنها إرفاق ملف)؛ الفاتورة ملف يحمّله الزبون من هنا */}
+      <div className="mt-4 flex flex-wrap items-center gap-3 rounded-xl border border-amber-500/30 bg-zinc-950/60 p-3">
+        <FileText className="h-5 w-5 shrink-0 text-amber-400" />
+        <p className="min-w-0 flex-1 text-sm text-zinc-200">
+          فاتورة طلبك جاهزة: صور المنتجات والأسعار والإجمالي في ملف PDF.
+        </p>
+        <a
+          href={`/orders/${reference}/invoice.pdf`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex min-h-11 items-center rounded-xl bg-amber-500 px-4 py-2 text-sm font-bold text-zinc-950 hover:bg-amber-400"
+        >
+          تحميل الفاتورة
+        </a>
       </div>
     </div>
   );
