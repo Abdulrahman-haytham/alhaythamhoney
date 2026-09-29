@@ -4,6 +4,8 @@ import path from 'node:path';
 const nextConfig: NextConfig = {
   output: 'standalone',
   poweredByHeader: false,
+  // يُحمَّل وقت التشغيل من node_modules لا يُحزَم: يشغّل Chromium المثبّت في الحاوية
+  serverExternalPackages: ['puppeteer-core'],
   outputFileTracingIncludes: { '/*': ['./content/articles/**/*'] },
   async redirects() {
     return [{ source: '/site.webmanifest', destination: '/manifest.webmanifest', permanent: true }];

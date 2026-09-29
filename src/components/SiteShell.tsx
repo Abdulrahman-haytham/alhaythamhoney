@@ -19,7 +19,9 @@ export default function SiteShell({
   footer: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const minimal = pathname.startsWith('/admin') || pathname.startsWith('/q/');
+  // الفاتورة تُطبع إلى PDF: بلا رأس ولا تذييل ولا شريط سفلي
+  const minimal =
+    pathname.startsWith('/admin') || pathname.startsWith('/q/') || pathname.endsWith('/invoice');
   return (
     <>
       <Suspense fallback={null}>

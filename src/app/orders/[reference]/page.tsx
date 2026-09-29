@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { Check, Clock, XCircle } from 'lucide-react';
+import { Check, Clock, FileText, XCircle } from 'lucide-react';
 import { db } from '@/lib/db';
 import { getSettings } from '@/lib/settings.server';
 import {
@@ -157,6 +157,14 @@ export default async function OrderTrackingPage({
           >
             استفسر عن الطلب
           </WhatsAppButton>
+          <a
+            href={`/orders/${order.reference}/invoice.pdf`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 rounded-xl border border-amber-500/40 px-5 py-2.5 text-sm font-bold text-amber-300 hover:bg-amber-500/10"
+          >
+            <FileText className="h-4 w-4" /> تحميل الفاتورة PDF
+          </a>
           <Link
             href="/shop"
             className="inline-flex items-center rounded-xl border border-zinc-700 px-5 py-2.5 text-sm text-zinc-300 hover:border-zinc-500"

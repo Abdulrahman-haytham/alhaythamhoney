@@ -292,6 +292,7 @@ export function whatsappOrderMessage(quote: Quote, reference: string, trackUrl: 
     `الشحن${quote.shippingLabel ? ` (${quote.shippingLabel})` : ''}: ${quote.freeShipping ? 'مجاني' : `${formatPrice(quote.shipping)}`}`,
     `الإجمالي: ${formatPrice(quote.total)}`,
     '',
+    `الفاتورة (PDF): ${trackUrl}/invoice.pdf`,
     `متابعة الطلب: ${trackUrl}`,
     'هذه الأسعار من السلة المحفوظة. أرجو تأكيد السعر النهائي والشحن والتوفر ومدة التوصيل.',
   ].join('\n');

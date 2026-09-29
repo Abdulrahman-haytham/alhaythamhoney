@@ -16,7 +16,9 @@ ENV NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL
 RUN npm run lint && npm run typecheck && npm run test:run && npm run build
 
 FROM base AS runner
-ENV NODE_ENV=production PORT=3005 HOSTNAME=0.0.0.0 UPLOAD_DIR=/app/data/uploads
+# Chromium prints /orders/[ref]/invoice to PDF with correct Arabic shaping (see invoicePdf.server.ts).
+RUN apt-get update && apt-get install -y --no-install-recommends chromium fonts-dejavu-core && rm -rf /var/lib/apt/lists/*
+ENV NODE_ENV=production PORT=3005 HOSTNAME=0.0.0.0 UPLOAD_DIR=/app/data/uploads CHROMIUM_PATH=/usr/bin/chromium
 RUN mkdir -p /app/data/uploads && chown -R node:node /app/data
 COPY --from=builder --chown=node:node /app/.next/standalone ./
 COPY --from=builder --chown=node:node /app/.next/static ./.next/static
