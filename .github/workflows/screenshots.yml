@@ -42,6 +42,7 @@ jobs:
       DATABASE_URL: postgresql://postgres:preview-only-password@127.0.0.1:5432/haytham_preview
       NEXT_PUBLIC_SITE_URL: http://127.0.0.1:3005
       ADMIN_SESSION_SECRET: preview-only-session-secret-never-used-in-production-0123456789
+      CHROMIUM_PATH: /usr/bin/google-chrome
       NEXT_TELEMETRY_DISABLED: '1'
     steps:
       - uses: actions/setup-node@v5
@@ -68,6 +69,20 @@ jobs:
           from products where category = 'HONEY' order by "sortOrder" limit 1;
           insert into promotions (id, title, kind, "minSubtotal", percent, "endsAt", "updatedAt")
           values ('preview-pct', 'عرض تجريبي', 'PERCENT_OVER_AMOUNT', 5000, 5, now() + interval '10 days', now());
+          SQL
+          # A sample order so /orders/HY-PREV23/invoice(.pdf) can be previewed.
+          psql "$DATABASE_URL" -q <<'SQL' || true
+          with items as (
+            select id, name, price, weight, image, row_number() over (order by "sortOrder") as n
+            from products where category = 'HONEY' and price is not null order by "sortOrder" limit 2
+          ), totals as (select sum(price * n)::int as sub from items)
+          insert into orders (id, reference, subtotal, discount, shipping, total, breakdown, "updatedAt")
+          select 'preview-order', 'HY-PREV23', sub, 0, 25000, sub + 25000,
+                 '{"shippingLabel": "حماة · 1–2 يوم"}'::jsonb, now() from totals;
+          insert into order_items (id, "orderId", "productId", name, price, quantity, weight, image)
+          select 'preview-item-' || n, 'preview-order', id, name, price, n::int, weight, image
+          from (select id, name, price, weight, image, row_number() over (order by "sortOrder") as n
+                from products where category = 'HONEY' and price is not null order by "sortOrder" limit 2) i;
           SQL
           # Sample agents, if this branch has the agents table.
           psql "$DATABASE_URL" -q <<'SQL' || true
@@ -131,6 +146,14 @@ jobs:
             const [p, click] = entry.split('|');
             const slug = (p === '/' ? 'home' : p.replace(/^\/|\/$/g, '').replace(/[^a-z0-9]+/gi, '-')) + (click ? '-click' : '');
             const name = `${String(i + 1).padStart(2, '0')}-${slug}`.slice(0, 70);
+            if (p.endsWith('.pdf')) {
+              // Save the PDF and render its first page to an image for review.
+              const res = await fetch(base + p);
+              const buf = Buffer.from(await res.arrayBuffer());
+              await fs.writeFile(`${out}/${name}.pdf`, buf);
+              report.push({ path: p, name, status: res.status, type: res.headers.get('content-type'), bytes: buf.length });
+              continue;
+            }
             const page = await ctx.newPage();
             try {
               await page.goto(base + p, { waitUntil: 'networkidle', timeout: 60000 });
@@ -202,6 +225,11 @@ jobs:
           await browser.close();
           EOF
           cd "$RUNNER_TEMP/pw" && node shoot.mjs "$RUNNER_TEMP/shots"
+      - name: Render PDF pages to images
+        run: |
+          ls "$RUNNER_TEMP/shots"/*.pdf >/dev/null 2>&1 || exit 0
+          sudo apt-get install -y -qq poppler-utils >/dev/null
+          for f in "$RUNNER_TEMP/shots"/*.pdf; do pdftoppm -jpeg -r 110 "$f" "${f%.pdf}-page"; done
       - name: Publish to the screenshots branch
         env:
           TOKEN: ${{ github.token }}

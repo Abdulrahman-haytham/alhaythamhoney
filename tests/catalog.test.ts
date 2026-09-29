@@ -569,6 +569,7 @@ describe('orders and pricing engine', () => {
     expect(msg).toContain('الوصفة: 500غ — سدر');
     expect(msg).toContain('الإجمالي: 575,000');
     expect(msg).toContain('https://example.com/orders/HY-ABCD23');
+    expect(msg).toContain('الفاتورة (PDF): https://example.com/orders/HY-ABCD23/invoice.pdf');
   });
 
   it('moves an order forward only, and never out of cancellation', () => {

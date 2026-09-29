@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ExternalLink } from 'lucide-react';
+import { ExternalLink, FileText } from 'lucide-react';
 import type { OrderStatus } from '@prisma/client';
 import { ORDER_STATUS_LABELS, ORDER_STATUSES, canTransitionOrder } from '@/lib/orders';
 import { formatAmount, formatPrice } from '@/lib/money';
@@ -260,6 +260,14 @@ function OrderRow({ order }: { order: AdminOrder }) {
             >
               <ExternalLink className="h-3.5 w-3.5" /> صفحة التتبع
             </Link>
+            <a
+              href={`/orders/${order.reference}/invoice.pdf`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-xs text-zinc-400 hover:text-amber-400"
+            >
+              <FileText className="h-3.5 w-3.5" /> الفاتورة PDF
+            </a>
             <p role="status" className="w-full text-xs text-zinc-400">
               {message}
             </p>
