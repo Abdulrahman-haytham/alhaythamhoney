@@ -10,13 +10,15 @@ import { ORDER_STATUS_LABELS } from '@/lib/orders';
 export const metadata: Metadata = { title: 'فاتورة الطلب', robots: { index: false } };
 export const dynamic = 'force-dynamic';
 
-const dateFmt = new Intl.DateTimeFormat('ar-SY', {
+const dateFmt = new Intl.DateTimeFormat('ar-SY-u-nu-latn', {
   dateStyle: 'long',
   timeStyle: 'short',
   timeZone: 'Asia/Damascus',
 });
 
 const money = (n: number) => `${formatAmount(n)} ${CURRENCY.label}`;
+/** صورة مصغّرة عبر مُحسِّن Next: تبقي ملف PDF خفيفاً على بيانات الجوال بدل تضمين الصور بحجمها الأصلي */
+const thumb = (src: string, w = 240) => `/_next/image?url=${encodeURIComponent(src)}&w=${w}&q=70`;
 
 /**
  * الفاتورة بصفحة A4 بيضاء — هذه الصفحة هي ما يطبعه Chromium إلى PDF في
@@ -41,7 +43,7 @@ export default async function InvoicePage({ params }: { params: Promise<{ refere
       <header className="flex items-start justify-between gap-6 border-b-2 border-amber-500 pb-5">
         <div className="flex items-center gap-4">
           <img
-            src="/images/logo.webp"
+            src={thumb('/images/logo.webp')}
             alt=""
             width={64}
             height={64}
@@ -84,7 +86,7 @@ export default async function InvoicePage({ params }: { params: Promise<{ refere
                 <div className="flex items-center gap-3">
                   {it.image ? (
                     <img
-                      src={it.image}
+                      src={thumb(it.image)}
                       alt=""
                       className="h-16 w-16 shrink-0 rounded-lg border border-zinc-200 object-cover"
                     />
