@@ -6,7 +6,7 @@ import { getSettings } from '@/lib/settings.server';
 import { ensureReferralCode } from '@/lib/loyalty.server';
 import { SITE } from '@/lib/config';
 import { ReferralBox } from './ReferralBox';
-import { ORDER_STATUS_LABELS } from '@/lib/orders';
+import { ORDER_STATUS_LABELS, orderLabel } from '@/lib/orders';
 import { db } from '@/lib/db';
 import { currentCustomer } from '@/lib/customer-auth';
 import { formatArticleDate, toIsoDay } from '@/lib/articles';
@@ -40,6 +40,7 @@ export default async function AccountPage() {
       select: {
         id: true,
         reference: true,
+        number: true,
         status: true,
         total: true,
         createdAt: true,
@@ -224,7 +225,7 @@ export default async function AccountPage() {
                     className="flex flex-wrap items-center gap-3 p-4 text-sm transition hover:bg-zinc-800/40"
                   >
                     <span className="font-mono font-bold text-white" dir="ltr">
-                      {o.reference}
+                      {orderLabel(o)}
                     </span>
                     <span className="text-xs text-zinc-500">{o._count.items} بنود</span>
                     <span className="flex-1 tabular-nums text-amber-300">

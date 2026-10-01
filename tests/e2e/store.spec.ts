@@ -51,10 +51,13 @@ test('mobile storefront, wishlist links, cart and WhatsApp checkout', async ({
   const handoff = new URL(
     (await page.getByRole('link', { name: 'فتح واتساب وإرسال الطلب' }).getAttribute('href'))!,
   );
-  expect(handoff.searchParams.get('text')).toContain(saved.reference);
+  // الرسالة والصفحة تعرضان الرقم القصير؛ الرابط يحمل المرجع الطويل
+  expect(saved.number).toBeGreaterThanOrEqual(10000);
+  expect(handoff.searchParams.get('text')).toContain(`الطلب رقم ${saved.number}`);
+  expect(handoff.searchParams.get('text')).toContain(`/orders/${saved.reference}`);
   const tracked = await request.get(`/orders/${saved.reference}`);
   expect(tracked.status()).toBe(200);
-  expect(await tracked.text()).toContain(saved.reference);
+  expect(await tracked.text()).toContain(String(saved.number));
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
     true,
   );

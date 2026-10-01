@@ -22,6 +22,7 @@ export async function getInvoiceOrder(rawReference: string) {
     where: { reference },
     select: {
       reference: true,
+      number: true,
       status: true,
       createdAt: true,
       updatedAt: true,

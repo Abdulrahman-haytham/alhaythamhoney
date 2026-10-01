@@ -277,9 +277,10 @@ export function buildQuote(opts: QuoteOptions): Quote {
 }
 
 /** نص رسالة واتساب من عرض السعر — يُبنى من الخادم ليتطابق مع ما سُجّل في الطلب. */
-export function whatsappOrderMessage(quote: Quote, reference: string, trackUrl: string) {
+/** `orderNumber`: الرقم القصير المعروض (أو المرجع للطلبات القديمة)؛ الروابط تحمل المرجع الطويل. */
+export function whatsappOrderMessage(quote: Quote, orderNumber: string, trackUrl: string) {
   return [
-    `مرحباً عسل الهيثم، أود تأكيد الطلب رقم ${reference}:`,
+    `مرحباً عسل الهيثم، أود تأكيد الطلب رقم ${orderNumber}:`,
     '',
     ...quote.lines.map((l) => {
       const line = `• ${l.name} × ${l.quantity}${l.weight ? ` (${l.weight})` : ''} — ${formatPrice(l.lineTotal)}`;
