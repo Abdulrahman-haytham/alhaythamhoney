@@ -44,22 +44,14 @@ function AnimatedCounter({ target }: { target: number }) {
 }
 
 export default function Stats() {
-  // حشو سفلي أقل: قسم المنتجات التالي يضيف حشوه فوقه، فكانت الفجوة تقارب ١٥٠ بكسل
+  // بلا عنوان: الأرقام تشرح نفسها. حشو سفلي أقل لأن قسم المنتجات التالي يضيف حشوه فوقه
   return (
-    <section className="relative overflow-hidden bg-zinc-950 pt-10 pb-4 sm:pt-14 sm:pb-6">
+    <section className="relative overflow-hidden bg-zinc-950 pt-4 pb-4 sm:pt-10 sm:pb-6">
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute top-1/2 left-1/2 h-[28rem] w-[48rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-amber-500/[0.04] blur-3xl" />
       </div>
 
       <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-        {/* عنوان واحد قصير: الأرقام تحتَه تشرح نفسها، وثلاثة عناوين متتالية كانت
-            تُبعد الزائر عن المنتجات بشاشة كاملة */}
-        <Reveal className="mb-6 text-center sm:mb-8">
-          <h2 className="text-2xl font-bold text-white sm:text-3xl">
-            أرقام <span className="gold-text">نفتخر بها</span>
-          </h2>
-        </Reveal>
-
         {/* ثلاثة أعمدة دائماً — حتى على أضيق الشاشات — مع تصغير الحشو والخط بدل التكديس رأسياً */}
         <div className="grid grid-cols-3 gap-2.5 sm:gap-6">
           {STATS.map((stat, index) => (

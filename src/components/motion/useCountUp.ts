@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from 'react';
  * عدّاد يصعد إلى الرقم حين يدخل العنصر الشاشة — requestAnimationFrame بدل `animate()`.
  * القيمة النهائية هي الحالة الأولى فيظهر الرقم صحيحاً في HTML الخادم وبلا JavaScript.
  */
-export function useCountUp(target: number, duration = 1600) {
+export function useCountUp(target: number, duration = 2800) {
   const ref = useRef<HTMLElement>(null);
   const [value, setValue] = useState(target);
 
@@ -21,8 +21,8 @@ export function useCountUp(target: number, duration = 1600) {
         const start = performance.now();
         const tick = (now: number) => {
           const t = Math.min(1, (now - start) / duration);
-          // منحنى خروج سريع ثم تباطؤ — يشبه إحساس العدّاد القديم
-          const eased = 1 - Math.pow(1 - t, 4);
+          // تباطؤ هادئ في النهاية (تكعيبي لا رباعي): الرباعي كان يقفز بمعظم الرقم في أول لحظة
+          const eased = 1 - Math.pow(1 - t, 3);
           setValue(Math.round(target * eased));
           if (t < 1) frame = requestAnimationFrame(tick);
         };

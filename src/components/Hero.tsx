@@ -18,8 +18,9 @@ const DEFAULT_HERO_IMAGE = '/images/hero.webp';
  */
 export default async function Hero() {
   const s = await getSettings();
+  // على الجوال يأخذ القسم ارتفاع محتواه: بملء الشاشة كان يترك فراغاً كبيراً تحت الزر قبل الأرقام
   return (
-    <section className="relative min-h-screen w-full flex flex-col items-center justify-center overflow-hidden pt-16 md:pt-20 pb-8 md:pb-0">
+    <section className="relative w-full flex flex-col items-center justify-center overflow-hidden pt-28 pb-10 sm:min-h-screen sm:pt-16 md:pt-20 sm:pb-8 md:pb-0">
       {/* خلفية متحركة بهدوء */}
       <div className="zoom-slow absolute inset-0 z-0">
         <Image
