@@ -109,7 +109,6 @@ async function start({ mode = null, phone = null, session = null } = {}) {
     browser: Browsers.ubuntu('Chrome'),
     markOnlineOnConnect: false,
     syncFullHistory: false,
-    shouldSyncHistoryMessage: () => false,
     generateHighQualityLinkPreview: false,
     getMessage: async (key) => recent.get(key.id),
   });
