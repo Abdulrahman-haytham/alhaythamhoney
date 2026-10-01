@@ -88,9 +88,17 @@ export default async function AdminCustomersPage() {
                   <td className="px-3 py-2 font-bold text-zinc-100">{c.name}</td>
                   <td className="px-3 py-2 text-zinc-300" dir="ltr">
                     {c.phone}
+                    {!c.whatsapp && (
+                      <span
+                        className="ms-2 rounded bg-zinc-800 px-1.5 py-0.5 text-[10px] text-zinc-500"
+                        title="حساب قديم بالبريد بلا رقم واتساب صالح — لا يستطيع الدخول"
+                      >
+                        بلا دخول
+                      </span>
+                    )}
                   </td>
                   <td className="px-3 py-2 text-zinc-400" dir="ltr">
-                    {c.email}
+                    {c.email ?? '—'}
                   </td>
                   <td className="px-3 py-2 text-zinc-400">{c.city ?? '—'}</td>
                   <td className="px-3 py-2">{c.marketingOptIn ? '✅' : '—'}</td>

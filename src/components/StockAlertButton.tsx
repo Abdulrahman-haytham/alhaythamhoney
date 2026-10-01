@@ -72,7 +72,7 @@ export default function StockAlertButton({
   }
 
   // زبون مسجّل: ضغطة واحدة بلا نموذج
-  if (customer && !open) {
+  if (customer?.email && !open) {
     return (
       <button
         type="button"

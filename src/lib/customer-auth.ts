@@ -11,7 +11,8 @@ const MAX_ATTEMPTS = 5;
 
 export interface CustomerInfo {
   id: string;
-  email: string;
+  whatsapp: string | null;
+  email: string | null;
   name: string;
   phone: string;
   city: string | null;
@@ -27,7 +28,15 @@ export const currentCustomer = cache(async (): Promise<CustomerInfo | null> => {
   if (!id) return null;
   return db.customer.findUnique({
     where: { id },
-    select: { id: true, email: true, name: true, phone: true, city: true, marketingOptIn: true },
+    select: {
+      id: true,
+      whatsapp: true,
+      email: true,
+      name: true,
+      phone: true,
+      city: true,
+      marketingOptIn: true,
+    },
   });
 });
 
@@ -43,27 +52,25 @@ export function customerCookie(customerId: string) {
   };
 }
 
-export const normalizeEmail = (email: string) => email.trim().toLowerCase();
-
-function hashCode(email: string, code: string) {
+function hashCode(phone: string, code: string) {
   // الرمز 6 أرقام فقط — نضيف السر حتى لا يُستنتج من قاعدة بيانات مسرّبة
   return createHash('sha256')
-    .update(`${process.env.ADMIN_SESSION_SECRET}:${email}:${code}`)
+    .update(`${process.env.ADMIN_SESSION_SECRET}:${phone}:${code}`)
     .digest('hex');
 }
 
-/** ينشئ رمزاً جديداً ويُبطل ما سبقه لهذا البريد. يعيد الرمز الصريح لإرساله. */
-export async function issueLoginCode(email: string) {
+/** ينشئ رمزاً جديداً ويُبطل ما سبقه لهذا الرقم. يعيد الرمز الصريح لإرساله على واتساب. */
+export async function issueLoginCode(phone: string) {
   const code = String(randomInt(0, 1_000_000)).padStart(6, '0');
   await db.$transaction([
     db.loginCode.updateMany({
-      where: { email, consumedAt: null },
+      where: { phone, consumedAt: null },
       data: { consumedAt: new Date() },
     }),
     db.loginCode.create({
       data: {
-        email,
-        codeHash: hashCode(email, code),
+        phone,
+        codeHash: hashCode(phone, code),
         expiresAt: new Date(Date.now() + CODE_TTL_MS),
       },
     }),
@@ -72,14 +79,14 @@ export async function issueLoginCode(email: string) {
 }
 
 /** يتحقق من الرمز ويستهلكه. المحاولات محدودة لكل رمز. */
-export async function consumeLoginCode(email: string, code: string): Promise<boolean> {
+export async function consumeLoginCode(phone: string, code: string): Promise<boolean> {
   const row = await db.loginCode.findFirst({
-    where: { email, consumedAt: null, expiresAt: { gt: new Date() } },
+    where: { phone, consumedAt: null, expiresAt: { gt: new Date() } },
     orderBy: { createdAt: 'desc' },
   });
   if (!row) return false;
   if (row.attempts >= MAX_ATTEMPTS) return false;
-  if (row.codeHash !== hashCode(email, code)) {
+  if (row.codeHash !== hashCode(phone, code)) {
     await db.loginCode.updateMany({
       where: { id: row.id, consumedAt: null, attempts: { lt: MAX_ATTEMPTS } },
       data: { attempts: { increment: 1 } },

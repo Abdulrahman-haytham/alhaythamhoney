@@ -25,8 +25,23 @@ it('applies all migrations to an empty PostgreSQL engine without dropping existi
         await pg.exec(
           `INSERT INTO orders (id, reference, subtotal, total, "pointsUsed", breakdown, "updatedAt") VALUES ('old-order', 'HY-OLD234', 100000, 80000, 40, '{"adjustments":[{"kind":"points","amount":20000}]}', NOW())`,
         );
+      // حسابات قديمة بالبريد: تأخذ رقم واتساب من هاتفها، والمكرّر للأقدم فقط
+      if (name === '20261001200000_whatsapp_login')
+        await pg.exec(
+          `INSERT INTO customers (id, email, name, phone, "createdAt", "updatedAt") VALUES
+            ('c-local', 'a@x.sy', 'a', '0944123456', '2026-01-01', NOW()),
+            ('c-intl', 'b@x.sy', 'b', '+963 0933 111 222', '2026-01-02', NOW()),
+            ('c-dupe', 'c@x.sy', 'c', '944123456', '2026-01-03', NOW()),
+            ('c-bad', 'd@x.sy', 'd', '011 222 3333', '2026-01-04', NOW())`,
+        );
       await pg.exec(await sql(name));
     }
+    expect((await pg.query(`SELECT id, whatsapp FROM customers ORDER BY id`)).rows).toEqual([
+      { id: 'c-bad', whatsapp: null },
+      { id: 'c-dupe', whatsapp: null },
+      { id: 'c-intl', whatsapp: '963933111222' },
+      { id: 'c-local', whatsapp: '963944123456' },
+    ]);
     expect(
       (await pg.query(`SELECT "pointsDiscount" FROM orders WHERE id = 'old-order'`)).rows,
     ).toEqual([{ pointsDiscount: 20000 }]);

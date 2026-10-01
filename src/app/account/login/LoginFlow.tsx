@@ -2,10 +2,11 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Mail, KeyRound, UserRound, Loader2, ArrowRight } from 'lucide-react';
+import { KeyRound, UserRound, Loader2, ArrowRight } from 'lucide-react';
+import { WhatsAppIcon } from '@/components/BrandIcons';
 import { clearStoredReferral, storedReferral } from '@/components/ReferralCapture';
 
-type Step = 'email' | 'code' | 'profile';
+type Step = 'phone' | 'code' | 'profile';
 const inputClass =
   'mt-1 h-12 w-full rounded-xl border border-zinc-700 bg-zinc-900 px-4 text-base text-white placeholder:text-zinc-600 focus:border-amber-500/60 focus:outline-none';
 
@@ -21,17 +22,16 @@ async function post(url: string, body: unknown) {
 }
 
 /**
- * دخول بلا كلمة مرور: بريد → رمز 6 أرقام → (للجديد فقط) الاسم والهاتف.
- * البريد للرمز، والهاتف للتوصيل والتواصل.
+ * دخول بلا كلمة مرور: رقم واتساب → رمز 6 أرقام يصل على واتساب → (للجديد فقط) الاسم.
+ * الرقم نفسه هو هاتف التوصيل، فلا يُسأل عنه مرتين.
  */
 export function LoginFlow({ next }: { next: string }) {
   const router = useRouter();
-  const [step, setStep] = useState<Step>('email');
-  const [email, setEmail] = useState('');
+  const [step, setStep] = useState<Step>('phone');
+  const [phone, setPhone] = useState('');
   const [code, setCode] = useState('');
   const [token, setToken] = useState('');
   const [name, setName] = useState('');
-  const [phone, setPhone] = useState('');
   const [city, setCity] = useState('');
   const [optIn, setOptIn] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -58,8 +58,8 @@ export function LoginFlow({ next }: { next: string }) {
     <div className="rounded-3xl border border-zinc-800 bg-zinc-900/40 p-6 sm:p-8">
       <div className="mb-6 text-center">
         <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-amber-500/20 bg-amber-500/10 text-amber-500">
-          {step === 'email' ? (
-            <Mail className="h-7 w-7" />
+          {step === 'phone' ? (
+            <WhatsAppIcon className="h-7 w-7" />
           ) : step === 'code' ? (
             <KeyRound className="h-7 w-7" />
           ) : (
@@ -67,48 +67,55 @@ export function LoginFlow({ next }: { next: string }) {
           )}
         </div>
         <h1 className="font-amiri text-3xl font-bold text-white">
-          {step === 'email'
+          {step === 'phone'
             ? 'تسجيل الدخول'
             : step === 'code'
               ? 'أدخل الرمز'
               : 'أهلاً بك! عرّفنا بنفسك'}
         </h1>
         <p className="mt-2 text-sm text-zinc-400">
-          {step === 'email' && 'بلا كلمة مرور — نرسل رمزاً إلى بريدك في كل مرة.'}
+          {step === 'phone' && 'بلا كلمة مرور — نرسل رمزاً إلى واتساب في كل مرة.'}
           {step === 'code' && (
             <>
-              أرسلنا 6 أرقام إلى <b className="text-zinc-200">{email}</b>. تحقق من صندوق الوارد (أو
-              البريد غير المرغوب).
+              أرسلنا 6 أرقام على واتساب إلى{' '}
+              <b className="text-zinc-200" dir="ltr">
+                {phone}
+              </b>
+              . تصلك من رقم الرموز الآلي.
             </>
           )}
-          {step === 'profile' && 'مرة واحدة فقط: اسمك للتواصل، وهاتفك للتوصيل.'}
+          {step === 'profile' && 'مرة واحدة فقط: اسمك للتواصل. رقمك هذا هو رقم التوصيل.'}
         </p>
       </div>
 
-      {step === 'email' && (
+      {step === 'phone' && (
         <form
           onSubmit={(e) => {
             e.preventDefault();
             void run(async () => {
-              await post('/api/auth/request-code', { email });
+              await post('/api/auth/request-code', { phone });
               setStep('code');
             });
           }}
           className="space-y-4"
         >
           <label className="block text-sm text-zinc-300">
-            البريد الإلكتروني
+            رقم واتساب
             <input
               className={inputClass}
-              type="email"
+              type="tel"
               dir="ltr"
-              autoComplete="email"
-              inputMode="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              autoComplete="tel"
+              inputMode="tel"
+              placeholder="09xx xxx xxx"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
               required
               autoFocus
             />
+            <span className="mt-1 block text-xs text-zinc-500">
+              من خارج سوريا؟ اكتبه مع رمز الدولة: ‎+49…
+            </span>
           </label>
           <SubmitButton busy={busy}>أرسل الرمز</SubmitButton>
         </form>
@@ -119,7 +126,7 @@ export function LoginFlow({ next }: { next: string }) {
           onSubmit={(e) => {
             e.preventDefault();
             void run(async () => {
-              const data = await post('/api/auth/verify', { email, code });
+              const data = await post('/api/auth/verify', { phone, code });
               if (data.needsProfile) {
                 setToken(data.token);
                 setStep('profile');
@@ -148,7 +155,7 @@ export function LoginFlow({ next }: { next: string }) {
             <button
               type="button"
               onClick={() =>
-                run(async () => void (await post('/api/auth/request-code', { email })))
+                run(async () => void (await post('/api/auth/request-code', { phone })))
               }
               className="hover:text-amber-400"
               disabled={busy}
@@ -158,12 +165,12 @@ export function LoginFlow({ next }: { next: string }) {
             <button
               type="button"
               onClick={() => {
-                setStep('email');
+                setStep('phone');
                 setCode('');
               }}
               className="inline-flex items-center gap-1 hover:text-amber-400"
             >
-              <ArrowRight className="h-3 w-3" /> غيّر البريد
+              <ArrowRight className="h-3 w-3" /> غيّر الرقم
             </button>
           </div>
         </form>
@@ -177,7 +184,6 @@ export function LoginFlow({ next }: { next: string }) {
               await post('/api/auth/register', {
                 token,
                 name,
-                phone,
                 city: city || null,
                 marketingOptIn: optIn,
                 ref: storedReferral(),
@@ -202,20 +208,6 @@ export function LoginFlow({ next }: { next: string }) {
             />
           </label>
           <label className="block text-sm text-zinc-300">
-            رقم الهاتف (للتوصيل)
-            <input
-              className={inputClass}
-              type="tel"
-              dir="ltr"
-              autoComplete="tel"
-              inputMode="tel"
-              placeholder="09xx xxx xxx"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              required
-            />
-          </label>
-          <label className="block text-sm text-zinc-300">
             المدينة (اختياري)
             <input
               className={inputClass}
@@ -232,7 +224,7 @@ export function LoginFlow({ next }: { next: string }) {
               onChange={(e) => setOptIn(e.target.checked)}
               className="mt-0.5 h-4 w-4 accent-amber-500"
             />
-            أوافق على استلام العروض ونتائج السحب على واتساب أو البريد.
+            أوافق على استلام العروض ونتائج السحب على واتساب.
           </label>
           <SubmitButton busy={busy}>إنشاء الحساب</SubmitButton>
         </form>

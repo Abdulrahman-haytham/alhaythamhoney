@@ -5,7 +5,7 @@ import { LoginFlow } from './LoginFlow';
 
 export const metadata: Metadata = {
   title: 'تسجيل الدخول',
-  description: 'ادخل إلى حسابك في الهيثم برمز يُرسل إلى بريدك — بلا كلمة مرور.',
+  description: 'ادخل إلى حسابك في الهيثم برمز يصلك على واتساب — بلا كلمة مرور.',
   robots: { index: false },
 };
 export const dynamic = 'force-dynamic';

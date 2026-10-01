@@ -29,8 +29,8 @@ import {
   readSessionToken,
   createCustomerToken,
   readCustomerToken,
-  createVerifiedEmailToken,
-  readVerifiedEmailToken,
+  createVerifiedLoginToken,
+  readVerifiedLoginToken,
 } from '@/lib/session';
 import { randomJarCode } from '@/lib/draws.server';
 import { applyCoupon } from '@/lib/coupons';
@@ -435,9 +435,12 @@ describe('customer accounts and draws', () => {
     expect(readCustomerToken(customer)).toBe('c1');
     expect(readCustomerToken(admin)).toBeNull();
     expect(readSessionToken(customer)).toBeNull();
-    const t = createVerifiedEmailToken('Someone@Example.com');
-    expect(readVerifiedEmailToken(t)).toBe('Someone@Example.com');
-    expect(readVerifiedEmailToken(t.slice(0, -2) + 'zz')).toBeNull();
+    const t = createVerifiedLoginToken('963944123456');
+    expect(readVerifiedLoginToken(t)).toBe('963944123456');
+    expect(readVerifiedLoginToken(t.slice(0, -2) + 'zz')).toBeNull();
+    // إثبات التحقق لا يصلح جلسة، ولا الجلسة إثباتاً
+    expect(readCustomerToken(t)).toBeNull();
+    expect(readVerifiedLoginToken(customer)).toBeNull();
   });
   it('normalizes jar codes however the customer types them', () => {
     expect(jarCodeInput.parse(' hy 7k3m 9q2x ')).toBe('HY-7K3M-9Q2X');
@@ -1022,7 +1025,6 @@ describe('loyalty, referral and personal coupons', () => {
     expect(
       registerInput.safeParse({
         name: 'زبون جديد',
-        phone: '0947931959',
         city: null,
         marketingOptIn: true,
         token: 'x'.repeat(20),

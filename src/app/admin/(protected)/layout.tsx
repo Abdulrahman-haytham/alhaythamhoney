@@ -21,6 +21,7 @@ const TABS = [
   { href: '/admin/customers', label: 'الزبائن' },
   { href: '/admin/campaigns', label: 'الحملات' },
   { href: '/admin/settings', label: 'الإعدادات' },
+  { href: '/admin/whatsapp', label: 'واتساب' },
   { href: '/admin/studio', label: 'الاستديو' },
   { href: '/admin/activity', label: 'السجل' },
 ];

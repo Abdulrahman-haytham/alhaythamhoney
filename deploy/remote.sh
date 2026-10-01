@@ -77,7 +77,7 @@ case "$action" in
     section build;   compose build
     section backup;  bash scripts/backup.sh
     section migrate; compose run --rm migrate
-    section start;   compose up -d app
+    section start;   compose up -d app wa
     health
     echo "Deployed ${now:0:7}. Previous: ${prev:0:7} (use rollback with this SHA if needed)."
     ;;
@@ -85,12 +85,12 @@ case "$action" in
   logs)
     need_app
     read -r svc lines <<<"${arg:-app 150}"
-    case "$svc" in app|db|migrate) ;; *) echo '::error::service must be app, db or migrate'; exit 1 ;; esac
+    case "$svc" in app|db|migrate|wa) ;; *) echo '::error::service must be app, db, migrate or wa'; exit 1 ;; esac
     [[ "${lines:-150}" =~ ^[0-9]+$ ]] || lines=150
     compose logs --tail "${lines:-150}" --no-color "$svc"
     ;;
 
-  restart)  need_app; compose up -d app; compose restart app; health ;;
+  restart)  need_app; compose up -d app wa; compose restart app; health ;;
   backup)   need_app; bash scripts/backup.sh; ls -1t backups | head -5 ;;
   migrate)  need_app; compose run --rm migrate ;;
   seed)     need_app; compose --profile tools run --rm seed ;;
@@ -102,7 +102,7 @@ case "$action" in
     echo 'Note: database migrations are NOT reversed by a rollback.'
     git fetch --quiet origin "$branch"
     git -c advice.detachedHead=false checkout --quiet "$arg"
-    compose build; compose up -d app; health
+    compose build; compose up -d app wa; health
     echo "Now on $(git rev-parse --short HEAD) (detached). The next deploy returns to $branch."
     ;;
 

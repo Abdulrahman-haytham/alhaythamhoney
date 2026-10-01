@@ -29,6 +29,7 @@ export async function sendAbandonedCartEmails(limit = 5) {
   const customers = await db.customer.findMany({
     where: {
       marketingOptIn: true,
+      email: { not: null },
       cartUpdatedAt: { lte: cutoff },
       cartRemindedAt: null,
     },
@@ -40,7 +41,7 @@ export async function sendAbandonedCartEmails(limit = 5) {
   for (const c of customers) {
     if (Date.now() >= deadline) break;
     const raw = (c.cartJson as { items?: CartItem[] } | null)?.items ?? [];
-    if (!Array.isArray(raw) || !c.cartUpdatedAt) continue;
+    if (!Array.isArray(raw) || !c.cartUpdatedAt || !c.email) continue;
     // تُحجز نسخة السلة هذه قبل SMTP: انقطاع العامل لا يكرّر التذكير، وسلة أحدث لا تُعلَّم
     const claimed = await db.customer.updateMany({
       where: {

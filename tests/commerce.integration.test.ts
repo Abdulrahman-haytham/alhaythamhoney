@@ -22,6 +22,7 @@ const { issueLoginCode, consumeLoginCode } = await import('@/lib/customer-auth')
 const { sendAbandonedCartEmails } = await import('@/lib/cron.server');
 const customer = {
   id: 'qa-customer',
+  whatsapp: '963900000000',
   email: 'qa@example.test',
   name: 'عميل اختبار',
   phone: '963900000000',
@@ -160,7 +161,7 @@ describe.skipIf(!url)('commercial workflow on PostgreSQL', () => {
 
   it('issues welcome coupons once per account and respects the shared issue cap', async () => {
     await db.customer.create({
-      data: { ...customer, id: 'qa-friend', email: 'friend@example.test' },
+      data: { ...customer, id: 'qa-friend', whatsapp: null, email: 'friend@example.test' },
     });
     const params = {
       customerId: customer.id,
@@ -182,7 +183,7 @@ describe.skipIf(!url)('commercial workflow on PostgreSQL', () => {
 
   it('claims recipients once, rechecks consent, keeps stable unsubscribe tokens and counts a first open once', async () => {
     await db.customer.create({
-      data: { ...customer, id: 'qa-optout', email: 'optout@example.test' },
+      data: { ...customer, id: 'qa-optout', whatsapp: null, email: 'optout@example.test' },
     });
     const campaign = await db.campaign.create({
       data: { subject: 'اختبار', body: 'نص حملة اختبارية فقط' },
@@ -252,9 +253,9 @@ describe.skipIf(!url)('commercial workflow on PostgreSQL', () => {
   });
 
   it('consumes an OTP only once across concurrent submissions', async () => {
-    const code = await issueLoginCode(customer.email);
+    const code = await issueLoginCode(customer.whatsapp);
     const results = await Promise.all(
-      Array.from({ length: 5 }, () => consumeLoginCode(customer.email, code)),
+      Array.from({ length: 5 }, () => consumeLoginCode(customer.whatsapp, code)),
     );
     expect(results.filter(Boolean)).toHaveLength(1);
   });

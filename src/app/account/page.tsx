@@ -12,6 +12,7 @@ import { currentCustomer } from '@/lib/customer-auth';
 import { formatArticleDate, toIsoDay } from '@/lib/articles';
 import { ProfileForm } from './ProfileForm';
 import { LogoutButton } from './LogoutButton';
+import { formatPhone } from '@/lib/phone';
 import { CURRENCY, formatAmount, formatPrice } from '@/lib/money';
 
 export const metadata: Metadata = { title: 'حسابي', robots: { index: false } };
@@ -82,7 +83,7 @@ export default async function AccountPage() {
               أهلاً {customer.name.split(' ')[0]} 👋
             </h1>
             <p className="mt-1 text-sm text-zinc-500" dir="ltr">
-              {customer.email}
+              {customer.whatsapp ? formatPhone(customer.whatsapp) : customer.email}
             </p>
           </div>
           <LogoutButton />

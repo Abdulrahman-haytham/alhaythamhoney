@@ -3,6 +3,7 @@ import { ORDER_REFERENCE_RE } from '@/lib/orders';
 import { GLOSSARY_ICON_KEYS } from '@/lib/glossary';
 import { HARVEST_STEP_KEYS } from '@/lib/harvest';
 import { MIN_JAR_SIZE, MAX_JAR_SIZE, normalizeSizes } from '@/lib/mixturePricing';
+import { normalizeWhatsAppNumber } from '@/lib/phone';
 
 const amount = z.number().int().min(0).max(1_000_000_000);
 const text = (max: number) => z.string().trim().max(max);
@@ -299,10 +300,22 @@ const phone = z
   .regex(/^\+?[0-9 ()-]{8,20}$/, 'رقم هاتف غير صالح.')
   .transform((v) => v.replace(/[^\d+]/g, ''));
 
-export const requestCodeInput = z.object({ email: emailInput }).strict();
+/** رقم واتساب بأي صيغة يكتبها الناس ← الصيغة الدولية المخزّنة (963944123456) */
+export const whatsappInput = z
+  .string()
+  .max(40)
+  .transform((v, ctx) => {
+    const n = normalizeWhatsAppNumber(v);
+    if (!n) {
+      ctx.addIssue({ code: 'custom', message: 'رقم واتساب غير صالح — مثال: 0944 123 456' });
+      return z.NEVER;
+    }
+    return n;
+  });
+export const requestCodeInput = z.object({ phone: whatsappInput }).strict();
 export const verifyCodeInput = z
   .object({
-    email: emailInput,
+    phone: whatsappInput,
     code: z
       .string()
       .trim()
@@ -319,7 +332,9 @@ export const profileInput = z
     marketingOptIn: z.boolean(),
   })
   .strict();
+/** إنشاء الحساب بعد التحقق من واتساب: الهاتف هو رقم واتساب نفسه فلا يُسأل عنه */
 export const registerInput = profileInput
+  .omit({ phone: true })
   .extend({
     token: z.string().min(10).max(2000),
     /** رمز إحالة صديق (اختياري) */

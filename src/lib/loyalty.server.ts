@@ -184,7 +184,7 @@ function couponMail(title: string, intro: string, code: string, expiresAt: Date 
 }
 
 /** كوبون الترحيب عند إنشاء حساب جديد — يُرسل بالبريد ولا يُسقط التسجيل إن فشل */
-export async function grantWelcomeCoupon(customerId: string, email: string) {
+export async function grantWelcomeCoupon(customerId: string, email: string | null) {
   const s = await getSettings();
   if (!s.welcomeCouponEnabled) return null;
   const coupon = await issuePersonalCoupon({
@@ -197,7 +197,8 @@ export async function grantWelcomeCoupon(customerId: string, email: string) {
     monthlyCap: s.welcomeMonthlyCap,
     note: 'كوبون ترحيب تلقائي',
   }).catch(() => null);
-  if (!coupon) return null;
+  // بلا بريد يكفي ظهور الكوبون في صفحة الحساب — لا رسالة إضافية من الرقم الآلي
+  if (!coupon || !email) return coupon;
   const mail = couponMail(
     'هدية ترحيب',
     `أهلاً بك في ${SITE.name}! خصم ${s.welcomePercent}% على طلبك الأول${s.welcomeMaxDiscount ? ` (حتى ${formatPrice(s.welcomeMaxDiscount)})` : ''}.`,
@@ -266,7 +267,7 @@ async function rewardReferral(
       },
       tx,
     );
-    if (coupon && recipient.marketingOptIn)
+    if (coupon && recipient.marketingOptIn && recipient.email)
       mails.push({
         email: recipient.email,
         ...couponMail('مكافأة الإحالة', intros[recipient.id], coupon.code, coupon.expiresAt),

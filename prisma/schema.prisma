@@ -446,8 +446,12 @@ model CouponRedemption {
 /// حساب زبون بلا كلمة مرور: الدخول برمز يُرسل إلى البريد. الهاتف للتوصيل والرسائل الجماعية.
 model Customer {
   id                 String              @id @default(cuid())
-  email              String              @unique
+  /// رقم واتساب الدولي بلا + (963944123456) — هوية الدخول: الرمز يصل إليه
+  whatsapp           String?             @unique
+  /// اختياري منذ صار الدخول بواتساب — حسابات البريد القديمة تبقى
+  email              String?             @unique
   name               String
+  /// هاتف التوصيل (يبدأ برقم واتساب ويُعدَّل من الحساب)
   phone              String
   city               String?
   marketingOptIn     Boolean             @default(true)
@@ -512,14 +516,15 @@ model PointsTransaction {
 /// رمز دخول لمرة واحدة (6 أرقام) — يُخزَّن مُجزَّأً وينتهي خلال دقائق.
 model LoginCode {
   id         String    @id @default(cuid())
-  email      String
+  /// رقم واتساب الدولي الذي أُرسل إليه الرمز
+  phone      String
   codeHash   String
   attempts   Int       @default(0)
   expiresAt  DateTime
   consumedAt DateTime?
   createdAt  DateTime  @default(now())
 
-  @@index([email, createdAt])
+  @@index([phone, createdAt])
   @@map("login_codes")
 }
 

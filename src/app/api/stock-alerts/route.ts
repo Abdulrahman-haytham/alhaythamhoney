@@ -16,7 +16,7 @@ export async function POST(request: Request) {
   const customer = await currentCustomer();
   const raw = (await readJson(request)) as Record<string, unknown> | null;
   const parsed = stockAlertInput.safeParse(
-    customer && raw ? { ...raw, email: customer.email } : raw,
+    customer?.email && raw ? { ...raw, email: customer.email } : raw,
   );
   if (!parsed.success) return NextResponse.json({ error: 'بريد غير صالح.' }, { status: 400 });
   const product = await db.product.findFirst({

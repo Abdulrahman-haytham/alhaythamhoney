@@ -5,7 +5,7 @@ import { createContext, useContext, useEffect, useState } from 'react';
 export interface CustomerPublic {
   id: string;
   name: string;
-  email: string;
+  email: string | null;
   phone: string;
   city: string | null;
 }

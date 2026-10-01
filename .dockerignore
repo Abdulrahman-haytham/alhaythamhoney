@@ -12,3 +12,4 @@ test-results
 playwright-report
 *.log
 *.tsbuildinfo
+wa-gateway

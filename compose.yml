@@ -62,6 +62,7 @@ services:
       <<: *app-env
       TRUST_PROXY: '1'
       UPLOAD_DIR: /app/data/uploads
+      WA_GATEWAY_URL: http://wa:3010
     # Only the host Nginx can reach this port; never expose it to the Internet.
     ports: ['127.0.0.1:3005:3005']
     volumes: [uploads:/app/data/uploads]
@@ -81,6 +82,19 @@ services:
       start_period: 30s
     logging: *logging
 
+  # بوابة واتساب لرموز الدخول (رقم احتياطي مربوط كواتساب ويب). داخلية فقط: لا منفذ على
+  # المضيف، والتطبيق يصلها باسم wa. تعطّلها لا يوقف المتجر — يتوقّف الدخول وحده.
+  wa:
+    build: { context: ./wa-gateway }
+    restart: unless-stopped
+    init: true
+    environment:
+      ADMIN_SESSION_SECRET: ${ADMIN_SESSION_SECRET:?Set ADMIN_SESSION_SECRET}
+      WA_AUTH_DIR: /data/auth
+    volumes: [wa_auth:/data]
+    logging: *logging
+
 volumes:
   postgres_data:
   uploads:
+  wa_auth:

@@ -10,10 +10,10 @@ function secret() {
   return value;
 }
 
-/** جلسات الزبائن أطول (30 يوماً) لأن الدخول برمز بريدي وليس بكلمة مرور تُحفظ. */
+/** جلسات الزبائن أطول (30 يوماً) لأن الدخول برمز على واتساب وليس بكلمة مرور تُحفظ. */
 export const CUSTOMER_SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 
-type Kind = 'admin' | 'customer';
+type Kind = 'admin' | 'customer' | 'login';
 
 /** مفتاح مختلف لكل نوع جلسة: توقيع الأدمن لا يصلح أبداً كجلسة زبون والعكس. */
 function sign(payload: string, kind: Kind) {
@@ -60,15 +60,15 @@ export function readCustomerToken(token: string, now = Date.now()): string | nul
 }
 
 /**
- * رمز قصير العمر يثبت أن البريد تحقق للتو — يُستخدم بين خطوة الرمز وخطوة إكمال
- * الملف (الاسم والهاتف) لزبون جديد، حتى لا يُنشأ حساب لبريد لم يُتحقق منه.
+ * رمز قصير العمر يثبت أن رقم واتساب تحقق للتو — يُستخدم بين خطوة الرمز وخطوة إكمال
+ * الملف (الاسم والمدينة) لزبون جديد، حتى لا يُنشأ حساب لرقم لم يُتحقق منه.
+ * مفتاح توقيع مستقل: لا يصلح أبداً كجلسة.
  */
-export const VERIFIED_EMAIL_TTL_MS = 15 * 60 * 1000;
-export function createVerifiedEmailToken(email: string, now = Date.now()) {
-  const payload = `${Buffer.from(email).toString('base64url')}.${now + VERIFIED_EMAIL_TTL_MS}`;
-  return `${payload}.${sign(payload, 'customer')}`;
+export const VERIFIED_LOGIN_TTL_MS = 15 * 60 * 1000;
+export function createVerifiedLoginToken(phone: string, now = Date.now()) {
+  return create(Buffer.from(phone).toString('base64url'), 'login', VERIFIED_LOGIN_TTL_MS, now);
 }
-export function readVerifiedEmailToken(token: string, now = Date.now()): string | null {
-  const id = read(token, 'customer', VERIFIED_EMAIL_TTL_MS, now);
+export function readVerifiedLoginToken(token: string, now = Date.now()): string | null {
+  const id = read(token, 'login', VERIFIED_LOGIN_TTL_MS, now);
   return id ? Buffer.from(id, 'base64url').toString() : null;
 }

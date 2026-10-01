@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { getWhatsAppStatus } from '@/lib/whatsapp.server';
 import {
   MessageCircle,
   ShoppingBag,
@@ -62,7 +63,12 @@ function Panel({ title, children }: { title: string; children: React.ReactNode }
 const dateFmt = new Intl.DateTimeFormat('ar-SY', { dateStyle: 'short', timeStyle: 'short' });
 
 export default async function AdminDashboardPage() {
-  const [d, health, visits] = await Promise.all([getDashboard(), getServerHealth(), getVisits()]);
+  const [d, health, visits, wa] = await Promise.all([
+    getDashboard(),
+    getServerHealth(),
+    getVisits(),
+    getWhatsAppStatus(),
+  ]);
   const pending = d.orders.byStatus.PENDING ?? 0;
   const conv = d.funnel.views ? Math.round((d.funnel.checkouts / d.funnel.views) * 100) : 0;
 
@@ -73,6 +79,15 @@ export default async function AdminDashboardPage() {
         نظرة اليوم: ما يفعله الزوار، وما ينتظر قرارك. الأرقام من أحداث الموقع نفسه (بلا اعتماد على
         Google أو Meta).
       </p>
+
+      {wa.status !== 'open' && wa.status !== 'connecting' && (
+        <Link
+          href="/admin/whatsapp"
+          className="mb-4 block rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-200"
+        >
+          <b>تسجيل دخول الزبائن متوقف:</b> رقم واتساب الآلي غير مربوط. اربطه من صفحة «واتساب» ←
+        </Link>
+      )}
 
       <div className="mb-6 grid gap-4">
         <ServerHealthCard health={health} />

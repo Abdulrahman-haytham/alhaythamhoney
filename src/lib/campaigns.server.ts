@@ -64,7 +64,8 @@ export async function startCampaign(campaignId: string) {
     if (!claimed.count)
       return (await tx.campaign.findUniqueOrThrow({ where: { id: campaignId } })).recipientsCount;
     const audience = await tx.customer.findMany({
-      where: { marketingOptIn: true },
+      // الحملات بالبريد — حسابات واتساب بلا بريد خارجها
+      where: { marketingOptIn: true, email: { not: null } },
       select: { id: true },
     });
     await tx.campaignRecipient.createMany({
@@ -120,7 +121,7 @@ export async function processCampaign(campaignId: string) {
     if (!claimed.count) continue;
     // الموافقة تُراجَع لحظة الإرسال — من ألغى اشتراكه بعد بناء القائمة لا يُراسَل
     const customer = await db.customer.findUnique({ where: { id: r.customerId } });
-    if (!customer?.marketingOptIn) {
+    if (!customer?.marketingOptIn || !customer.email) {
       await db.campaignRecipient.update({ where: { id: r.id }, data: { error: 'unsubscribed' } });
       failed++;
       continue;

@@ -10,7 +10,7 @@ type Input = z.infer<typeof drawInput>;
 interface Winner {
   name: string;
   phone: string;
-  email: string;
+  email: string | null;
   city: string | null;
   code: string;
 }
@@ -101,12 +101,14 @@ function Editor({ draw, onDone }: { draw?: Row; onDone?: () => void }) {
                 {draw.winner.phone}
               </dd>
             </div>
-            <div className="flex gap-2">
-              <dt className="text-zinc-500">البريد:</dt>
-              <dd className="text-white" dir="ltr">
-                {draw.winner.email}
-              </dd>
-            </div>
+            {draw.winner.email && (
+              <div className="flex gap-2">
+                <dt className="text-zinc-500">البريد:</dt>
+                <dd className="text-white" dir="ltr">
+                  {draw.winner.email}
+                </dd>
+              </div>
+            )}
             <div className="flex gap-2">
               <dt className="text-zinc-500">الرمز الفائز:</dt>
               <dd className="font-mono text-white" dir="ltr">
