@@ -5,12 +5,13 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ExternalLink, FileText } from 'lucide-react';
 import type { OrderStatus } from '@prisma/client';
-import { ORDER_STATUS_LABELS, ORDER_STATUSES, canTransitionOrder } from '@/lib/orders';
+import { ORDER_STATUS_LABELS, ORDER_STATUSES, canTransitionOrder, orderLabel } from '@/lib/orders';
 import { formatAmount, formatPrice } from '@/lib/money';
 
 export interface AdminOrder {
   id: string;
   reference: string;
+  number: number | null;
   status: OrderStatus;
   createdAt: string;
   confirmedAt: string | null;
@@ -92,8 +93,8 @@ function OrderRow({ order }: { order: AdminOrder }) {
   return (
     <details className="rounded-xl border border-zinc-800 bg-zinc-900/40">
       <summary className="flex cursor-pointer flex-wrap items-center gap-3 p-4 text-sm">
-        <span className="break-all font-mono text-xs font-bold text-white" dir="ltr">
-          {order.reference}
+        <span className="break-all font-mono text-sm font-bold text-white" dir="ltr">
+          {orderLabel(order)}
         </span>
         <span
           className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${STATUS_COLORS[order.status]}`}
@@ -330,7 +331,7 @@ export function OrdersPanel({
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="مرجع / اسم / هاتف"
+            placeholder="رقم الطلب / اسم / هاتف"
             className="min-h-11 rounded-lg border border-zinc-700 bg-zinc-950 px-3 text-sm text-white"
           />
           <button className="min-h-11 rounded-lg border border-zinc-700 px-3 text-xs text-zinc-300">

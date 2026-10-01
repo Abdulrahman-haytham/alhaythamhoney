@@ -35,7 +35,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     entity: 'order',
     entityId: id,
     action: 'status',
-    label: before.reference,
+    label: before.number != null ? String(before.number) : before.reference,
     before: {
       status: before.status,
       notes: before.notes,

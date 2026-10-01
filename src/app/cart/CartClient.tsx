@@ -141,10 +141,13 @@ function CouponField({ quote, busy }: { quote: Quote; busy: boolean }) {
 /** ما يُعرض بعد الضغط على واتساب: رقم الطلب ورابط المتابعة. */
 function OrderPlaced({
   reference,
+  label,
   whatsappUrl,
   onClear,
 }: {
   reference: string;
+  /** الرقم القصير المعروض */
+  label: string;
   whatsappUrl: string;
   onClear: () => void;
 }) {
@@ -152,7 +155,7 @@ function OrderPlaced({
     <div className="rounded-2xl border border-green-500/30 bg-green-500/10 p-5">
       <p className="flex flex-wrap items-center gap-2 font-bold text-green-300">
         <PackageCheck className="h-5 w-5" />
-        سُجّل طلبك برقم <b dir="ltr">{reference}</b>
+        سُجّل طلبك برقم <b dir="ltr">{label}</b>
       </p>
       <p className="mt-1 text-sm text-zinc-300">
         أرسل الرسالة في واتساب لنؤكده معك. يمكنك متابعة حالته في أي وقت من صفحة التتبع.
@@ -215,6 +218,7 @@ export function CartClient() {
   const [quoteError, setQuoteError] = useState<string | null>(null);
   const [placed, setPlaced] = useState<{
     reference: string;
+    label: string;
     whatsappUrl: string;
     key: string;
   } | null>(null);
@@ -312,6 +316,7 @@ export function CartClient() {
         {placed && (
           <OrderPlaced
             reference={placed.reference}
+            label={placed.label}
             whatsappUrl={placed.whatsappUrl}
             onClear={() => setPlaced(null)}
           />
@@ -412,8 +417,9 @@ export function CartClient() {
       }
       const saved = result.quote as Quote;
       const trackUrl = `${window.location.origin}/orders/${result.reference}`;
-      const whatsappUrl = `https://wa.me/${settings.whatsappNumber}?text=${encodeURIComponent(whatsappOrderMessage(saved, result.reference, trackUrl))}`;
-      setPlaced({ reference: result.reference, whatsappUrl, key });
+      const label = result.number != null ? String(result.number) : result.reference;
+      const whatsappUrl = `https://wa.me/${settings.whatsappNumber}?text=${encodeURIComponent(whatsappOrderMessage(saved, label, trackUrl))}`;
+      setPlaced({ reference: result.reference, label, whatsappUrl, key });
       setServerQuote(saved);
       setServerQuoteKey(quoteKey);
       if (popup && !popup.closed) {
@@ -448,6 +454,7 @@ export function CartClient() {
         {placed && (
           <OrderPlaced
             reference={placed.reference}
+            label={placed.label}
             whatsappUrl={placed.whatsappUrl}
             onClear={() => {
               resetCart();

@@ -27,6 +27,8 @@ export default async function AdminOrdersPage({
         ...(q
           ? {
               OR: [
+                // البحث برقم الطلب القصير (خمسة أرقام) أو بجزء من المرجع الطويل
+                ...(/^\d{5}$/.test(q.trim()) ? [{ number: Number(q.trim()) }] : []),
                 { reference: { contains: q.toUpperCase() } },
                 { customerName: { contains: q, mode: 'insensitive' } },
                 { customerPhone: { contains: q.replace(/\D/g, '') || q } },
@@ -51,6 +53,7 @@ export default async function AdminOrdersPage({
         orders={orders.map((o) => ({
           id: o.id,
           reference: o.reference,
+          number: o.number,
           status: o.status,
           createdAt: o.createdAt.toISOString(),
           confirmedAt: o.confirmedAt?.toISOString() ?? null,

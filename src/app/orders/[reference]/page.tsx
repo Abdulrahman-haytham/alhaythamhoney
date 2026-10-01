@@ -6,6 +6,7 @@ import { db } from '@/lib/db';
 import { getSettings } from '@/lib/settings.server';
 import {
   normalizeOrderReference,
+  orderLabel,
   ORDER_STATUS_LABELS,
   ORDER_STEPS,
   orderStepIndex,
@@ -50,7 +51,7 @@ export default async function OrderTrackingPage({
       <div className="mx-auto max-w-2xl">
         <p className="text-xs uppercase tracking-[0.3em] text-amber-500">تتبّع الطلب</p>
         <h1 className="mt-1 font-amiri text-3xl font-bold text-white sm:text-4xl" dir="ltr">
-          {order.reference}
+          {orderLabel(order)}
         </h1>
         <p className="mt-1 text-sm text-zinc-500">{dateFmt.format(order.createdAt)}</p>
 
@@ -151,7 +152,7 @@ export default async function OrderTrackingPage({
         <div className="mt-6 flex flex-wrap gap-3">
           <WhatsAppButton
             source="order-page"
-            message={`مرحباً عسل الهيثم، أستفسر عن طلبي رقم ${order.reference}`}
+            message={`مرحباً عسل الهيثم، أستفسر عن طلبي رقم ${orderLabel(order)}`}
             className="rounded-xl px-5 py-2.5 text-sm"
             iconClassName="h-4 w-4"
           >

@@ -29,7 +29,7 @@ export async function POST(request: Request) {
         { status: 409 },
       );
     return NextResponse.json(
-      { reference: order.reference, quote },
+      { reference: order.reference, number: order.number, quote },
       { status: replayed ? 200 : 201 },
     );
   } catch (error) {

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getInvoiceOrder } from '@/lib/invoice.server';
 import { getInvoicePdf } from '@/lib/invoicePdf.server';
+import { orderLabel } from '@/lib/orders';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -18,7 +19,7 @@ export async function GET(
     return new NextResponse(new Uint8Array(pdf), {
       headers: {
         'Content-Type': 'application/pdf',
-        'Content-Disposition': `inline; filename="alhaytham-${order.reference}.pdf"`,
+        'Content-Disposition': `inline; filename="alhaytham-${orderLabel(order)}.pdf"`,
         'Cache-Control': 'private, max-age=300',
       },
     });

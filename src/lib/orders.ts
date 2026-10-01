@@ -21,6 +21,11 @@ export function generateOrderReference(): string {
   return `HY-${out}`;
 }
 
+/** الرقم المعروض للناس، والمرجع الطويل للطلبات القديمة التي سبقت الأرقام. */
+export function orderLabel(order: { number: number | null; reference: string }): string {
+  return order.number != null ? String(order.number) : order.reference;
+}
+
 export function normalizeOrderReference(raw: string): string | null {
   const v = raw
     .trim()

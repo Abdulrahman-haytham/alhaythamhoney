@@ -1,5 +1,5 @@
 import 'server-only';
-import { createHash } from 'node:crypto';
+import { createHash, randomInt } from 'node:crypto';
 import { db } from '@/lib/db';
 import { commerceTransaction, CommerceError, type CommerceTx } from '@/lib/commerce.server';
 import { resolveCartLines, type CartLineInput } from '@/lib/cart.server';
@@ -126,6 +126,7 @@ export async function createOrder(
     const created = await tx.order.create({
       data: {
         reference: req.reference,
+        number: await allocateOrderNumber(tx),
         requestHash,
         quoteSnapshot: JSON.parse(JSON.stringify(quote)),
         pointsDiscount: quote.loyalty?.pointsUsed ? quote.loyalty.redeemableAmount : 0,
@@ -202,4 +203,17 @@ export async function createOrder(
     }
     return { quote, order: created, replayed: false };
   });
+}
+
+/**
+ * رقم عشوائي من خمس خانات لم يُستخدم بعد. ٩٠ ألف رقم تكفي سنوات بهذا الحجم؛
+ * القيد الفريد في القاعدة يحسم أي سباق نادر بين طلبين في اللحظة نفسها.
+ */
+async function allocateOrderNumber(tx: CommerceTx): Promise<number> {
+  for (let i = 0; i < 25; i++) {
+    const n = randomInt(10_000, 100_000);
+    const taken = await tx.order.findUnique({ where: { number: n }, select: { id: true } });
+    if (!taken) return n;
+  }
+  throw new CommerceError('تعذّر تخصيص رقم للطلب. أعد المحاولة.');
 }

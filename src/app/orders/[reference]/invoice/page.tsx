@@ -5,7 +5,7 @@ import { getSettings } from '@/lib/settings.server';
 import { BUSINESS } from '@/lib/business';
 import { SITE } from '@/lib/config';
 import { CURRENCY, formatAmount } from '@/lib/money';
-import { ORDER_STATUS_LABELS } from '@/lib/orders';
+import { ORDER_STATUS_LABELS, orderLabel } from '@/lib/orders';
 
 export const metadata: Metadata = { title: 'فاتورة الطلب', robots: { index: false } };
 export const dynamic = 'force-dynamic';
@@ -65,7 +65,7 @@ export default async function InvoicePage({ params }: { params: Promise<{ refere
         <div className="text-left">
           <p className="text-xs font-bold tracking-widest text-amber-600">فاتورة طلب</p>
           <p className="mt-1 text-xl font-black" dir="ltr">
-            {order.reference}
+            {orderLabel(order)}
           </p>
           <p className="mt-1 text-xs text-zinc-500">{dateFmt.format(order.createdAt)}</p>
           <p className="mt-1 text-xs text-zinc-500">الحالة: {ORDER_STATUS_LABELS[order.status]}</p>
