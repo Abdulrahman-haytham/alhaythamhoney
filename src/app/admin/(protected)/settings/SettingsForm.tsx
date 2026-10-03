@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Save, Check, Upload } from 'lucide-react';
 import type { SiteSettingsData } from '@/lib/settings';
 import { formatPrice } from '@/lib/money';
+import { uploadMedia } from '@/lib/upload-client';
 
 const inputClass =
   'mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-base text-white placeholder:text-zinc-600 focus:border-amber-500/50 focus:outline-none';
@@ -79,12 +80,11 @@ export function SettingsForm({ initial }: { initial: SiteSettingsData }) {
 
   async function uploadHero(file: File) {
     setError(null);
-    const form = new FormData();
-    form.append('file', file);
-    const res = await fetch('/api/admin/images', { method: 'POST', body: form }).catch(() => null);
-    const data = res ? await res.json().catch(() => ({})) : {};
-    if (!res?.ok) return setError(data.error || 'تعذّر رفع الصورة.');
-    set('heroImage', data.url);
+    try {
+      set('heroImage', (await uploadMedia(file, 'image')).url);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'تعذّر رفع الصورة.');
+    }
   }
 
   async function save(e: React.FormEvent) {

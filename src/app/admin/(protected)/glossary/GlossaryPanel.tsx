@@ -6,6 +6,7 @@ import { ExternalLink, ImagePlus, Lightbulb, Trash2 } from 'lucide-react';
 import type { z } from 'zod';
 import type { glossaryInput } from '@/lib/validation';
 import { parseAliases, parseLines } from '@/lib/glossary';
+import { uploadMedia } from '@/lib/upload-client';
 
 type Input = z.infer<typeof glossaryInput>;
 export type GlossaryRow = Input & { id: string };
@@ -53,12 +54,11 @@ function Editor({
 
   async function upload(file: File) {
     setMessage('');
-    const fd = new FormData();
-    fd.append('file', file);
-    const res = await fetch('/api/admin/images', { method: 'POST', body: fd }).catch(() => null);
-    const data = res ? await res.json().catch(() => ({})) : {};
-    if (!res?.ok) return setMessage(data.error || 'تعذّر رفع الصورة.');
-    set('image', data.url);
+    try {
+      set('image', (await uploadMedia(file, 'image')).url);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'تعذّر رفع الصورة.');
+    }
   }
 
   async function save(e: React.FormEvent) {

@@ -4,6 +4,7 @@ import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Upload, Trash2, ImageOff } from 'lucide-react';
 import { HARVEST_STEPS, isHarvestStepKey } from '@/lib/harvest';
+import { uploadMedia } from '@/lib/upload-client';
 
 export interface StudioPhoto {
   id: string;
@@ -51,39 +52,49 @@ export function StudioPanel({ initialPhotos }: { initialPhotos: StudioPhoto[] })
   const [photos, setPhotos] = useState(initialPhotos);
   const [caption, setCaption] = useState('');
   const [tag, setTag] = useState('');
-  const [uploading, setUploading] = useState(false);
+  /** الرفع الجاري: اسم الملف، ترتيبه بين المختار، ونسبة ما وصل منه */
+  const [progress, setProgress] = useState<{
+    name: string;
+    index: number;
+    total: number;
+    fraction: number;
+  } | null>(null);
+  const uploading = progress !== null;
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  async function upload(file: File) {
+  /** يرفع الملفات المختارة واحداً تلو الآخر — بلا حدّ للحجم؛ الرفع على دفعات تُستأنف عند انقطاع الشبكة. */
+  async function upload(files: File[]) {
     setError(null);
-    if (file.size > (file.type.startsWith('video/') ? 60 : 8) * 1024 * 1024) {
-      setError('الحد الأقصى 8 ميغابايت للصورة و60 ميغابايت للفيديو.');
-      return;
+    const failed: string[] = [];
+    for (const [index, file] of files.entries()) {
+      setProgress({ name: file.name, index, total: files.length, fraction: 0 });
+      try {
+        const media = await uploadMedia(file, 'media', (fraction) =>
+          setProgress({ name: file.name, index, total: files.length, fraction }),
+        );
+        const res = await fetch('/api/admin/studio', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            url: media.url,
+            caption: caption.trim() || null,
+            tag: tag || null,
+          }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error ?? 'تعذّر حفظ اللقطة.');
+        setPhotos((prev) => [data.photo, ...prev]);
+      } catch (e) {
+        failed.push(`${file.name}: ${e instanceof Error ? e.message : 'تعذّر الرفع.'}`);
+      }
     }
-    setUploading(true);
-    const form = new FormData();
-    form.append('file', file);
-    if (caption.trim()) form.append('caption', caption.trim());
-    if (tag) form.append('tag', tag);
-
-    const res = await fetch('/api/admin/studio', { method: 'POST', body: form }).catch(() => null);
-    setUploading(false);
-    if (!res) {
-      setError('تعذّر الاتصال. حاول مجدداً.');
-      return;
+    setProgress(null);
+    if (failed.length) setError(failed.join('\n'));
+    else {
+      setCaption('');
+      setTag('');
     }
-
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      setError(data.error ?? 'فشل رفع الصورة.');
-      return;
-    }
-
-    const { photo } = await res.json();
-    setPhotos((prev) => [photo, ...prev]);
-    setCaption('');
-    setTag('');
     if (fileRef.current) fileRef.current.value = '';
     router.refresh();
   }
@@ -149,9 +160,10 @@ export function StudioPanel({ initialPhotos }: { initialPhotos: StudioPhoto[] })
           ref={fileRef}
           type="file"
           accept="image/jpeg,image/png,image/webp,image/avif,video/mp4,video/webm,video/quicktime"
+          multiple
           onChange={(e) => {
-            const file = e.target.files?.[0];
-            if (file) upload(file);
+            const files = Array.from(e.target.files ?? []);
+            if (files.length) void upload(files);
           }}
           disabled={uploading}
           className="hidden"
@@ -164,11 +176,35 @@ export function StudioPanel({ initialPhotos }: { initialPhotos: StudioPhoto[] })
           }`}
         >
           <Upload className="h-4 w-4" />
-          {uploading ? 'جارٍ الرفع...' : 'رفع لقطة جديدة'}
+          {uploading ? 'جارٍ الرفع...' : 'رفع لقطات جديدة'}
         </label>
-        {error && <p className="mt-3 text-sm text-red-400">{error}</p>}
+        {progress && (
+          <div className="mt-4" role="status" aria-live="polite">
+            <div className="mb-1 flex justify-between gap-3 text-xs text-zinc-400">
+              <span className="truncate" dir="ltr">
+                {progress.name}
+              </span>
+              <span className="shrink-0 tabular-nums">
+                {progress.total > 1 && `${progress.index + 1}/${progress.total} · `}
+                {Math.round(progress.fraction * 100)}%
+              </span>
+            </div>
+            <div className="h-2 overflow-hidden rounded-full bg-zinc-800">
+              <div
+                className="h-full rounded-full bg-amber-500 transition-[width] duration-300"
+                style={{ width: `${Math.round(progress.fraction * 100)}%` }}
+              />
+            </div>
+            <p className="mt-2 text-xs text-zinc-500">
+              أبقِ الصفحة مفتوحة حتى ينتهي الرفع. انقطاع الشبكة القصير لا يضيّع ما رُفع.
+            </p>
+          </div>
+        )}
+        {error && <p className="mt-3 whitespace-pre-line text-sm text-red-400">{error}</p>}
         <p className="mt-3 text-xs text-zinc-600">
-          صور (JPG, PNG, WEBP, AVIF) حتى 8 ميغابايت — فيديو (MP4, WEBM, MOV) حتى 60 ميغابايت.
+          صور (JPG, PNG, WEBP, AVIF) وفيديو (MP4, MOV, WEBM) بأي حجم، ويمكن اختيار عدة ملفات معاً.
+          الصور تُضغط تلقائياً للويب؛ الفيديو يُحفظ كما هو، فالفيديو الطويل يثقل على زائر بإنترنت
+          ضعيف.
         </p>
       </div>
 

@@ -1,6 +1,18 @@
 import { randomUUID } from 'node:crypto';
-import { mkdir, writeFile, unlink } from 'node:fs/promises';
+import {
+  appendFile,
+  chmod,
+  mkdir,
+  open,
+  readdir,
+  rename,
+  stat,
+  statfs,
+  unlink,
+  writeFile,
+} from 'node:fs/promises';
 import path from 'node:path';
+import sharp from 'sharp';
 
 export const MEDIA_TYPES: Record<string, string> = {
   jpg: 'image/jpeg',
@@ -12,7 +24,6 @@ export const MEDIA_TYPES: Record<string, string> = {
   mov: 'video/quicktime',
   pdf: 'application/pdf',
 };
-export const MAX_UPLOAD_BYTES = 64 * 1024 * 1024;
 export const mediaDirectory = () =>
   path.resolve(process.env.UPLOAD_DIR || path.join(process.cwd(), 'data', 'uploads'), 'studio');
 export const isMediaFilename = (name: string) =>
@@ -33,56 +44,185 @@ export function detectMedia(bytes: Buffer): string | null {
     const brand = bytes.toString('ascii', 8, 12);
     if (['avif', 'avis'].includes(brand)) return 'avif';
     if (brand === 'qt  ') return 'mov';
-    if (['isom', 'iso2', 'mp41', 'mp42', 'avc1', 'M4V ', 'MSNV', 'dash'].includes(brand))
+    if (
+      /^(isom|iso[2-9]|mp41|mp42|mp71|avc1|hvc1|hev1|M4V |M4VH|M4VP|MSNV|dash|3gp[4-9])$/.test(
+        brand,
+      )
+    )
       return 'mp4';
   }
   return null;
 }
 
-export async function readUploadForm(request: Request) {
-  if (!request.headers.get('content-type')?.startsWith('multipart/form-data;'))
-    throw new Error('صيغة رفع غير صالحة.');
-  if (Number(request.headers.get('content-length')) > MAX_UPLOAD_BYTES)
-    throw new Error('حجم الرفع أكبر من الحد المسموح.');
-  const reader = request.body?.getReader();
-  if (!reader) throw new Error('ملف مفقود.');
+export type MediaKind = 'IMAGE' | 'VIDEO' | 'FILE';
+const KIND_OF: Record<string, MediaKind> = {
+  jpg: 'IMAGE',
+  png: 'IMAGE',
+  webp: 'IMAGE',
+  avif: 'IMAGE',
+  mp4: 'VIDEO',
+  webm: 'VIDEO',
+  mov: 'VIDEO',
+  pdf: 'FILE',
+};
+
+/**
+ * الرفع على دفعات قابلة للاستئناف، بلا حدّ لحجم الملف:
+ *   startUpload → appendChunk × n → finishUpload
+ * كل دفعة طلب صغير مستقل، فانقطاع الشبكة يعيد دفعة واحدة لا الملف كله، ولا يُحمَّل
+ * الملف في الذاكرة أبداً. الحدّ الوحيد هو القرص: نُبقي هامشاً حرّاً حتى لا يتوقف
+ * الموقع وقاعدة البيانات بسبب فيديو.
+ */
+export const CHUNK_BYTES = 2 * 1024 * 1024;
+const MAX_CHUNK_BYTES = 16 * 1024 * 1024;
+const DISK_RESERVE_BYTES = Number(process.env.UPLOAD_DISK_RESERVE_MB || 5120) * 1024 * 1024;
+const STALE_PART_MS = 48 * 3600 * 1000;
+/** الصورة تُحفظ بأطول ضلع لا يتجاوز هذا — يكفي لشاشة كاملة ويبقي الصفحة خفيفة */
+const IMAGE_MAX_EDGE = 2400;
+const UPLOAD_ID_RE = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/;
+
+export class UploadError extends Error {
+  constructor(
+    message: string,
+    public status = 400,
+    public received?: number,
+  ) {
+    super(message);
+  }
+}
+
+const partPath = (id: string) => {
+  if (!UPLOAD_ID_RE.test(id)) throw new UploadError('معرّف رفع غير صالح.');
+  return path.join(mediaDirectory(), `${id}.part`);
+};
+
+const formatGb = (bytes: number) => `${(bytes / 1024 ** 3).toFixed(1)} غيغابايت`;
+
+async function ensureDiskSpace(incoming: number) {
+  const fs = await statfs(mediaDirectory());
+  const free = fs.bavail * fs.bsize;
+  // ×2: النسخ الاحتياطي يحتفظ بنسخة ثانية من كل فيديو على القرص نفسه (scripts/backup.sh)
+  if (free - incoming * 2 < DISK_RESERVE_BYTES)
+    throw new UploadError(
+      `لا مساحة كافية على السيرفر: المتاح ${formatGb(free)} ويجب أن يبقى ${formatGb(DISK_RESERVE_BYTES)} حرّاً. احذف لقطات قديمة من الاستديو.`,
+      507,
+    );
+}
+
+/** يحذف ما تُرك من رفع لم يكتمل (أُغلقت الصفحة في منتصفه). */
+async function sweepStaleParts() {
+  const dir = mediaDirectory();
+  for (const name of await readdir(dir).catch(() => [] as string[])) {
+    if (!name.endsWith('.part')) continue;
+    const file = path.join(dir, name);
+    const info = await stat(file).catch(() => null);
+    if (info && Date.now() - info.mtimeMs > STALE_PART_MS) await unlink(file).catch(() => {});
+  }
+}
+
+export async function startUpload(size: number) {
+  if (!Number.isSafeInteger(size) || size <= 0) throw new UploadError('ملف فارغ.');
+  await mkdir(mediaDirectory(), { recursive: true });
+  await sweepStaleParts();
+  await ensureDiskSpace(size);
+  const id = randomUUID();
+  await writeFile(partPath(id), '', { flag: 'wx', mode: 0o640 });
+  return { id, chunkSize: CHUNK_BYTES };
+}
+
+/**
+ * يلحق دفعة بالملف. `offset` يجب أن يساوي ما وصل فعلاً — دفعة أُعيد إرسالها بعد انقطاع
+ * لا تُكتب مرتين؛ يعود الخادم بما عنده (409) ليكمل المتصفح من هناك.
+ */
+export async function appendChunk(id: string, offset: number, body: ReadableStream<Uint8Array>) {
+  const file = partPath(id);
+  const info = await stat(file).catch(() => null);
+  if (!info) throw new UploadError('انتهت جلسة الرفع — أعد رفع الملف.', 404);
+  if (offset !== info.size) throw new UploadError('ترتيب الدفعات غير متطابق.', 409, info.size);
   const chunks: Uint8Array[] = [];
   let length = 0;
+  const reader = body.getReader();
   try {
     for (;;) {
       const { done, value } = await reader.read();
       if (done) break;
       length += value.byteLength;
-      if (length > MAX_UPLOAD_BYTES) {
+      if (length > MAX_CHUNK_BYTES) {
         await reader.cancel();
-        throw new Error('حجم الرفع أكبر من الحد المسموح.');
+        throw new UploadError('دفعة أكبر من المسموح.', 413);
       }
       chunks.push(value);
     }
   } finally {
     reader.releaseLock();
   }
-  return new Response(Buffer.concat(chunks), {
-    headers: { 'Content-Type': request.headers.get('content-type')! },
-  }).formData();
+  if (length === 0) throw new UploadError('دفعة فارغة.');
+  await ensureDiskSpace(length);
+  await appendFile(file, Buffer.concat(chunks));
+  return info.size + length;
 }
 
-export async function saveMedia(file: File) {
-  const isVideo = file.type.startsWith('video/');
-  if (file.size === 0 || file.size > (isVideo ? 60 : 8) * 1024 * 1024)
-    throw new Error('الحد الأقصى 8MB للصورة أو الملف و60MB للفيديو.');
-  const bytes = Buffer.from(await file.arrayBuffer());
-  const ext = detectMedia(bytes);
-  if (!ext || MEDIA_TYPES[ext] !== file.type)
-    throw new Error('محتوى الملف لا يطابق نوع صورة أو فيديو أو PDF مسموح.');
-  const filename = `${randomUUID()}.${ext}`;
-  await mkdir(mediaDirectory(), { recursive: true });
-  await writeFile(path.join(mediaDirectory(), filename), bytes, { flag: 'wx', mode: 0o640 });
-  return {
-    filename,
-    url: `/uploads/studio/${filename}`,
-    type: ext === 'pdf' ? ('FILE' as const) : isVideo ? ('VIDEO' as const) : ('IMAGE' as const),
-  };
+/**
+ * ينهي الرفع: النوع يُكشف من بايتات الملف لا مما يدّعيه المتصفح. الصور تُدوَّر حسب
+ * اتجاه الكاميرا وتُصغَّر إلى WebP — صورة هاتف بـ12 ميغابايت تصير مئات الكيلوبايتات
+ * بلا فرق تراه العين. الفيديو وPDF يُحفظان كما هما.
+ */
+export async function finishUpload(id: string, allowed: readonly MediaKind[]) {
+  const file = partPath(id);
+  const dir = mediaDirectory();
+  try {
+    const handle = await open(file, 'r').catch(() => null);
+    if (!handle) throw new UploadError('انتهت جلسة الرفع — أعد رفع الملف.', 404);
+    const head = Buffer.alloc(16);
+    const { bytesRead } = await handle.read(head, 0, 16, 0).finally(() => handle.close());
+    const ext = detectMedia(head.subarray(0, bytesRead));
+    const kind = ext ? KIND_OF[ext] : null;
+    if (!ext || !kind)
+      throw new UploadError(
+        'نوع الملف غير مدعوم — صور JPG/PNG/WEBP/AVIF، فيديو MP4/MOV/WEBM، أو PDF.',
+      );
+    if (!allowed.includes(kind))
+      throw new UploadError(
+        allowed.includes('FILE')
+          ? 'هذا الرفع لملفات PDF فقط.'
+          : allowed.includes('VIDEO')
+            ? 'هنا تُرفع الصور والفيديو فقط.'
+            : 'هذا الرفع للصور فقط.',
+      );
+    if (kind === 'IMAGE') {
+      const filename = `${id}.webp`;
+      try {
+        await sharp(file)
+          .rotate()
+          .resize({
+            width: IMAGE_MAX_EDGE,
+            height: IMAGE_MAX_EDGE,
+            fit: 'inside',
+            withoutEnlargement: true,
+          })
+          .webp({ quality: 82 })
+          .toFile(path.join(dir, filename));
+      } catch {
+        await unlink(path.join(dir, filename)).catch(() => {});
+        throw new UploadError('تعذّرت قراءة الصورة — قد تكون تالفة.');
+      }
+      await chmod(path.join(dir, filename), 0o640).catch(() => {});
+      return { filename, url: `/uploads/studio/${filename}`, type: kind };
+    }
+    const filename = `${id}.${ext}`;
+    await rename(file, path.join(dir, filename));
+    return { filename, url: `/uploads/studio/${filename}`, type: kind };
+  } finally {
+    await unlink(file).catch(() => {});
+  }
+}
+
+/** هل الرابط لملف مرفوع موجود فعلاً؟ يعيد نوعه — لتسجيل لقطة استديو بعد اكتمال رفعها. */
+export async function uploadedMediaKind(url: string): Promise<MediaKind | null> {
+  const filename = url.replace(/^\/uploads\/studio\//, '');
+  if (!isMediaFilename(filename)) return null;
+  const info = await stat(path.join(mediaDirectory(), filename)).catch(() => null);
+  return info?.isFile() ? KIND_OF[path.extname(filename).slice(1)] : null;
 }
 
 export async function removeMedia(url: string) {

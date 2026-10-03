@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { CheckCircle2, Heart, Zap, Award, ShieldCheck, Truck, Leaf, Package } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
+import ProductGallery from '@/components/ProductGallery';
 import { ArrowLeft, BookOpen, Sparkles } from 'lucide-react';
 import { getProductBySlug, getRelatedProducts, getProductArticles } from '@/lib/products.server';
 import { getProductPromotionLabels } from '@/lib/promotions.server';
@@ -105,7 +106,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     '@type': 'Product',
     name: product.name,
     description: product.desc,
-    image: new URL(product.image, SITE.url).href,
+    image: [product.image, ...product.images].map((src) => new URL(src, SITE.url).href),
     sku: product.slug,
     brand: { '@type': 'Brand', name: SITE.name },
     ...(display.price != null
@@ -146,27 +147,19 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           {/* Image Section */}
           <div className="relative">
-            <div className="aspect-square rounded-3xl overflow-hidden border border-amber-500/20 bg-zinc-900/50 relative">
-              {/* صورة LCP لهذه الصفحة: priority لتُحمَّل أولاً، وبمقاس العمود لا بمقاسها الأصلي */}
-              <Image
-                src={product.image}
-                alt={product.name}
-                fill
-                priority
-                sizes="(max-width: 1024px) 100vw, 50vw"
-                className="object-cover"
-              />
+            {/* الصورة الأولى هي LCP لهذه الصفحة؛ البقية معرض يُسحب */}
+            <ProductGallery images={[product.image, ...product.images]} alt={product.name}>
               {product.badge && (
                 <div className="absolute top-6 right-6 bg-amber-500 text-zinc-950 text-sm font-black px-4 py-2 rounded-full uppercase z-10 shadow-lg shadow-amber-500/20">
                   {product.badge}
                 </div>
               )}
               {!available && (
-                <div className="absolute inset-0 bg-zinc-950/70 flex items-center justify-center">
+                <div className="pointer-events-none absolute inset-0 bg-zinc-950/70 flex items-center justify-center">
                   <span className="text-zinc-300 font-bold text-lg">نفدت الكمية حالياً</span>
                 </div>
               )}
-            </div>
+            </ProductGallery>
           </div>
 
           {/* Details Section */}

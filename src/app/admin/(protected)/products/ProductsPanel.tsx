@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import type { z } from 'zod';
 import type { productInput } from '@/lib/validation';
 import type { Prisma } from '@prisma/client';
+import { ImagesField } from '@/components/admin/ImagesField';
 
 type Input = z.infer<typeof productInput>;
 type ProductRow = Omit<Input, 'detailedInfo'> & {
@@ -18,7 +19,8 @@ const empty: Input = {
   name: '',
   desc: '',
   benefit: null,
-  image: '/images/products/black-seed-honey.webp',
+  image: '',
+  images: [],
   badge: null,
   price: null,
   weight: null,
@@ -81,6 +83,7 @@ function Editor({
   }
   async function save(event: React.FormEvent) {
     event.preventDefault();
+    if (!form.image) return setMessage('ارفع صورة واحدة للمنتج على الأقل.');
     setBusy(true);
     setMessage('');
     try {
@@ -209,16 +212,12 @@ function Editor({
           />
         </label>
       </div>
-      <label className="block">
-        رابط صورة المنتج
-        <input
-          className={inputClass}
-          dir="ltr"
-          value={form.image}
-          onChange={(e) => set('image', e.target.value)}
-          required
-        />
-      </label>
+      <ImagesField
+        label="صور المنتج"
+        value={form.image ? [form.image, ...form.images] : form.images}
+        onChange={(list) => setForm((f) => ({ ...f, image: list[0] ?? '', images: list.slice(1) }))}
+        hint="ارفعها من هاتفك مباشرة، بأي حجم — تُضغط تلقائياً. الأولى تظهر في بطاقة المنتج والسلة، والبقية معرض في صفحته. اضغط «حفظ المنتج» بعد التعديل."
+      />
       <label className="block">
         الوصف
         <textarea
@@ -616,16 +615,24 @@ export function ProductsPanel({
       )}
       {products.map((product) => (
         <details key={product.id} className="rounded-xl border border-zinc-800 bg-zinc-900/40">
-          <summary className="cursor-pointer p-4">
-            {product.name}{' '}
-            <span className="text-sm text-zinc-400">
-              — {product.published ? 'منشور' : 'مخفي'} · {product.inStock ? 'متوفر' : 'غير متوفر'}
-              {product.stockQty != null && ` · الكمية ${product.stockQty}`}
-              {product.variants.length > 0 && ` · ${product.variants.length} أحجام`}
-              {product.category === 'BUNDLE' && ' · باقة'}
-              {product.waitingAlerts > 0 && (
-                <span className="text-amber-300"> · {product.waitingAlerts} ينتظرون توفره</span>
-              )}
+          <summary className="flex cursor-pointer items-center gap-3 p-4">
+            <img
+              src={product.image}
+              alt=""
+              loading="lazy"
+              className="h-12 w-12 shrink-0 rounded-lg bg-zinc-800 object-cover"
+            />
+            <span>
+              {product.name}{' '}
+              <span className="text-sm text-zinc-400">
+                — {product.published ? 'منشور' : 'مخفي'} · {product.inStock ? 'متوفر' : 'غير متوفر'}
+                {product.stockQty != null && ` · الكمية ${product.stockQty}`}
+                {product.variants.length > 0 && ` · ${product.variants.length} أحجام`}
+                {product.category === 'BUNDLE' && ' · باقة'}
+                {product.waitingAlerts > 0 && (
+                  <span className="text-amber-300"> · {product.waitingAlerts} ينتظرون توفره</span>
+                )}
+              </span>
             </span>
           </summary>
           <Editor product={product} all={all} attributes={attributes} />

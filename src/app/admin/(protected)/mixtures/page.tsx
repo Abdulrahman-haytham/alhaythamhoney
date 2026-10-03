@@ -13,9 +13,10 @@ export default async function AdminMixturesPage() {
     <div>
       <h1 className="mb-1 text-2xl font-bold text-white">الخلطات الخاصة</h1>
       <p className="mb-8 text-sm text-zinc-500">
-        اضبط سعر الغرام لكل مكوّن، وحدوده، والجرعة الموصى بها التي يراها الزبون افتراضياً. سعر العسل
-        الأساسي يُحسب تلقائياً من سعر المنتج ووزنه. وإن أردت خلطة تُباع بوصفة واحدة لا يمسّها أحد،
-        علّم «وصفة ثابتة» واكتب سعر المرطبان بنفسك.
+        أضف خلطة جديدة من الزر أدناه، أو عدّل اسم أي خلطة ووصفها وصورتها ومكوّناتها. اضبط سعر الغرام
+        لكل مكوّن، وحدوده، والجرعة الموصى بها التي يراها الزبون افتراضياً. سعر العسل الأساسي يُحسب
+        تلقائياً من سعر المنتج ووزنه. وإن أردت خلطة تُباع بوصفة واحدة لا يمسّها أحد، علّم «وصفة
+        ثابتة» واكتب سعر المرطبان بنفسك.
       </p>
       <MixturesPanel
         mixtures={mixtures.map((m) => ({
@@ -23,6 +24,8 @@ export default async function AdminMixturesPage() {
           slug: m.slug,
           name: m.name,
           tagline: m.tagline,
+          desc: m.desc,
+          image: m.image,
           sizes: m.sizes,
           defaultSize: m.defaultSize,
           prepFee: m.prepFee,

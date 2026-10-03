@@ -18,6 +18,7 @@ import {
   ExternalLink,
   History,
 } from 'lucide-react';
+import { uploadMedia } from '@/lib/upload-client';
 
 export interface ArticleForm {
   slug: string;
@@ -63,14 +64,7 @@ const TOOLS: {
 const inputClass =
   'mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-base text-white placeholder:text-zinc-600 focus:border-amber-500/50 focus:outline-none disabled:text-zinc-500';
 
-async function uploadImage(file: File): Promise<string> {
-  const form = new FormData();
-  form.append('file', file);
-  const res = await fetch('/api/admin/images', { method: 'POST', body: form });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.error || 'تعذّر رفع الصورة.');
-  return data.url as string;
-}
+const uploadImage = async (file: File) => (await uploadMedia(file, 'image')).url;
 
 export interface RevisionMeta {
   id: string;

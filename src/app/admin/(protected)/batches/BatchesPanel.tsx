@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { ExternalLink, FileUp, ShieldCheck, Trash2 } from 'lucide-react';
 import type { z } from 'zod';
 import type { batchInput } from '@/lib/validation';
+import { uploadMedia } from '@/lib/upload-client';
 
 type Input = z.infer<typeof batchInput>;
 export type BatchRow = Input & { id: string; productName: string | null; jarCodes: number };
@@ -52,12 +53,11 @@ function Editor({
 
   async function uploadPdf(file: File) {
     setMessage('');
-    const fd = new FormData();
-    fd.append('file', file);
-    const res = await fetch('/api/admin/files', { method: 'POST', body: fd }).catch(() => null);
-    const data = res ? await res.json().catch(() => ({})) : {};
-    if (!res?.ok) return setMessage(data.error || 'تعذّر رفع الملف.');
-    set('labReportUrl', data.url);
+    try {
+      set('labReportUrl', (await uploadMedia(file, 'file')).url);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'تعذّر رفع الملف.');
+    }
   }
 
   async function save(e: React.FormEvent) {
@@ -183,7 +183,7 @@ function Editor({
         </label>
       </div>
       <div className="rounded-lg border border-zinc-800 p-3 text-sm">
-        <p className="mb-2 text-zinc-300">تقرير المخبر (PDF حتى 8MB)</p>
+        <p className="mb-2 text-zinc-300">تقرير المخبر (PDF)</p>
         <div className="flex flex-wrap items-center gap-2">
           <input
             ref={fileRef}

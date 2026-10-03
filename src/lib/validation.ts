@@ -53,6 +53,12 @@ export const productInput = z
     desc: text(3000).min(10),
     benefit: text(200).nullable(),
     image: localImage,
+    /** صور المعرض الإضافية (الرئيسية في `image`) */
+    images: z
+      .array(localImage)
+      .max(11)
+      .refine((list) => new Set(list).size === list.length, 'صورة مكررة في المعرض.')
+      .default([]),
     badge: text(100).nullable(),
     price: amount.nullable(),
     weight: text(80).nullable(),
@@ -116,8 +122,9 @@ export const reviewInput = z
 
 const ingredientInput = z
   .object({
-    id: text(100).min(1),
-    name: text(150).optional(),
+    /** null = مكوّن جديد يُنشأ عند الحفظ؛ ما غاب عن القائمة من القديم يُحذف */
+    id: text(100).min(1).nullable(),
+    name: text(150).min(2, 'اكتب اسم المكوّن.'),
     pricePerGram: amount,
     minGrams: amount,
     maxGrams: amount,
@@ -133,6 +140,11 @@ const jarSize = z.number().int().min(MIN_JAR_SIZE).max(MAX_JAR_SIZE);
 
 export const mixtureInput = z
   .object({
+    slug,
+    name: text(150).min(2, 'اكتب اسم الخلطة.'),
+    tagline: text(200),
+    desc: text(2000).min(10, 'اكتب وصفاً للخلطة (10 أحرف على الأقل).'),
+    image: localImage.nullable(),
     prepFee: amount,
     published: z.boolean(),
     customizable: z.boolean(),
@@ -143,10 +155,11 @@ export const mixtureInput = z
     ingredients: z.array(ingredientInput).min(1).max(30),
   })
   .strict()
-  .refine(
-    (m) => new Set(m.ingredients.map((i) => i.id)).size === m.ingredients.length,
-    'المكوّنات المكررة غير مسموحة.',
-  )
+  .refine((m) => {
+    const ids = m.ingredients.flatMap((i) => (i.id ? [i.id] : []));
+    const names = m.ingredients.map((i) => i.name);
+    return new Set(ids).size === ids.length && new Set(names).size === names.length;
+  }, 'المكوّنات المكررة غير مسموحة.')
   .refine((m) => normalizeSizes(m.sizes) !== null, 'الأحجام غير صالحة.')
   .refine((m) => m.sizes.includes(m.defaultSize), 'الحجم الافتراضي يجب أن يكون من الأحجام المتاحة.')
   .refine(
@@ -634,6 +647,15 @@ export const glossaryCategoryInput = z
 
 /** وسم لقطة الاستديو: خطوة من رحلة القطاف أو لا شيء. */
 export const studioTagInput = z.enum(HARVEST_STEP_KEYS).nullable();
+
+/** تسجيل لقطة في الاستديو بعد اكتمال رفع ملفها عبر `/api/admin/uploads`. */
+export const studioCreateInput = z
+  .object({
+    url: text(120).regex(/^\/uploads\/studio\/[a-f0-9-]{36}\.(webp|png|jpg|avif|mp4|webm|mov)$/),
+    caption: optionalText(500).optional(),
+    tag: studioTagInput.optional(),
+  })
+  .strict();
 
 /** تعديل لقطة موجودة في الاستديو — الوصف والوسم فقط (الملف لا يتغيّر). */
 export const studioPatchInput = z

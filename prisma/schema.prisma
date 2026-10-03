@@ -49,6 +49,8 @@ model Product {
   desc         String
   benefit      String?
   image        String
+  /// صور إضافية للمعرض في صفحة المنتج — `image` تبقى الرئيسية في البطاقات والسلة
+  images       String[]          @default([])
   badge        String?
   price        Int?
   weight       String?

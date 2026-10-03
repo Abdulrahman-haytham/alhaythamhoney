@@ -116,6 +116,13 @@ const spec: IngredientSpec = {
   recommended: 50,
   step: 10,
 };
+const mixtureMeta = {
+  slug: 'immunity-mix',
+  name: 'خلطة المناعة',
+  tagline: 'عسل ومكسرات',
+  desc: 'وصف الخلطة كما يراه الزبون.',
+  image: null,
+};
 describe('pricing and validation', () => {
   it.each([
     ['500 غرام', 500],
@@ -227,6 +234,14 @@ describe('pricing and validation', () => {
       'javascript:alert(1)',
     ])
       expect(productInput.safeParse({ ...product, image }).success).toBe(false);
+    // معرض الصور: محلية فقط كالرئيسية، بلا تكرار، وغيابه يعني معرضاً فارغاً
+    expect(productInput.parse(product).images).toEqual([]);
+    const shot = '/uploads/studio/00000000-0000-4000-8000-000000000001.webp';
+    expect(productInput.safeParse({ ...product, images: [shot] }).success).toBe(true);
+    expect(productInput.safeParse({ ...product, images: [shot, shot] }).success).toBe(false);
+    expect(
+      productInput.safeParse({ ...product, images: ['https://evil.example/x.webp'] }).success,
+    ).toBe(false);
     expect(productInput.safeParse({ ...product, price: -1 }).success).toBe(false);
     expect(productInput.safeParse({ ...product, detailedInfo: { benefits: 'bad' } }).success).toBe(
       false,
@@ -234,6 +249,7 @@ describe('pricing and validation', () => {
   });
   it('rejects invalid ingredient ranges and duplicate IDs', () => {
     const input = {
+      ...mixtureMeta,
       prepFee: 10,
       published: true,
       customizable: true,
@@ -244,6 +260,21 @@ describe('pricing and validation', () => {
     };
     expect(mixtureInput.safeParse(input).success).toBe(true);
     expect(mixtureInput.safeParse({ ...input, ingredients: [spec, spec] }).success).toBe(false);
+    // مكوّن جديد (بلا معرّف) مقبول، واسم مكرّر مرفوض ولو اختلف المعرّف
+    const fresh = { ...spec, id: null, name: 'جوز', maxGrams: 100 };
+    expect(mixtureInput.safeParse({ ...input, ingredients: [spec, fresh] }).success).toBe(true);
+    expect(
+      mixtureInput.safeParse({ ...input, ingredients: [spec, { ...fresh, name: spec.name }] })
+        .success,
+    ).toBe(false);
+    // بيانات العرض: رابط لاتيني، اسم، ووصف — وصورة محلية أو لا شيء
+    for (const bad of [
+      { slug: 'خلطة' },
+      { name: '' },
+      { desc: 'قصير' },
+      { image: 'https://x/y.webp' },
+    ])
+      expect(mixtureInput.safeParse({ ...input, ...bad }).success).toBe(false);
     expect(
       mixtureInput.safeParse({ ...input, ingredients: [{ ...spec, recommended: 999 }] }).success,
     ).toBe(false);
@@ -251,6 +282,7 @@ describe('pricing and validation', () => {
 
   it('rejects limits that could leave no room for honey', () => {
     const base = {
+      ...mixtureMeta,
       prepFee: 0,
       published: true,
       customizable: true,
@@ -269,6 +301,7 @@ describe('pricing and validation', () => {
 
   it('ties the fixed price to the locked recipe', () => {
     const base = {
+      ...mixtureMeta,
       prepFee: 0,
       published: true,
       sizes: [500],
@@ -292,6 +325,7 @@ describe('pricing and validation', () => {
     // حدّ المكوّن الأقصى 300غ لا يترك مكاناً للعسل في 250غ، لكن الموصى به 50غ يتركه؛
     // ولا أحد يرفع المقدار في وصفة مقفلة، فالحدّ الأقصى لا يقيّدها
     const locked = {
+      ...mixtureMeta,
       prepFee: 0,
       published: true,
       sizes: [250],
