@@ -1,0 +1,290 @@
+{
+  "base": "http://127.0.0.1:3005",
+  "at": "2026-10-03T10:16:15.297Z",
+  "pages": [
+    {
+      "path": "/product/black-seed-honey",
+      "name": "01-product-black-seed-honey",
+      "title": "عسل حبة البركة | الهيثم — نحل وعسل",
+      "height": 4964,
+      "links": [
+        {
+          "kind": "whatsapp",
+          "text": "اطلب الآن",
+          "msg": "مرحباً عسل الهيثم، أود طلب:\n• عسل حبة البركة — 500 غرام\n• السعر في الموقع: 1,000 ل.س\nhttp://127.0.0.1:3005/product/black-seed-honey",
+          "bg": "rgb(37, 211, 102)",
+          "bgImage": null,
+          "color": "lab(2.51107 0.242703 -0.886115)",
+          "border": "lab(2.51107 0.242703 -0.886115)",
+          "size": "0x0",
+          "top": 0,
+          "fixed": true,
+          "visible": false
+        },
+        {
+          "kind": "whatsapp",
+          "text": "اطلب عبر واتساب",
+          "msg": "مرحباً عسل الهيثم، أود طلب:\n• عسل حبة البركة — 500 غرام\n• السعر في الموقع: 1,000 ل.س\nhttp://127.0.0.1:3005/product/black-seed-honey",
+          "bg": "oklab(0.760947 -0.173972 0.101527 / 0.1)",
+          "bgImage": null,
+          "color": "rgb(37, 211, 102)",
+          "border": "oklab(0.760947 -0.173972 0.101527 / 0.4)",
+          "size": "380x54",
+          "top": 1083,
+          "fixed": false,
+          "visible": true
+        },
+        {
+          "kind": "whatsapp",
+          "text": "اطلب الآن عبر واتساب",
+          "msg": "مرحباً عسل الهيثم، أود طلب:\n• عسل حبة البركة — 500 غرام\n• السعر في الموقع: 1,000 ل.س\nhttp://127.0.0.1:3005/product/black-seed-honey",
+          "bg": "rgb(37, 211, 102)",
+          "bgImage": null,
+          "color": "lab(2.51107 0.242703 -0.886115)",
+          "border": "lab(2.51107 0.242703 -0.886115)",
+          "size": "380x44",
+          "top": 3942,
+          "fixed": false,
+          "visible": true
+        },
+        {
+          "kind": "whatsapp",
+          "text": "",
+          "msg": "مرحباً عسل الهيثم، أود طلب:\n• عسل حبة البركة — 500 غرام\n• السعر في الموقع: 1,000 ل.س\nhttp://127.0.0.1:3005/product/black-seed-honey",
+          "bg": "rgba(0, 0, 0, 0)",
+          "bgImage": null,
+          "color": "lab(65.6464 1.53497 -5.42429)",
+          "border": "lab(65.6464 1.53497 -5.42429)",
+          "size": "44x44",
+          "top": 4011,
+          "fixed": false,
+          "visible": true
+        },
+        {
+          "kind": "tel",
+          "text": "",
+          "msg": null,
+          "bg": "rgba(0, 0, 0, 0)",
+          "bgImage": null,
+          "color": "lab(65.6464 1.53497 -5.42429)",
+          "border": "lab(65.6464 1.53497 -5.42429)",
+          "size": "44x44",
+          "top": 4011,
+          "fixed": false,
+          "visible": true
+        },
+        {
+          "kind": "tel",
+          "text": "+963947931959",
+          "msg": null,
+          "bg": "rgba(0, 0, 0, 0)",
+          "bgImage": null,
+          "color": "lab(47.8878 1.65477 -5.77283)",
+          "border": "lab(47.8878 1.65477 -5.77283)",
+          "size": "91x16",
+          "top": 4768,
+          "fixed": false,
+          "visible": true
+        },
+        {
+          "kind": "whatsapp",
+          "text": "تواصل عبر واتساب",
+          "msg": "مرحباً عسل الهيثم، أود طلب:\n• عسل حبة البركة — 500 غرام\n• السعر في الموقع: 1,000 ل.س\nhttp://127.0.0.1:3005/product/black-seed-honey",
+          "bg": "rgba(0, 0, 0, 0)",
+          "bgImage": null,
+          "color": "rgb(37, 211, 102)",
+          "border": "rgb(37, 211, 102)",
+          "size": "84x16",
+          "top": 4792,
+          "fixed": false,
+          "visible": true
+        },
+        {
+          "kind": "whatsapp",
+          "text": "",
+          "msg": "مرحباً عسل الهيثم، أود طلب:\n• عسل حبة البركة — 500 غرام\n• السعر في الموقع: 1,000 ل.س\nhttp://127.0.0.1:3005/product/black-seed-honey",
+          "bg": "rgb(37, 211, 102)",
+          "bgImage": null,
+          "color": "lab(2.51107 0.242703 -0.886115)",
+          "border": "lab(2.51107 0.242703 -0.886115)",
+          "size": "48x48",
+          "top": 783,
+          "fixed": true,
+          "visible": true
+        }
+      ],
+      "sections": [
+        {
+          "id": null,
+          "heading": "يُشترى معه عادةً",
+          "top": 2073,
+          "height": 870
+        },
+        {
+          "id": null,
+          "heading": "اقرأ عن هذا المنتج",
+          "top": 3007,
+          "height": 362
+        },
+        {
+          "id": null,
+          "heading": "آراء العملاء",
+          "top": 3433,
+          "height": 161
+        }
+      ]
+    },
+    {
+      "path": "/custom-mixtures/royal",
+      "name": "02-custom-mixtures-royal",
+      "title": "خلطة الملكية — للحيوية والتركيز | الهيثم — نحل وعسل",
+      "height": 3131,
+      "links": [
+        {
+          "kind": "whatsapp",
+          "text": "اطلب الآن",
+          "msg": "مرحباً عسل الهيثم، أود طلب خلطة «الملكية»:\n• الحجم: 500 غرام\n• العسل الأساسي: عسل حبة البركة\n• غذاء ملكات النحل: 30 غرام\n• جنسنغ كوري أحمر: 20 غرام\n• طلع النخيل: 20 غرام\n• السعر في الموقع: 3,960 ل.س\nhttp://127.0.0.1:3005/custom-mixtures/royal",
+          "bg": "rgb(37, 211, 102)",
+          "bgImage": null,
+          "color": "lab(2.51107 0.242703 -0.886115)",
+          "border": "lab(2.51107 0.242703 -0.886115)",
+          "size": "0x0",
+          "top": 0,
+          "fixed": true,
+          "visible": false
+        },
+        {
+          "kind": "whatsapp",
+          "text": "اطلبها عبر واتساب",
+          "msg": "مرحباً عسل الهيثم، أود طلب خلطة «الملكية»:\n• الحجم: 500 غرام\n• العسل الأساسي: عسل حبة البركة\n• غذاء ملكات النحل: 30 غرام\n• جنسنغ كوري أحمر: 20 غرام\n• طلع النخيل: 20 غرام\n• السعر في الموقع: 3,960 ل.س\nhttp://127.0.0.1:3005/custom-mixtures/royal",
+          "bg": "oklab(0.760947 -0.173972 0.101527 / 0.1)",
+          "bgImage": null,
+          "color": "rgb(37, 211, 102)",
+          "border": "oklab(0.760947 -0.173972 0.101527 / 0.4)",
+          "size": "380x58",
+          "top": 1727,
+          "fixed": false,
+          "visible": true
+        },
+        {
+          "kind": "whatsapp",
+          "text": "اطلب الآن عبر واتساب",
+          "msg": "مرحباً عسل الهيثم، أود طلب خلطة «الملكية»:\n• الحجم: 500 غرام\n• العسل الأساسي: عسل حبة البركة\n• غذاء ملكات النحل: 30 غرام\n• جنسنغ كوري أحمر: 20 غرام\n• طلع النخيل: 20 غرام\n• السعر في الموقع: 3,960 ل.س\nhttp://127.0.0.1:3005/custom-mixtures/royal",
+          "bg": "rgb(37, 211, 102)",
+          "bgImage": null,
+          "color": "lab(2.51107 0.242703 -0.886115)",
+          "border": "lab(2.51107 0.242703 -0.886115)",
+          "size": "380x44",
+          "top": 2109,
+          "fixed": false,
+          "visible": true
+        },
+        {
+          "kind": "whatsapp",
+          "text": "",
+          "msg": "مرحباً عسل الهيثم، أود طلب خلطة «الملكية»:\n• الحجم: 500 غرام\n• العسل الأساسي: عسل حبة البركة\n• غذاء ملكات النحل: 30 غرام\n• جنسنغ كوري أحمر: 20 غرام\n• طلع النخيل: 20 غرام\n• السعر في الموقع: 3,960 ل.س\nhttp://127.0.0.1:3005/custom-mixtures/royal",
+          "bg": "rgba(0, 0, 0, 0)",
+          "bgImage": null,
+          "color": "lab(65.6464 1.53497 -5.42429)",
+          "border": "lab(65.6464 1.53497 -5.42429)",
+          "size": "44x44",
+          "top": 2178,
+          "fixed": false,
+          "visible": true
+        },
+        {
+          "kind": "tel",
+          "text": "",
+          "msg": null,
+          "bg": "rgba(0, 0, 0, 0)",
+          "bgImage": null,
+          "color": "lab(65.6464 1.53497 -5.42429)",
+          "border": "lab(65.6464 1.53497 -5.42429)",
+          "size": "44x44",
+          "top": 2178,
+          "fixed": false,
+          "visible": true
+        },
+        {
+          "kind": "tel",
+          "text": "+963947931959",
+          "msg": null,
+          "bg": "rgba(0, 0, 0, 0)",
+          "bgImage": null,
+          "color": "lab(47.8878 1.65477 -5.77283)",
+          "border": "lab(47.8878 1.65477 -5.77283)",
+          "size": "91x16",
+          "top": 2935,
+          "fixed": false,
+          "visible": true
+        },
+        {
+          "kind": "whatsapp",
+          "text": "تواصل عبر واتساب",
+          "msg": "مرحباً عسل الهيثم، أود طلب خلطة «الملكية»:\n• الحجم: 500 غرام\n• العسل الأساسي: عسل حبة البركة\n• غذاء ملكات النحل: 30 غرام\n• جنسنغ كوري أحمر: 20 غرام\n• طلع النخيل: 20 غرام\n• السعر في الموقع: 3,960 ل.س\nhttp://127.0.0.1:3005/custom-mixtures/royal",
+          "bg": "rgba(0, 0, 0, 0)",
+          "bgImage": null,
+          "color": "rgb(37, 211, 102)",
+          "border": "rgb(37, 211, 102)",
+          "size": "84x16",
+          "top": 2959,
+          "fixed": false,
+          "visible": true
+        },
+        {
+          "kind": "whatsapp",
+          "text": "اطلب عبر واتساب",
+          "msg": "مرحباً عسل الهيثم، أود طلب خلطة «الملكية»:\n• الحجم: 500 غرام\n• العسل الأساسي: عسل حبة البركة\n• غذاء ملكات النحل: 30 غرام\n• جنسنغ كوري أحمر: 20 غرام\n• طلع النخيل: 20 غرام\n• السعر في الموقع: 3,960 ل.س\nhttp://127.0.0.1:3005/custom-mixtures/royal",
+          "bg": "rgb(37, 211, 102)",
+          "bgImage": null,
+          "color": "lab(2.51107 0.242703 -0.886115)",
+          "border": "lab(2.51107 0.242703 -0.886115)",
+          "size": "322x48",
+          "top": 783,
+          "fixed": true,
+          "visible": true
+        }
+      ],
+      "sections": [
+        {
+          "id": null,
+          "heading": "خلطة الملكية",
+          "top": 0,
+          "height": 1849
+        },
+        {
+          "id": null,
+          "heading": "١. اختر عسلك الأساسي",
+          "top": 1050,
+          "height": 134
+        },
+        {
+          "id": null,
+          "heading": "٢. اختر الحجم",
+          "top": 1215,
+          "height": 100
+        },
+        {
+          "id": null,
+          "heading": null,
+          "top": 1347,
+          "height": 126
+        },
+        {
+          "id": null,
+          "heading": null,
+          "top": 1505,
+          "height": 122
+        }
+      ]
+    },
+    {
+      "path": "/admin/products|summary",
+      "name": "03-admin-products-click"
+    },
+    {
+      "path": "/admin/mixtures|button:has-text(\"خلطة جديدة\")",
+      "name": "04-admin-mixtures-click"
+    }
+  ]
+}
