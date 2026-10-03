@@ -14,10 +14,13 @@ import { isVideoUrl } from '@/lib/media';
 export default function ProductGallery({
   images,
   alt,
+  aspect = 'aspect-square',
   children,
 }: {
   images: string[];
   alt: string;
+  /** صنف Tailwind لنسبة الإطار — مربّع للمنتج، وأعرض للخلطة حتى لا يبتعد بنّاؤها عن أول الشاشة */
+  aspect?: string;
   /** ما يُرسم فوق الصورة (الشارة، «نفدت الكمية») */
   children?: React.ReactNode;
 }) {
@@ -33,7 +36,9 @@ export default function ProductGallery({
 
   return (
     <div>
-      <div className="relative aspect-square overflow-hidden rounded-3xl border border-amber-500/20 bg-zinc-900/50">
+      <div
+        className={`relative ${aspect} overflow-hidden rounded-3xl border border-amber-500/20 bg-zinc-900/50`}
+      >
         <div
           ref={track}
           onScroll={(e) => {

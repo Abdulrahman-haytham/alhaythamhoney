@@ -62,7 +62,11 @@ export default async function MixturePage({ params }: { params: Promise<{ slug: 
           <aside className="lg:col-span-2">
             {media.length > 0 && (
               <div className="mb-6">
-                <ProductGallery images={media} alt={`خلطة ${mixture.name}`} />
+                <ProductGallery
+                  images={media}
+                  alt={`خلطة ${mixture.name}`}
+                  aspect="aspect-[16/10] lg:aspect-square"
+                />
               </div>
             )}
             <p className="mb-2 text-xs font-bold tracking-wide text-amber-500">{mixture.tagline}</p>
