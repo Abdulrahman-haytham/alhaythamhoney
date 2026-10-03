@@ -79,6 +79,9 @@ case "$action" in
     section migrate; compose run --rm migrate
     section start;   compose up -d app wa
     health
+    # كل بناء يترك طبقات في ذاكرة BuildKit (وصلت 45GB سابقاً) — نُبقي آخر 3 أيام فقط لتسريع البناء القادم
+    docker builder prune -f --filter until=72h >/dev/null 2>&1 || true
+    docker image prune -f >/dev/null 2>&1 || true
     echo "Deployed ${now:0:7}. Previous: ${prev:0:7} (use rollback with this SHA if needed)."
     ;;
 
