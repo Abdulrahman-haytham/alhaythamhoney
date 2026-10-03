@@ -9,7 +9,34 @@ export interface UploadedMedia {
 }
 
 const ENDPOINT = '/api/admin/uploads';
-const RETRIES = 5;
+const RETRIES = 8;
+/** دفعات صغيرة: على شبكة جوال ضعيفة (رفع بطيء) تنقطع دفعة 2MB قبل أن تكتمل فلا يتحرك الرفع أبداً */
+const CLIENT_CHUNK = 256 * 1024;
+const CHUNK_TIMEOUT_MS = 60_000;
+
+/** PUT بالـXHR لأن fetch لا يخبرنا بتقدّم الرفع داخل الدفعة؛ يعيد null عند انقطاع الشبكة أو المهلة */
+function putChunk(
+  url: string,
+  body: Blob,
+  onBytes: (sent: number) => void,
+): Promise<{ ok: boolean; status: number; data: Record<string, unknown> } | null> {
+  return new Promise((resolve) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('PUT', url);
+    xhr.timeout = CHUNK_TIMEOUT_MS;
+    xhr.setRequestHeader('Content-Type', 'application/octet-stream');
+    xhr.upload.onprogress = (e) => onBytes(e.loaded);
+    xhr.onerror = xhr.ontimeout = xhr.onabort = () => resolve(null);
+    xhr.onload = () => {
+      let data: Record<string, unknown> = {};
+      try {
+        data = JSON.parse(xhr.responseText);
+      } catch {}
+      resolve({ ok: xhr.status >= 200 && xhr.status < 300, status: xhr.status, data });
+    };
+    xhr.send(body);
+  });
+}
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 async function json(res: Response) {
@@ -32,17 +59,18 @@ export async function uploadMedia(
   const start = await json(started);
   if (!started.ok) throw new Error((start.error as string) || 'تعذّر بدء الرفع.');
   const id = start.id as string;
-  const chunkSize = Number(start.chunkSize) || 2 * 1024 * 1024;
+  const chunkSize = Math.min(Number(start.chunkSize) || CLIENT_CHUNK, CLIENT_CHUNK);
 
   let offset = 0;
   let failures = 0;
   while (offset < file.size) {
-    const res = await fetch(`${ENDPOINT}?id=${id}&offset=${offset}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/octet-stream' },
-      body: file.slice(offset, offset + chunkSize),
-    }).catch(() => null);
-    const data = res ? await json(res) : {};
+    const base = offset;
+    const res = await putChunk(
+      `${ENDPOINT}?id=${id}&offset=${offset}`,
+      file.slice(offset, offset + chunkSize),
+      (sent) => onProgress?.(Math.min((base + sent) / file.size, 0.99)),
+    );
+    const data = res?.data ?? {};
     if (res?.ok) {
       offset = Number(data.received);
       failures = 0;
