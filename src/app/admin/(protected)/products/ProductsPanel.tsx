@@ -119,6 +119,12 @@ function Editor({
   }
   return (
     <form onSubmit={save} className="space-y-4 rounded-xl border border-zinc-800 p-4 sm:p-6">
+      <ImagesField
+        label="صور المنتج"
+        value={form.image ? [form.image, ...form.images] : form.images}
+        onChange={(list) => setForm((f) => ({ ...f, image: list[0] ?? '', images: list.slice(1) }))}
+        hint="ارفعها من هاتفك مباشرة، بأي حجم — تُضغط تلقائياً. الأولى تظهر في بطاقة المنتج والسلة، والبقية معرض في صفحته. اضغط «حفظ المنتج» بعد التعديل."
+      />
       <div className="grid gap-4 sm:grid-cols-2">
         <label>
           اسم المنتج
@@ -212,12 +218,6 @@ function Editor({
           />
         </label>
       </div>
-      <ImagesField
-        label="صور المنتج"
-        value={form.image ? [form.image, ...form.images] : form.images}
-        onChange={(list) => setForm((f) => ({ ...f, image: list[0] ?? '', images: list.slice(1) }))}
-        hint="ارفعها من هاتفك مباشرة، بأي حجم — تُضغط تلقائياً. الأولى تظهر في بطاقة المنتج والسلة، والبقية معرض في صفحته. اضغط «حفظ المنتج» بعد التعديل."
-      />
       <label className="block">
         الوصف
         <textarea

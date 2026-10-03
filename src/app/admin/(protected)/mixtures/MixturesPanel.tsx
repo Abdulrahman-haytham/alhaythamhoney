@@ -88,7 +88,9 @@ function MixtureEditor({ initial, onDone }: { initial?: AdminMixture; onDone?: (
   const [state, setState] = useState<'idle' | 'saving' | 'saved' | 'deleting'>('idle');
   const [error, setError] = useState<string | null>(null);
 
-  const unpriced = m.ingredients.filter((i) => i.pricePerGram === 0).map((i) => i.name);
+  const unpriced = m.ingredients
+    .filter((i) => i.pricePerGram === 0 && i.name.trim())
+    .map((i) => i.name);
 
   function setIng(id: string, patch: Partial<AdminIngredient>) {
     setM((cur) => ({
