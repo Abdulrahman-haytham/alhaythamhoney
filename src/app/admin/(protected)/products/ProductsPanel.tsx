@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation';
 import type { z } from 'zod';
 import type { productInput } from '@/lib/validation';
 import type { Prisma } from '@prisma/client';
-import { ImagesField } from '@/components/admin/ImagesField';
+import { MediaField } from '@/components/admin/MediaField';
+import { joinMedia, splitMedia } from '@/lib/media';
 
 type Input = z.infer<typeof productInput>;
 type ProductRow = Omit<Input, 'detailedInfo'> & {
@@ -21,6 +22,7 @@ const empty: Input = {
   benefit: null,
   image: '',
   images: [],
+  videos: [],
   badge: null,
   price: null,
   weight: null,
@@ -36,6 +38,41 @@ const empty: Input = {
   attributeValueIds: [],
   detailedInfo: null,
 };
+/** تفاصيل صفحة المنتج كحقول نصية: كل نقطة في سطر بدل تحرير JSON يدوياً */
+const DETAIL_LISTS = [
+  { key: 'benefits', label: 'الفوائد' },
+  { key: 'uses', label: 'الاستخدامات' },
+  { key: 'properties', label: 'الخصائص' },
+] as const;
+type DetailsForm = Record<(typeof DETAIL_LISTS)[number]['key'] | 'howToUse', string>;
+function detailsToForm(value: Prisma.JsonValue | undefined): DetailsForm {
+  const info = (value && typeof value === 'object' && !Array.isArray(value) ? value : {}) as Record<
+    string,
+    unknown
+  >;
+  const lines = (v: unknown) =>
+    Array.isArray(v) ? v.filter((x) => typeof x === 'string').join('\n') : '';
+  return {
+    benefits: lines(info.benefits),
+    uses: lines(info.uses),
+    properties: lines(info.properties),
+    howToUse: typeof info.howToUse === 'string' ? info.howToUse : '',
+  };
+}
+function detailsFromForm(form: DetailsForm): Input['detailedInfo'] {
+  const list = (text: string) =>
+    text
+      .split('\n')
+      .map((line) => line.trim())
+      .filter(Boolean);
+  const info = {
+    ...Object.fromEntries(
+      DETAIL_LISTS.map(({ key }) => [key, list(form[key])]).filter(([, items]) => items.length),
+    ),
+    ...(form.howToUse.trim() ? { howToUse: form.howToUse.trim() } : {}),
+  };
+  return Object.keys(info).length ? info : null;
+}
 type VariantForm = Input['variants'][number];
 const emptyVariant = (): VariantForm => ({
   id: null,
@@ -66,7 +103,7 @@ function Editor({
     const { id: _id, detailedInfo: _d, waitingAlerts: _w, ...rest } = product;
     return rest;
   });
-  const [details, setDetails] = useState(JSON.stringify(product?.detailedInfo ?? {}, null, 2));
+  const [details, setDetails] = useState(() => detailsToForm(product?.detailedInfo));
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
   function set<K extends keyof typeof form>(key: K, value: (typeof form)[K]) {
@@ -87,7 +124,7 @@ function Editor({
     setBusy(true);
     setMessage('');
     try {
-      const payload = { ...form, detailedInfo: JSON.parse(details || 'null') } as Record<
+      const payload = { ...form, detailedInfo: detailsFromForm(details) } as Record<
         string,
         unknown
       >;
@@ -106,24 +143,42 @@ function Editor({
       router.refresh();
       onCreated?.();
     } catch (error) {
-      setMessage(
-        error instanceof SyntaxError
-          ? 'تفاصيل المنتج يجب أن تكون JSON صالحاً.'
-          : error instanceof Error
-            ? error.message
-            : 'تعذّر الاتصال.',
-      );
+      setMessage(error instanceof Error ? error.message : 'تعذّر الاتصال.');
     } finally {
       setBusy(false);
     }
   }
+  async function remove() {
+    if (!product) return;
+    if (
+      !confirm(
+        `حذف «${product.name}» نهائياً مع تقييماته؟ الطلبات السابقة تبقى كما هي. لإخفائه مؤقتاً ألغِ «منشور» بدل الحذف.`,
+      )
+    )
+      return;
+    setBusy(true);
+    setMessage('');
+    const res = await fetch(`/api/admin/products/${product.id}`, { method: 'DELETE' }).catch(
+      () => null,
+    );
+    if (!res?.ok) {
+      const data = res ? await res.json().catch(() => ({})) : {};
+      setMessage(data.error || 'تعذّر الحذف.');
+      setBusy(false);
+      return;
+    }
+    router.refresh();
+  }
   return (
     <form onSubmit={save} className="space-y-4 rounded-xl border border-zinc-800 p-4 sm:p-6">
-      <ImagesField
-        label="صور المنتج"
-        value={form.image ? [form.image, ...form.images] : form.images}
-        onChange={(list) => setForm((f) => ({ ...f, image: list[0] ?? '', images: list.slice(1) }))}
-        hint="ارفعها من هاتفك مباشرة، بأي حجم — تُضغط تلقائياً. الأولى تظهر في بطاقة المنتج والسلة، والبقية معرض في صفحته. اضغط «حفظ المنتج» بعد التعديل."
+      <MediaField
+        label="صور وفيديو المنتج"
+        value={joinMedia(form)}
+        onChange={(list) => {
+          const media = splitMedia(list);
+          setForm((f) => ({ ...f, ...media, image: media.image ?? '' }));
+        }}
+        hint="ارفعها من هاتفك مباشرة، بأي حجم. الصورة الرئيسية تظهر في بطاقة المنتج والسلة، والبقية مع الفيديو معرض في صفحته. اضغط «حفظ المنتج» بعد التعديل."
       />
       <div className="grid gap-4 sm:grid-cols-2">
         <label>
@@ -546,20 +601,36 @@ function Editor({
         </div>
       </fieldset>
 
-      <details>
-        <summary className="cursor-pointer text-amber-400">تفاصيل إضافية (JSON)</summary>
-        <p className="my-2 text-xs text-zinc-400">
-          مصفوفات نصية: benefits، uses، properties. نص: howToUse. راجع دقة المحتوى قبل النشر.
+      <fieldset className="rounded-lg border border-zinc-800 p-3">
+        <legend className="px-2 text-sm text-amber-400">تفاصيل صفحة المنتج (اختيارية)</legend>
+        <p className="mb-3 text-xs text-zinc-400">
+          تظهر في صفحة المنتج تحت الوصف. في القوائم اكتب كل نقطة في سطر. اترك الحقل فارغاً ليختفي
+          قسمه.
         </p>
-        <textarea
-          aria-label="تفاصيل المنتج JSON"
-          className={inputClass}
-          dir="ltr"
-          rows={8}
-          value={details}
-          onChange={(e) => setDetails(e.target.value)}
-        />
-      </details>
+        <div className="grid gap-4 sm:grid-cols-2">
+          {DETAIL_LISTS.map(({ key, label }) => (
+            <label key={key} className="block">
+              {label}
+              <textarea
+                className={inputClass}
+                rows={4}
+                value={details[key]}
+                onChange={(e) => setDetails((d) => ({ ...d, [key]: e.target.value }))}
+              />
+            </label>
+          ))}
+          <label className="block">
+            طريقة الاستعمال
+            <textarea
+              className={inputClass}
+              rows={4}
+              maxLength={3000}
+              value={details.howToUse}
+              onChange={(e) => setDetails((d) => ({ ...d, howToUse: e.target.value }))}
+            />
+          </label>
+        </div>
+      </fieldset>
       <div className="flex flex-wrap gap-6">
         <label>
           <input
@@ -588,6 +659,16 @@ function Editor({
         <p role="status" className="text-sm">
           {message}
         </p>
+        {product && (
+          <button
+            type="button"
+            onClick={remove}
+            disabled={busy}
+            className="ms-auto rounded-lg px-3 py-3 text-sm text-red-400 hover:bg-red-500/10 disabled:opacity-50"
+          >
+            حذف المنتج
+          </button>
+        )}
       </div>
     </form>
   );

@@ -1,7 +1,7 @@
 import { timingSafeEqual } from 'node:crypto';
 import { NextResponse } from 'next/server';
 import { processPendingCampaigns } from '@/lib/campaigns.server';
-import { pruneOldData, sendAbandonedCartEmails } from '@/lib/cron.server';
+import { pruneOldData, sendAbandonedCartEmails, sweepOrphanVideos } from '@/lib/cron.server';
 import { markCronRun } from '@/lib/health.server';
 
 export const dynamic = 'force-dynamic';
@@ -23,15 +23,16 @@ export async function GET(request: Request) {
     timingSafeEqual(Buffer.from(given), Buffer.from(secret));
   if (!ok) return NextResponse.json({ error: 'غير مصرّح.' }, { status: 401 });
   const startedAt = Date.now();
-  const [abandoned, pruned, campaigns] = await Promise.all([
+  const [abandoned, pruned, campaigns, videos] = await Promise.all([
     sendAbandonedCartEmails(),
     pruneOldData(),
     processPendingCampaigns(),
+    sweepOrphanVideos(),
   ]);
   // أثر يقرؤه مؤشّر «حالة الخادم» ليعرف الأدمن أن المؤقّت حيّ
   await markCronRun();
   return NextResponse.json(
-    { ok: true, ms: Date.now() - startedAt, abandoned, pruned, campaigns },
+    { ok: true, ms: Date.now() - startedAt, abandoned, pruned, campaigns, videos },
     { headers: { 'Cache-Control': 'no-store' } },
   );
 }

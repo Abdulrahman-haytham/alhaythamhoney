@@ -4,6 +4,7 @@ import { CheckCircle2, Heart, Zap, Award, ShieldCheck, Truck, Leaf, Package } fr
 import Link from 'next/link';
 import Image from 'next/image';
 import ProductGallery from '@/components/ProductGallery';
+import { joinMedia } from '@/lib/media';
 import { ArrowLeft, BookOpen, Sparkles } from 'lucide-react';
 import { getProductBySlug, getRelatedProducts, getProductArticles } from '@/lib/products.server';
 import { getProductPromotionLabels } from '@/lib/promotions.server';
@@ -148,7 +149,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           {/* Image Section */}
           <div className="relative">
             {/* الصورة الأولى هي LCP لهذه الصفحة؛ البقية معرض يُسحب */}
-            <ProductGallery images={[product.image, ...product.images]} alt={product.name}>
+            <ProductGallery images={joinMedia(product)} alt={product.name}>
               {product.badge && (
                 <div className="absolute top-6 right-6 bg-amber-500 text-zinc-950 text-sm font-black px-4 py-2 rounded-full uppercase z-10 shadow-lg shadow-amber-500/20">
                   {product.badge}

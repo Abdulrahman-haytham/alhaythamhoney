@@ -14,10 +14,11 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
   const { id } = await params;
   const photo = await db.studioPhoto.findUnique({ where: { id } });
   if (!photo) return NextResponse.json({ error: 'الصورة غير موجودة.' }, { status: 404 });
+  const holds = {
+    OR: [{ image: photo.url }, { images: { has: photo.url } }, { videos: { has: photo.url } }],
+  };
   const used =
-    (await db.product.count({
-      where: { OR: [{ image: photo.url }, { images: { has: photo.url } }] },
-    })) + (await db.mixture.count({ where: { image: photo.url } }));
+    (await db.product.count({ where: holds })) + (await db.mixture.count({ where: holds }));
   if (used)
     return NextResponse.json(
       { error: 'هذه الصورة مستخدمة في منتج أو خلطة. غيّر صورتها أولاً.' },

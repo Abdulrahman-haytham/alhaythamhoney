@@ -19,6 +19,25 @@ const localImage = text(500).refine(
     /^\/uploads\/studio\/[a-f0-9-]+\.(webp|png|jpe?g|avif)$/.test(url),
   'اختر صورة محلية من المنتجات أو الاستديو.',
 );
+/** فيديو مرفوع من اللوحة فقط. */
+const localVideo = text(500).regex(
+  /^\/uploads\/studio\/[a-f0-9-]+\.(mp4|webm|mov)$/,
+  'ارفع الفيديو من اللوحة.',
+);
+const unique = (list: string[]) => new Set(list).size === list.length;
+/** صور المعرض الإضافية (الرئيسية في `image`) ومقاطع الفيديو — للمنتج والخلطة */
+export const MAX_GALLERY_IMAGES = 11;
+export const MAX_GALLERY_VIDEOS = 4;
+const galleryImages = z
+  .array(localImage)
+  .max(MAX_GALLERY_IMAGES, `حتى ${MAX_GALLERY_IMAGES + 1} صورة.`)
+  .refine(unique, 'صورة مكررة في المعرض.')
+  .default([]);
+const galleryVideos = z
+  .array(localVideo)
+  .max(MAX_GALLERY_VIDEOS, `حتى ${MAX_GALLERY_VIDEOS} مقاطع فيديو.`)
+  .refine(unique, 'فيديو مكرر.')
+  .default([]);
 // ---- متغيّرات المنتج وخصومات الكمية ----
 export const variantInput = z
   .object({
@@ -53,12 +72,8 @@ export const productInput = z
     desc: text(3000).min(10),
     benefit: text(200).nullable(),
     image: localImage,
-    /** صور المعرض الإضافية (الرئيسية في `image`) */
-    images: z
-      .array(localImage)
-      .max(11)
-      .refine((list) => new Set(list).size === list.length, 'صورة مكررة في المعرض.')
-      .default([]),
+    images: galleryImages,
+    videos: galleryVideos,
     badge: text(100).nullable(),
     price: amount.nullable(),
     weight: text(80).nullable(),
@@ -145,6 +160,9 @@ export const mixtureInput = z
     tagline: text(200),
     desc: text(2000).min(10, 'اكتب وصفاً للخلطة (10 أحرف على الأقل).'),
     image: localImage.nullable(),
+    images: galleryImages,
+    videos: galleryVideos,
+    sortOrder: z.number().int().min(0).max(10000).default(0),
     prepFee: amount,
     published: z.boolean(),
     customizable: z.boolean(),

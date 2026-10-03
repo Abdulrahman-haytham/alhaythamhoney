@@ -25,7 +25,8 @@ export async function POST(request: Request) {
     const mixture = await db.mixture.create({
       data: {
         ...toMixtureScalars(parsed.data),
-        sortOrder: (last._max.sortOrder ?? -1) + 1,
+        // بلا ترتيب محدّد تُضاف في الآخر
+        sortOrder: parsed.data.sortOrder || (last._max.sortOrder ?? -1) + 1,
         ingredients: { create: parsed.data.ingredients.map(toIngredientData) },
       },
     });

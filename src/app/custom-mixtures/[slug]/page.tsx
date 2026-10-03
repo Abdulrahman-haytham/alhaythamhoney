@@ -1,4 +1,6 @@
 import type { Metadata } from 'next';
+import ProductGallery from '@/components/ProductGallery';
+import { joinMedia } from '@/lib/media';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ArrowRight, ShieldCheck } from 'lucide-react';
@@ -43,6 +45,7 @@ export default async function MixturePage({ params }: { params: Promise<{ slug: 
   const { slug } = await params;
   const [mixture, honeys] = await Promise.all([getMixtureBySlug(slug), getHoneyOptions()]);
   if (!mixture || !mixture.published) notFound();
+  const media = joinMedia(mixture);
 
   return (
     <section className="min-h-screen bg-zinc-950 px-4 pt-28 pb-16 sm:px-6 sm:pt-32">
@@ -57,6 +60,11 @@ export default async function MixturePage({ params }: { params: Promise<{ slug: 
 
         <div className="grid grid-cols-1 gap-10 lg:grid-cols-5">
           <aside className="lg:col-span-2">
+            {media.length > 0 && (
+              <div className="mb-6">
+                <ProductGallery images={media} alt={`خلطة ${mixture.name}`} />
+              </div>
+            )}
             <p className="mb-2 text-xs font-bold tracking-wide text-amber-500">{mixture.tagline}</p>
             <h1 className="mb-4 font-amiri text-3xl font-bold text-white sm:text-4xl">
               خلطة {mixture.name}

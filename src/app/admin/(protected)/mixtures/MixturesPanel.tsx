@@ -4,7 +4,8 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { AlertTriangle, Check, Plus, Save, Trash2, X } from 'lucide-react';
 import { CURRENCY } from '@/lib/money';
-import { ImagesField } from '@/components/admin/ImagesField';
+import { MediaField } from '@/components/admin/MediaField';
+import { joinMedia, splitMedia } from '@/lib/media';
 
 export interface AdminIngredient {
   /** معرّف القاعدة، أو مفتاح مؤقت يبدأ بـ`new-` لمكوّن لم يُحفظ بعد */
@@ -25,6 +26,9 @@ export interface AdminMixture {
   tagline: string;
   desc: string;
   image: string | null;
+  images: string[];
+  videos: string[];
+  sortOrder: number;
   sizes: number[];
   defaultSize: number;
   prepFee: number;
@@ -67,6 +71,9 @@ const newMixture = (): AdminMixture => ({
   tagline: '',
   desc: '',
   image: null,
+  images: [],
+  videos: [],
+  sortOrder: 0,
   sizes: [250, 500, 1000],
   defaultSize: 500,
   prepFee: 0,
@@ -111,6 +118,9 @@ function MixtureEditor({ initial, onDone }: { initial?: AdminMixture; onDone?: (
         tagline: m.tagline,
         desc: m.desc,
         image: m.image,
+        images: m.images,
+        videos: m.videos,
+        sortOrder: m.sortOrder,
         prepFee: m.prepFee,
         published: m.published,
         customizable: m.customizable,
@@ -238,13 +248,25 @@ function MixtureEditor({ initial, onDone }: { initial?: AdminMixture; onDone?: (
           />
         </label>
         <div className="text-xs text-zinc-400 sm:col-span-2">
-          <ImagesField
-            label="صورة الخلطة (اختيارية)"
-            value={m.image ? [m.image] : []}
-            onChange={(list) => setM({ ...m, image: list[0] ?? null })}
-            max={1}
+          <MediaField
+            label="صور وفيديو الخلطة (اختيارية)"
+            value={joinMedia(m)}
+            onChange={(list) => setM((cur) => ({ ...cur, ...splitMedia(list) }))}
+            hint="الصورة الرئيسية تظهر في بطاقة الخلطة، والبقية مع الفيديو معرض في صفحتها."
           />
         </div>
+        <label className="block">
+          <span className={labelClass}>ترتيب العرض (الأصغر أولاً)</span>
+          <input
+            type="number"
+            min={0}
+            max={10000}
+            value={m.sortOrder}
+            onChange={(e) => setM({ ...m, sortOrder: Number(e.target.value) })}
+            dir="ltr"
+            className={fieldClass}
+          />
+        </label>
       </div>
 
       <div className="mb-5 grid gap-4 rounded-xl border border-zinc-800 bg-zinc-950/40 p-4 sm:grid-cols-2">

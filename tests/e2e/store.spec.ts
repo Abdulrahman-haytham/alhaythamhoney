@@ -117,13 +117,22 @@ test('admin uploads product photos and a large video, and adds a mixture', async
       .jpeg()
       .toBuffer();
 
+  /** ملف بترويسة MP4 صحيحة — يكفي ليقبله الخادم فيديو، ولا حاجة لتشغيله هنا */
+  const clip = (bytes: number) => {
+    const video = Buffer.alloc(bytes);
+    Buffer.from([0, 0, 0, 24]).copy(video, 0);
+    video.write('ftypisom', 4, 'ascii');
+    return video;
+  };
+  page.on('dialog', (dialog) => void dialog.accept());
+
   await page.goto('/admin/products');
   await page.locator('input').nth(0).fill('e2e-admin');
   await page.locator('input[type=password]').fill('e2e-only-password');
   await page.getByRole('button', { name: 'دخول', exact: true }).click();
   await expect(page).toHaveURL(/\/admin\/products/);
 
-  // صور المنتج: تُرفع من المحرّر نفسه (بلا روابط)، وأكثر من صورة دفعة واحدة
+  // صور وفيديو المنتج: تُرفع من المحرّر نفسه (بلا روابط)، عدة ملفات دفعة واحدة
   await page.locator('summary').filter({ hasText: 'عسل الاختبار' }).click();
   const editor = page
     .locator('details')
@@ -132,13 +141,20 @@ test('admin uploads product photos and a large video, and adds a mixture', async
   await editor.locator('input[type=file]').setInputFiles([
     { name: 'front.jpg', mimeType: 'image/jpeg', buffer: await photo('#b45309') },
     { name: 'back.jpg', mimeType: 'image/jpeg', buffer: await photo('#3f6212') },
+    { name: 'pour.mp4', mimeType: 'video/mp4', buffer: clip(200_000) },
   ]);
   await expect(editor.locator('img[src^="/uploads/studio/"]')).toHaveCount(2);
+  await expect(editor.locator('video[src^="/uploads/studio/"]')).toHaveCount(1);
   await editor.getByRole('button', { name: 'حفظ المنتج' }).click();
   await expect(editor.getByRole('status')).toHaveText('تم الحفظ.');
 
   await page.goto('/product/e2e-honey');
   await expect(page.getByRole('button', { name: /^عرض الصورة/ })).toHaveCount(3);
+  await expect(page.getByRole('button', { name: 'عرض الفيديو 4' })).toBeVisible();
+  await expect(page.getByLabel('عسل الاختبار — فيديو')).toHaveAttribute(
+    'src',
+    /^\/uploads\/studio\/.+\.mp4/,
+  );
   await page.getByRole('button', { name: 'عرض الصورة 2' }).click();
   // الصورة المرفوعة تُخدَم فعلاً عبر محسّن الصور، لا مجرد وسم في الصفحة
   await expect
@@ -159,12 +175,56 @@ test('admin uploads product photos and a large video, and adds a mixture', async
     .fill('e2e-mix');
   await page.getByLabel('الوصف كما يراه الزبون').first().fill('خلطة تُنشأ في الاختبار الآلي فقط.');
   await page.getByLabel('اسم المكوّن').first().fill('حبة البركة');
+  await page
+    .locator('input[type=file]')
+    .first()
+    .setInputFiles([
+      { name: 'mix.jpg', mimeType: 'image/jpeg', buffer: await photo('#92400e') },
+      { name: 'mix.mp4', mimeType: 'video/mp4', buffer: clip(150_000) },
+    ]);
+  await expect(page.locator('video[src^="/uploads/studio/"]')).toHaveCount(1);
   await page.getByLabel('منشورة').first().check();
   await page.getByRole('button', { name: 'إنشاء الخلطة' }).click();
   await expect(page.getByRole('heading', { name: 'الاختبار الآلي' })).toBeVisible();
   await page.goto('/custom-mixtures/e2e-mix');
   await expect(page.getByRole('heading', { name: 'خلطة الاختبار الآلي' })).toBeVisible();
   await expect(page.getByText('حبة البركة').first()).toBeVisible();
+  await expect(page.getByAltText('خلطة الاختبار الآلي', { exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'عرض الفيديو 2' })).toBeVisible();
+
+  // منتج جديد يُنشأ ثم يُحذف من اللوحة، ويختفي رابطه
+  await page.goto('/admin/products');
+  await page.getByRole('button', { name: '+ منتج جديد' }).click();
+  const creator = page
+    .locator('form')
+    .filter({ has: page.getByLabel('اسم المنتج') })
+    .first();
+  await creator.locator('input[type=file]').setInputFiles({
+    name: 'new.jpg',
+    mimeType: 'image/jpeg',
+    buffer: await photo('#a16207'),
+  });
+  await expect(creator.locator('img[src^="/uploads/studio/"]')).toHaveCount(1);
+  await creator.getByLabel('اسم المنتج').fill('منتج للحذف');
+  await creator.getByLabel(/^الرابط/).fill('e2e-delete-me');
+  await creator.getByLabel('السعر بالليرة السورية').fill('1500');
+  await creator.getByLabel('الوصف', { exact: true }).fill('منتج مؤقت يُحذف في الاختبار نفسه.');
+  await creator.getByLabel('الفوائد').fill('نقطة أولى\nنقطة ثانية');
+  await creator.getByLabel('منشور', { exact: true }).check();
+  await creator.getByRole('button', { name: 'حفظ المنتج' }).click();
+  const created = page.locator('summary').filter({ hasText: 'منتج للحذف' });
+  await expect(created).toBeVisible();
+  await page.goto('/product/e2e-delete-me');
+  await expect(page.getByText('نقطة ثانية')).toBeVisible();
+  await page.goto('/admin/products');
+  await created.click();
+  await page
+    .locator('details')
+    .filter({ has: created })
+    .getByRole('button', { name: 'حذف المنتج' })
+    .click();
+  await expect(created).toHaveCount(0);
+  expect((await page.request.get('/product/e2e-delete-me')).status()).toBe(404);
 
   // الاستديو: فيديو أكبر من الحدّ القديم (60MB) يُرفع كاملاً على دفعات
   const size = 70 * 1024 * 1024;

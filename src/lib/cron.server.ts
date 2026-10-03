@@ -1,5 +1,9 @@
 import 'server-only';
+import { readdir, stat } from 'node:fs/promises';
+import path from 'node:path';
 import { db } from '@/lib/db';
+import { isMediaFilename, mediaDirectory, removeMedia } from '@/lib/uploads';
+import { isVideoUrl } from '@/lib/media';
 import { getSettings } from '@/lib/settings.server';
 import { sendMail } from '@/lib/mail';
 import { SITE } from '@/lib/config';
@@ -125,4 +129,50 @@ export async function pruneOldData() {
     db.auditLog.deleteMany({ where: { createdAt: { lt: new Date(now - 365 * DAY) } } }),
   ]);
   return { events: events.count, codes: codes.count, limits: limits.count, audit: audit.count };
+}
+
+const HOUR = 3600 * 1000;
+let lastVideoSweep = 0;
+
+/**
+ * يحذف ملفات الفيديو التي لم يعد يشير إليها شيء: فيديو أُزيل من منتج أو خلطة، أو رُفع
+ * في المحرّر ثم لم يُحفظ. الفيديو بلا حدّ للحجم، فتركه يتراكم يملأ القرص بصمت.
+ * مهلة يومين قبل الحذف تحمي رفعاً ما زال صاحبه يحرّر صفحته. مرة في الساعة تكفي.
+ */
+export async function sweepOrphanVideos(now = Date.now()) {
+  if (now - lastVideoSweep < HOUR) return { removed: 0, skipped: true };
+  lastVideoSweep = now;
+  const dir = mediaDirectory();
+  const names = (await readdir(dir).catch(() => [] as string[])).filter(
+    (name) => isMediaFilename(name) && isVideoUrl(name),
+  );
+  if (names.length === 0) return { removed: 0 };
+  const [products, mixtures, studio] = await Promise.all([
+    db.product.findMany({
+      where: { NOT: { videos: { isEmpty: true } } },
+      select: { videos: true },
+    }),
+    db.mixture.findMany({
+      where: { NOT: { videos: { isEmpty: true } } },
+      select: { videos: true },
+    }),
+    db.studioPhoto.findMany({ where: { type: 'VIDEO' }, select: { url: true } }),
+  ]);
+  const used = new Set([
+    ...products.flatMap((p) => p.videos),
+    ...mixtures.flatMap((m) => m.videos),
+    ...studio.map((s) => s.url),
+  ]);
+  let removed = 0;
+  for (const name of names) {
+    const url = `/uploads/studio/${name}`;
+    if (used.has(url)) continue;
+    const info = await stat(path.join(dir, name)).catch(() => null);
+    if (!info || now - info.mtimeMs < 2 * DAY) continue;
+    // فيديو مضمَّن يدوياً في نص مقال يبقى
+    if (await db.article.count({ where: { body: { contains: url } } })) continue;
+    await removeMedia(url).catch(() => {});
+    removed++;
+  }
+  return { removed };
 }

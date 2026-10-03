@@ -134,7 +134,8 @@ export function MixtureBuilder({
         <h2 className="mb-3 text-sm font-bold text-zinc-300">
           <span className="text-amber-500">١.</span> اختر عسلك الأساسي
         </h2>
-        <div className="grid grid-cols-3 gap-2 sm:grid-cols-5 sm:gap-3">
+        {/* أيقونات صغيرة في صف واحد يُسحب — لا شبكة بطاقات تأكل الشاشة قبل الوصول للسعر */}
+        <div className="-mx-1 flex gap-1 overflow-x-auto px-1 pb-1 [scrollbar-width:none] sm:flex-wrap [&::-webkit-scrollbar]:hidden">
           {honeys.map((h) => {
             const active = h.slug === honey.slug;
             return (
@@ -143,27 +144,32 @@ export function MixtureBuilder({
                 type="button"
                 onClick={() => setHoneySlug(h.slug)}
                 aria-pressed={active}
-                className={`group relative overflow-hidden rounded-xl border text-right transition-all ${
-                  active
-                    ? 'border-amber-500 ring-2 ring-amber-500/30'
-                    : 'border-zinc-800 hover:border-zinc-600'
-                }`}
+                className="group flex w-[4.5rem] shrink-0 flex-col items-center gap-1.5 rounded-xl p-1 text-center"
               >
-                {}
-                <img
-                  src={h.image}
-                  alt=""
-                  className="aspect-square w-full object-cover"
-                  loading="lazy"
-                />
-                <span className="block bg-zinc-900/90 px-2 py-1.5 text-[11px] font-bold leading-tight text-zinc-100 sm:text-xs">
+                <span
+                  className={`relative block h-14 w-14 rounded-full border-2 p-0.5 transition-colors ${
+                    active ? 'border-amber-500' : 'border-zinc-800 group-hover:border-zinc-600'
+                  }`}
+                >
+                  <img
+                    src={h.image}
+                    alt=""
+                    className="h-full w-full rounded-full object-cover"
+                    loading="lazy"
+                  />
+                  {active && (
+                    <span className="absolute -bottom-0.5 -left-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-amber-500 text-zinc-950 ring-2 ring-zinc-950">
+                      <Check className="h-3 w-3" strokeWidth={3} />
+                    </span>
+                  )}
+                </span>
+                <span
+                  className={`line-clamp-2 text-[11px] leading-tight ${
+                    active ? 'font-bold text-amber-300' : 'text-zinc-400'
+                  }`}
+                >
                   {h.name}
                 </span>
-                {active && (
-                  <span className="absolute top-1.5 left-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-amber-500 text-zinc-950">
-                    <Check className="h-3 w-3" strokeWidth={3} />
-                  </span>
-                )}
               </button>
             );
           })}

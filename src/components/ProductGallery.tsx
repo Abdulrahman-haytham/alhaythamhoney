@@ -2,11 +2,14 @@
 
 import { useRef, useState } from 'react';
 import Image from 'next/image';
+import { Play } from 'lucide-react';
+import { isVideoUrl } from '@/lib/media';
 
 /**
- * صور المنتج: صورة واحدة تُعرض كما كانت؛ أكثر من صورة تصير شريطاً يُسحب بالإصبع
- * (scroll-snap، بلا مكتبة) مع مصغّرات تحته. الأولى فقط `priority` لأنها صورة LCP،
- * والبقية تُحمَّل عند الاقتراب منها.
+ * معرض المنتج أو الخلطة: صورة واحدة تُعرض كما كانت؛ أكثر من ملف (صور ثم فيديو) يصير
+ * شريطاً يُسحب بالإصبع (scroll-snap، بلا مكتبة) مع مصغّرات تحته. الأولى فقط `priority`
+ * لأنها صورة LCP، والبقية تُحمَّل عند الاقتراب منها. الفيديو لا يُحمَّل منه إلا بياناته
+ * حتى يضغط الزائر تشغيل، ويتوقف حين يُسحب بعيداً عنه.
  */
 export default function ProductGallery({
   images,
@@ -36,20 +39,34 @@ export default function ProductGallery({
           onScroll={(e) => {
             const el = e.currentTarget;
             // في RTL يكون scrollLeft سالباً — نأخذ المطلق
-            setActive(Math.round(Math.abs(el.scrollLeft) / el.clientWidth));
+            const index = Math.round(Math.abs(el.scrollLeft) / el.clientWidth);
+            if (index === active) return;
+            setActive(index);
+            el.querySelectorAll('video').forEach((v) => v.pause());
           }}
           className="flex h-full snap-x snap-mandatory overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         >
           {images.map((src, i) => (
             <div key={src} className="relative h-full w-full shrink-0 snap-center">
-              <Image
-                src={src}
-                alt={i === 0 ? alt : `${alt} — صورة ${i + 1}`}
-                fill
-                priority={i === 0}
-                sizes="(max-width: 1024px) 100vw, 50vw"
-                className="object-cover"
-              />
+              {isVideoUrl(src) ? (
+                <video
+                  src={`${src}#t=0.1`}
+                  controls
+                  playsInline
+                  preload="metadata"
+                  aria-label={`${alt} — فيديو`}
+                  className="h-full w-full bg-black object-contain"
+                />
+              ) : (
+                <Image
+                  src={src}
+                  alt={i === 0 ? alt : `${alt} — صورة ${i + 1}`}
+                  fill
+                  priority={i === 0}
+                  sizes="(max-width: 1024px) 100vw, 50vw"
+                  className="object-cover"
+                />
+              )}
             </div>
           ))}
         </div>
@@ -75,13 +92,29 @@ export default function ProductGallery({
               key={src}
               type="button"
               onClick={() => go(i)}
-              aria-label={`عرض الصورة ${i + 1}`}
+              aria-label={isVideoUrl(src) ? `عرض الفيديو ${i + 1}` : `عرض الصورة ${i + 1}`}
               aria-current={i === active}
               className={`relative h-16 w-16 shrink-0 overflow-hidden rounded-xl border-2 transition ${
                 i === active ? 'border-amber-500' : 'border-zinc-800 opacity-70'
               }`}
             >
-              <Image src={src} alt="" fill sizes="64px" className="object-cover" />
+              {isVideoUrl(src) ? (
+                <>
+                  <video
+                    src={`${src}#t=0.1`}
+                    preload="metadata"
+                    muted
+                    playsInline
+                    tabIndex={-1}
+                    className="h-full w-full object-cover"
+                  />
+                  <span className="absolute inset-0 flex items-center justify-center bg-zinc-950/30 text-white">
+                    <Play className="h-5 w-5" fill="currentColor" />
+                  </span>
+                </>
+              ) : (
+                <Image src={src} alt="" fill sizes="64px" className="object-cover" />
+              )}
             </button>
           ))}
         </div>

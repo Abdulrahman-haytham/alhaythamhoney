@@ -1,6 +1,9 @@
 import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Prisma } from '@prisma/client';
 import { DEFAULT_SETTINGS } from '@/lib/settings';
+import { mkdirSync, mkdtempSync, readdirSync, rmSync, utimesSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
 
 // قاعدة اختبار محلية معزولة باختيار صريح — لا تعمل هذه المجموعة على بيانات تشغيل أبداً.
 const url = process.env.TEST_DATABASE_URL;
@@ -19,7 +22,7 @@ const { redeemedThisMonth, issuePersonalCoupon } = await import('@/lib/loyalty.s
 const { startCampaign, processCampaign, ensureUnsubscribeToken, trackOpen } =
   await import('@/lib/campaigns.server');
 const { issueLoginCode, consumeLoginCode } = await import('@/lib/customer-auth');
-const { sendAbandonedCartEmails } = await import('@/lib/cron.server');
+const { sendAbandonedCartEmails, sweepOrphanVideos } = await import('@/lib/cron.server');
 const customer = {
   id: 'qa-customer',
   whatsapp: '963900000000',
@@ -43,6 +46,7 @@ async function clean() {
   await db.promotion.deleteMany();
   await db.product.deleteMany();
   await db.loginCode.deleteMany();
+  await db.studioPhoto.deleteMany();
   await db.siteSettings.deleteMany();
 }
 
@@ -258,6 +262,45 @@ describe.skipIf(!url)('commercial workflow on PostgreSQL', () => {
       Array.from({ length: 5 }, () => consumeLoginCode(customer.whatsapp, code)),
     );
     expect(results.filter(Boolean)).toHaveLength(1);
+  });
+
+  it('sweeps only old videos that nothing points to', async () => {
+    const root = mkdtempSync(path.join(tmpdir(), 'haytham-sweep-'));
+    process.env.UPLOAD_DIR = root;
+    const dir = path.join(root, 'studio');
+    mkdirSync(dir);
+    const name = (n: number) => `00000000-0000-4000-8000-00000000000${n}.mp4`;
+    const url = (n: number) => `/uploads/studio/${name(n)}`;
+    const old = new Date(Date.now() - 3 * 24 * 3600 * 1000);
+    for (const n of [1, 2, 3, 4, 5]) {
+      writeFileSync(path.join(dir, name(n)), 'video');
+      // 5 رُفع للتو: صاحبه قد يكون ما زال يحرّر الصفحة ولم يحفظ بعد
+      if (n !== 5) utimesSync(path.join(dir, name(n)), old, old);
+    }
+    writeFileSync(path.join(dir, '00000000-0000-4000-8000-000000000009.webp'), 'image');
+    await db.product.update({ where: { id: 'qa-product' }, data: { videos: [url(1)] } });
+    await db.studioPhoto.create({ data: { url: url(2), type: 'VIDEO' } });
+    await db.mixture.create({
+      data: {
+        slug: 'qa-mix',
+        name: 'خلطة',
+        tagline: '',
+        desc: 'وصف خلطة الاختبار',
+        videos: [url(3)],
+      },
+    });
+    try {
+      expect(await sweepOrphanVideos()).toEqual({ removed: 1 });
+      expect(readdirSync(dir).sort()).toEqual(
+        [name(1), name(2), name(3), name(5), '00000000-0000-4000-8000-000000000009.webp'].sort(),
+      );
+      // مرة في الساعة تكفي — المؤقّت يستدعي المهام كل دقيقة
+      expect(await sweepOrphanVideos()).toMatchObject({ skipped: true });
+    } finally {
+      await db.mixture.deleteMany({ where: { slug: 'qa-mix' } });
+      rmSync(root, { recursive: true, force: true });
+      delete process.env.UPLOAD_DIR;
+    }
   });
 
   it('refuses an unavailable cart line rather than silently creating a partial order', async () => {

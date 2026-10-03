@@ -80,3 +80,18 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   });
   return NextResponse.json({ ok: true });
 }
+
+/**
+ * حذف نهائي للمنتج مع تقييماته ومتغيّراته. الطلبات السابقة تحتفظ ببنودها (الاسم والسعر
+ * مخزّنان فيها) وتفقد الرابط إلى المنتج فقط. رابط المنتج المحذوف يعود 404.
+ */
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const denied = await guardAdmin(request);
+  if (denied) return denied;
+  const { id } = await params;
+  const product = await db.product.findUnique({ where: { id }, select: { name: true } });
+  if (!product) return NextResponse.json({ error: 'المنتج غير موجود.' }, { status: 404 });
+  await db.product.delete({ where: { id } });
+  await logAudit({ entity: 'product', entityId: id, action: 'delete', label: product.name });
+  return NextResponse.json({ ok: true });
+}

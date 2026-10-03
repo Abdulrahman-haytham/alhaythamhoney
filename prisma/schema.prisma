@@ -51,6 +51,8 @@ model Product {
   image        String
   /// صور إضافية للمعرض في صفحة المنتج — `image` تبقى الرئيسية في البطاقات والسلة
   images       String[]          @default([])
+  /// مقاطع فيديو المنتج — تُعرض في المعرض بعد الصور
+  videos       String[]          @default([])
   badge        String?
   price        Int?
   weight       String?
@@ -296,6 +298,9 @@ model Mixture {
   tagline     String
   desc        String
   image       String?
+  /// صور إضافية ومقاطع فيديو لمعرض صفحة الخلطة (`image` هي صورة البطاقة)
+  images      String[]            @default([])
+  videos      String[]            @default([])
   /// أحجام المرطبان المتاحة بالغرام — يضبطها الأدمن؛ الحجم يغيّر كمية العسل فقط
   sizes       Int[]               @default([250, 500, 1000])
   defaultSize Int                 @default(500)
