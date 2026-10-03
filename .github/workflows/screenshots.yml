@@ -140,6 +140,16 @@ jobs:
           });
           await ctx.route(/\/api\/events|google-analytics|googletagmanager|connect\.facebook\.net|facebook\.com\/tr/, (r) => r.abort());
 
+          // Preview builds seed a throwaway admin, so dashboard pages can be shot too.
+          // Never attempted against the live site.
+          if (process.env.PREVIEW_BASE && paths.some((p) => p.startsWith('/admin'))) {
+            const login = await ctx.request.post(`${base}/api/admin/login`, {
+              headers: { origin: base },
+              data: { username: 'preview', password: 'preview-only-password-1234' },
+            });
+            console.log('preview admin login:', login.status());
+          }
+
           const report = [];
           for (const [i, entry] of paths.entries()) {
             // "path|css-selector" clicks that element after load (e.g. "/|[aria-controls=mobile-menu]")
@@ -167,6 +177,7 @@ jobs:
               await page.click(click);
               await page.waitForTimeout(800);
               await page.screenshot({ path: `${out}/${name}-clicked.jpg`, type: 'jpeg', quality: 70 });
+              await page.screenshot({ path: `${out}/${name}-clicked-full.jpg`, type: 'jpeg', quality: 60, fullPage: true });
               report.push({ path: entry, name });
               await page.close();
               continue;
